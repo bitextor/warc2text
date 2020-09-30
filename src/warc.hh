@@ -3,6 +3,29 @@
 
 #include <iostream>
 #include "zlib.h"
+#include <map>
+#include <vector>
+
+class Record {
+public:
+    Record(const std::string& content);
+
+    std::string getHeaderProperty(const std::string& property);
+
+    std::string getHTTPHeaderProperty(const std::string& property);
+
+    std::string getPayload();
+
+    std::map<std::string, std::string> getHeader();
+
+    std::map<std::string, std::string> getHTTPHeader();
+
+private:
+    std::map<std::string, std::string> header;
+    std::map<std::string, std::string> HTTPheader;
+    std::string payload;
+
+};
 
 class WARCReader {
     public:

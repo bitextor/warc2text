@@ -19,14 +19,32 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 # define where include files are
 include_directories(
     ${PROJECT_SOURCE_DIR}
-    # ${PROJECT_SOURCE_DIR}/preprocess
 )
 
 # process subdirectories
 add_subdirectory(src)
-# add_subdirectory(preprocess)
+
+if( PREPROCESS_PATH )
+include_directories(${PREPROCESS_PATH})
+add_subdirectory(${PREPROCESS_PATH} preprocess-bin)
+else()
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/preprocess)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/preprocess preprocess-bin)
+endif()
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/local/opt/icu4c/include")
+endif()
+
+include_directories(preprocess)
+add_executable(warc2text
+warc2text_main.cc
+)
+
+# target_link_libraries(warc2text preprocess_util)
+target_link_libraries(warc2text warc2text_lib)
 
 # define executables
 add_executable(decode_main decode_main.cpp)
-# target_link_libraries(decode_main preprocess_util warc2text-lib)
+# target_link_libraries(decode_main preprocess_util)
 target_link_libraries(decode_main warc2text_lib)

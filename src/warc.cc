@@ -1,7 +1,11 @@
 #include "warc.hh"
 #include <cassert>
+#include <sstream>
+#include <boost/algorithm/string.hpp>
 
 WARCReader::WARCReader(const std::string& filename){
+    file = nullptr;
+
     openFile(filename);
 
     buf = new uint8_t[BUFFER_SIZE];
@@ -26,7 +30,7 @@ WARCReader::~WARCReader(){
 bool WARCReader::getRecord(std::string& out){
     int inflate_ret = 0;
     out.clear();
-    std::size_t len = 0;
+    std::size_t len;
     while (inflate_ret != Z_STREAM_END) {
         if (s.avail_in == 0) {
             len = readChunk();
@@ -71,4 +75,66 @@ std::size_t WARCReader::readChunk(){
         exit(1);
     }
     return len;
+}
+
+Record::Record(const std::string& content) {
+    std::stringstream ss(content);
+    std::string to;
+    bool readingHeader = true;
+    bool readingHTTPHeader = true;
+    std::string delimiter = ": ";
+    payload = "";
+    while (std::getline(ss, to, '\n')) {
+        std::string trimmed;
+        if (readingHeader or readingHTTPHeader){
+            trimmed = boost::trim_right_copy(to);
+        }
+        if (trimmed.empty() && readingHeader) {
+            readingHeader = false;
+        } else if (trimmed.empty() && readingHTTPHeader) {
+            readingHTTPHeader = false;
+        }
+
+        if (readingHeader) {
+            std::string key = trimmed.substr(0, trimmed.find(delimiter));
+            std::string value = trimmed.substr(trimmed.find(delimiter) + 2, trimmed.length());
+            header[key] = value;
+        } else if (readingHTTPHeader) {
+            if (trimmed.find(delimiter) != std::string::npos) {
+                std::string key = trimmed.substr(0, trimmed.find(delimiter));
+                std::string value = trimmed.substr(trimmed.find(delimiter) + 2, trimmed.length());
+                HTTPheader[key] = value;
+            }
+        } else {
+            payload = payload + to + "\n";
+        }
+    }
+}
+
+std::string Record::getHeaderProperty(const std::string& property) {
+    if (header.find(property) != header.end()) {
+        return header[property];
+    } else {
+        return "";
+    }
+}
+
+std::string Record::getHTTPHeaderProperty(const std::string& property) {
+    if (HTTPheader.find(property) != HTTPheader.end()) {
+        return HTTPheader[property];
+    } else {
+        return "";
+    }
+}
+
+std::string Record::getPayload() {
+    return payload;
+}
+
+std::map<std::string, std::string> Record::getHeader() {
+    return header;
+}
+
+std::map<std::string, std::string> Record::getHTTPHeader() {
+    return HTTPheader;
 }
