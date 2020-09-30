@@ -8,6 +8,7 @@ class WARCReader {
     public:
         WARCReader(const std::string& filename);
         bool getRecord(std::string& out);
+        ~WARCReader();
     private:
         std::FILE* file;
         z_stream s{};

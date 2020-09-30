@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-project(warc2test-src)
+project(warc2text_src)
 
-set(COMPRESS_FLAGS)
-set(COMPRESS_LIBS)
-find_package(ZLIB)
-include_directories(${ZLIB_INCLUDE_DIR})
-set_source_files_properties(warc.cc PROPERTIES COMPILE_FLAGS "-DHAVE_ZLIB")
-add_library(warc warc.cc)
-target_link_libraries(warc ${ZLIB_LIBRARIES})
+find_package(ZLIB REQUIRED)
+include_directories(
+    ${ZLIB_INCLUDE_DIR}
+)
+
+add_library(warc2text_lib warc.cc)
+# target_link_libraries(warc2text-lib preprocess_util ${ZLIB_LIBRARIES})
+target_link_libraries(warc2text_lib ${ZLIB_LIBRARIES})
