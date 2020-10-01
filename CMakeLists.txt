@@ -37,8 +37,15 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif ()
 
 include_directories(preprocess)
+
 add_executable(warc2text
         warc2text_main.cc)
+
+FIND_PACKAGE( Boost 1.61 COMPONENTS filesystem program_options iostreams timer REQUIRED )
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+
+
+TARGET_LINK_LIBRARIES( warc2text ${Boost_LIBRARIES} )
 
 # target_link_libraries(warc2text preprocess_util)
 target_link_libraries(warc2text warc2text_lib)
@@ -50,3 +57,4 @@ target_link_libraries(decode_main warc2text_lib)
 
 add_executable(xh_scanner_demo
         xh_scanner_demo.cpp xh_scanner.cpp)
+
