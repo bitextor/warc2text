@@ -3,12 +3,13 @@
 #include "src/warc.hh"
 #include <boost/algorithm/string.hpp>
 #include <wordexp.h>
+#define __unused __attribute__((unused))
 
 
 void PreProcessFile(const std::string& filename);
 
 void PreProcessFile(const std::string &filename) {
-    WARCReader reader(filename.c_str());
+    WARCReader reader(filename);
     std::string str;
     while (reader.getRecord(str)) {
         Record record = Record(str);
@@ -22,7 +23,7 @@ void PreProcessFile(const std::string &filename) {
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(__unused int argc, char *argv[]) {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     wordexp_t exp_result;
     wordexp(argv[1], &exp_result, 0);
