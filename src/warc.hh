@@ -8,7 +8,7 @@
 
 class Record {
 public:
-    Record(const std::string& content);
+    explicit Record(const std::string& content);
 
     std::string getHeaderProperty(const std::string& property);
 
@@ -29,7 +29,7 @@ private:
 
 class WARCReader {
     public:
-        WARCReader(const std::string& filename);
+        explicit WARCReader(const std::string& filename);
         bool getRecord(std::string& out);
         ~WARCReader();
     private:
