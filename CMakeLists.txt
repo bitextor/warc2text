@@ -39,7 +39,7 @@ endif ()
 include_directories(preprocess)
 
 add_executable(warc2text
-        warc2text_main.cc)
+        warc2text_main.cc xh_scanner.cpp)
 
 FIND_PACKAGE( Boost 1.61 COMPONENTS filesystem program_options iostreams timer REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
@@ -56,5 +56,5 @@ add_executable(decode_main decode_main.cpp)
 target_link_libraries(decode_main warc2text_lib)
 
 add_executable(xh_scanner_demo
-        xh_scanner_demo.cpp xh_scanner.cpp)
+        xh_scanner.cpp)
 

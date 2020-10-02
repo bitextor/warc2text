@@ -13,12 +13,15 @@ void PreProcessFile(const std::string &filename) {
     std::string str;
     while (reader.getRecord(str)) {
         Record record = Record(str);
-        std::string trimmed = boost::trim_copy(record.getPayload());
-        trimmed.erase(std::remove(trimmed.begin(), trimmed.end(), '\r'), trimmed.end());
-        if (!trimmed.empty()) {
-            std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
-            std::cout << record.getHTTPHeaderProperty("Date") << std::endl;
-            std::cout << trimmed << std::endl;
+        if (record.getHeader()["WARC-Type"] == "response") {
+            std::wstring plaintext = L"";
+            record.getPayloadPlainText(plaintext);
+            plaintext.erase(std::remove(plaintext.begin(), plaintext.end(), '\r'), plaintext.end());
+            if (!plaintext.empty()) {
+                std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
+                std::cout << record.getHTTPHeaderProperty("Date") << std::endl;
+                std::wcout << plaintext << std::endl;
+            }
         }
     }
 }

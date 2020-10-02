@@ -2,6 +2,16 @@
 #include <cassert>
 #include <sstream>
 #include <boost/algorithm/string.hpp>
+#include "xh_scanner.h"
+
+struct str_istream : public markup::instream {
+    const char *p;
+    const char *end;
+
+    explicit str_istream(const char *src) : p(src), end(src + strlen(src)) {}
+
+    wchar_t get_char() override { return p < end ? *p++ : 0; }
+};
 
 WARCReader::WARCReader(const std::string& filename){
     file = nullptr;
@@ -130,6 +140,47 @@ std::string Record::getHTTPHeaderProperty(const std::string& property) {
 std::string Record::getPayload() {
     return payload;
 }
+
+void Record::getPayloadPlainText(std::wstring &plaintext){
+    str_istream si(payload.c_str());
+    markup::scanner sc(si);
+    const wchar_t *value;
+    while (true) {
+        int t = sc.get_token();
+        switch (t) {
+            case markup::scanner::TT_ERROR:
+                //printf("ERROR\n");
+                break;
+            case markup::scanner::TT_EOF:
+                //printf("EOF\n");
+                goto FINISH;
+            case markup::scanner::TT_TAG_START:
+                //printf("TAG START:%s\n", sc.get_tag_name());
+                break;
+            case markup::scanner::TT_TAG_END:
+                //printf("TAG END:%s\n", sc.get_tag_name());
+                break;
+            case markup::scanner::TT_ATTR:
+                //printf("\tATTR:%s=%S\n", sc.get_attr_name(), sc.get_value());
+                break;
+            case markup::scanner::TT_WORD:
+                value = sc.get_value();
+                plaintext.append(value);
+                plaintext.append(L" ");
+                //printf("{%S}\n", value);
+                break;
+            case markup::scanner::TT_SPACE:
+                break;
+            default:
+                //printf("Unknown tag\n");
+                break;
+        }
+    }
+    FINISH:
+    ;
+    //printf("--------------------------\n");
+}
+
 
 std::map<std::string, std::string> Record::getHeader() {
     return header;

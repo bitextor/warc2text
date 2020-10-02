@@ -16,6 +16,8 @@ public:
 
     std::string getPayload();
 
+    void getPayloadPlainText(std::wstring &plaintext);
+
     std::map<std::string, std::string> getHeader();
 
     std::map<std::string, std::string> getHTTPHeader();
