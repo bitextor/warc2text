@@ -1,5 +1,5 @@
 #include <iostream>
-#include "src/warc.hh"
+#include "src/warcreader.hh"
 
 int main(int argc, char* argv[]){
     std::string filename = "-";

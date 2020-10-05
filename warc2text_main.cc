@@ -1,8 +1,9 @@
 #include <iostream>
 #include <chrono>
-#include "src/warc.hh"
+#include "src/warcreader.hh"
 #include <boost/algorithm/string.hpp>
 #include <wordexp.h>
+#include "src/record.hh"
 #define __unused __attribute__((unused))
 
 
