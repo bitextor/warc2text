@@ -1,3 +1,6 @@
 [submodule "preprocess"]
 	path = preprocess
 	url = https://github.com/kpu/preprocess.git
+[submodule "cld2"]
+	path = cld2
+	url = https://github.com/cld2owners/cld2

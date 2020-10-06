@@ -40,8 +40,15 @@ add_subdirectory(src)
 # endif ()
 # include_directories(preprocess)
 
+# build libcld2.so
+execute_process (
+    COMMAND bash -c "export CFLAGS='-Wno-narrowing -O3' && ./compile_libs.sh"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/cld2/internal
+)
 
 # define executables
 add_executable(warc2text warc2text_main.cc)
 target_link_libraries(warc2text ${Boost_LIBRARIES} warc2text_lib)
+add_executable(cld2_main cld2_main.cc)
+target_link_libraries(cld2_main ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so)
 # target_link_libraries(warc2text preprocess_util)
