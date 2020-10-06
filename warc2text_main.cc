@@ -1,7 +1,6 @@
 #include <iostream>
 #include <chrono>
 #include <boost/algorithm/string.hpp>
-#include <wordexp.h>
 #include "src/record.hh"
 #include "src/warcreader.hh"
 #define __unused __attribute__((unused))
@@ -29,9 +28,8 @@ void PreProcessFile(const std::string &filename) {
 
 int main(__unused int argc, char *argv[]) {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    wordexp_t exp_result;
-    wordexp(argv[1], &exp_result, 0);
-    std::string filename = exp_result.we_wordv[0];
+    std::string filename = "-";
+    if (argc > 1) filename = std::string(argv[1]);
     PreProcessFile(filename);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
