@@ -13,17 +13,19 @@ class Record {
 public:
     explicit Record(const std::string& content);
 
-    std::string getHeaderProperty(const std::string& property);
+    const std::string& getHeaderProperty(const std::string& property) const;
+    bool headerExists(const std::string& property) const;
 
-    std::string getHTTPHeaderProperty(const std::string& property);
+    const std::string& getHTTPheaderProperty(const std::string& property) const;
+    bool HTTPheaderExists(const std::string& property) const;
 
-    std::string getPayload();
+    const std::string& getPayload() const;
 
     void getPayloadPlainText(std::wstring &plaintext);
 
-    std::unordered_map<std::string, std::string> getHeader();
+    // std::unordered_map<std::string, std::string> getHeader();
 
-    std::unordered_map<std::string, std::string> getHTTPHeader();
+    // std::unordered_map<std::string, std::string> getHTTPHeader();
 
 private:
     std::unordered_map<std::string, std::string> header;

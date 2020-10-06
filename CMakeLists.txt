@@ -43,6 +43,5 @@ add_subdirectory(src)
 
 # define executables
 add_executable(warc2text warc2text_main.cc)
-# target_link_libraries(decode_main preprocess_util)
 target_link_libraries(warc2text ${Boost_LIBRARIES} warc2text_lib)
 # target_link_libraries(warc2text preprocess_util)

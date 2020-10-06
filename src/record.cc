@@ -57,26 +57,6 @@ Record::Record(const std::string& content) {
     }
 }
 
-std::string Record::getHeaderProperty(const std::string& property) {
-    if (header.find(property) != header.end()) {
-        return header[property];
-    } else {
-        return "";
-    }
-}
-
-std::string Record::getHTTPHeaderProperty(const std::string& property) {
-    if (HTTPheader.find(property) != HTTPheader.end()) {
-        return HTTPheader[property];
-    } else {
-        return "";
-    }
-}
-
-std::string Record::getPayload() {
-    return payload;
-}
-
 void Record::getPayloadPlainText(std::wstring &plaintext){
     str_istream si(payload.c_str());
     markup::scanner sc(si);
@@ -133,10 +113,30 @@ void Record::getPayloadPlainText(std::wstring &plaintext){
 }
 
 
-std::unordered_map<std::string, std::string> Record::getHeader() {
-    return header;
+// std::unordered_map<std::string, std::string> Record::getHeader() {
+//     return header;
+// }
+//
+// std::unordered_map<std::string, std::string> Record::getHTTPHeader() {
+//     return HTTPheader;
+// }
+
+
+const std::string& Record::getHeaderProperty(const std::string& property) const {
+    return header.at(property);
+}
+bool Record::headerExists(const std::string& property) const {
+    return header.find(property) != header.end();
 }
 
-std::unordered_map<std::string, std::string> Record::getHTTPHeader() {
-    return HTTPheader;
+const std::string& Record::getHTTPheaderProperty(const std::string& property) const {
+    return HTTPheader.at(property);
 }
+bool Record::HTTPheaderExists(const std::string& property) const{
+    return HTTPheader.find(property) != HTTPheader.end();
+}
+
+const std::string& Record::getPayload() const {
+    return payload;
+}
+
