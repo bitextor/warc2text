@@ -21,7 +21,7 @@ public:
 
     const std::string& getPayload() const;
 
-    void getPayloadPlainText(std::wstring &plaintext);
+    void getPayloadPlainText(std::string &plaintext);
 
     // std::unordered_map<std::string, std::string> getHeader();
 

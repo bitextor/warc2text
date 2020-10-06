@@ -1,9 +1,8 @@
-#include <cstring>
 #include <cctype>
+#include <cstring>
 #include "xh_scanner.hh"
 
 namespace markup {
-
 
     // case sensitive string equality test
     // s_lowcase shall be lowercase string
@@ -32,7 +31,7 @@ namespace markup {
         }
     }
 
-    const wchar *scanner::get_value() {
+    const char *scanner::get_value() {
         value[value_length] = 0;
         return value;
     }
@@ -48,7 +47,7 @@ namespace markup {
     }
 
     scanner::token_type scanner::scan_body() {
-        wchar c = get_char();
+        char c = get_char();
 
         value_length = 0;
 
@@ -87,14 +86,14 @@ namespace markup {
     }
 
     scanner::token_type scanner::scan_head() {
-        wchar c = skip_whitespace();
+        char c = skip_whitespace();
 
         if (c == '>') {
             c_scan = &scanner::scan_body;
             return scan_body();
         }
         if (c == '/') {
-            wchar t = get_char();
+            char t = get_char();
             if (t == '>') {
                 c_scan = &scanner::scan_body;
                 return TT_TAG_END;
@@ -173,7 +172,7 @@ namespace markup {
     scanner::token_type scanner::scan_tag() {
         tag_name_length = 0;
 
-        wchar c = get_char();
+        char c = get_char();
 
         bool is_tail = c == '/';
         if (is_tail) c = get_char();
@@ -224,18 +223,18 @@ namespace markup {
 
     // skip whitespaces.
     // returns first non-whitespace char
-    wchar scanner::skip_whitespace() {
-        while (wchar c = get_char()) {
+    char scanner::skip_whitespace() {
+        while (char c = get_char()) {
             if (!is_whitespace(c)) return c;
         }
         return 0;
     }
 
-    void scanner::push_back(wchar c) { input_char = c; }
+    void scanner::push_back(char c) { input_char = c; }
 
-    wchar scanner::get_char() {
+    char scanner::get_char() {
         if (input_char) {
-            wchar t(input_char);
+            char t(input_char);
             input_char = 0;
             return t;
         }
@@ -244,10 +243,10 @@ namespace markup {
 
 
     // caller consumed '&'
-    wchar scanner::scan_entity() {
+    char scanner::scan_entity() {
         char buf[32];
         int i = 0;
-        wchar t;
+        char t;
         for (; i < 31; ++i) {
             t = get_char();
             if (t == 0) return TT_EOF;
@@ -279,22 +278,22 @@ namespace markup {
         return ';';
     }
 
-    bool scanner::is_whitespace(wchar c) {
+    bool scanner::is_whitespace(char c) {
         return c <= ' '
                && (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f');
     }
 
-    void scanner::append_value(wchar c) {
+    void scanner::append_value(char c) {
         if (value_length < (MAX_TOKEN_SIZE - 1))
             value[value_length++] = c;
     }
 
-    void scanner::append_attr_name(wchar c) {
+    void scanner::append_attr_name(char c) {
         if (attr_name_length < (MAX_NAME_SIZE - 1))
             attr_name[attr_name_length++] = char(c);
     }
 
-    void scanner::append_tag_name(wchar c) {
+    void scanner::append_tag_name(char c) {
         if (tag_name_length < (MAX_NAME_SIZE - 1))
             tag_name[tag_name_length++] = char(c);
     }
@@ -306,7 +305,7 @@ namespace markup {
             return TT_COMMENT_END;
         }
         for (value_length = 0; value_length < (MAX_TOKEN_SIZE - 1); ++value_length) {
-            wchar c = get_char();
+            char c = get_char();
             if (c == 0) return TT_EOF;
             value[value_length] = c;
 
@@ -329,7 +328,7 @@ namespace markup {
             return TT_CDATA_END;
         }
         for (value_length = 0; value_length < (MAX_TOKEN_SIZE - 1); ++value_length) {
-            wchar c = get_char();
+            char c = get_char();
             if (c == 0) return TT_EOF;
             value[value_length] = c;
 
@@ -352,7 +351,7 @@ namespace markup {
             return TT_PI_END;
         }
         for (value_length = 0; value_length < (MAX_TOKEN_SIZE - 1); ++value_length) {
-            wchar c = get_char();
+            char c = get_char();
             if (c == 0) return TT_EOF;
             value[value_length] = c;
 
@@ -373,7 +372,7 @@ namespace markup {
             got_tail = false;
             return TT_ENTITY_END;
         }
-        wchar t;
+        char t;
         unsigned int tc = 0;
         for (value_length = 0; value_length < (MAX_TOKEN_SIZE - 1); ++value_length) {
             t = get_char();

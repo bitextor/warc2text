@@ -1,20 +1,12 @@
-#ifndef __MARKUP
-#define __MARKUP
-
-//| 
+//|
 //| simple and fast XML/HTML scanner/tokenizer
 //|
 //| (C) Andrew Fedoniouk @ terrainformatica.com
 //|
 
-#include <cstdlib> // wchar_t
-#include <cstring> // strcmp, etc.
-
 namespace markup {
-    typedef wchar_t wchar;
-
     struct instream {
-        virtual wchar get_char() = 0;
+        virtual char get_char() = 0;
     };
 
 
@@ -62,7 +54,7 @@ namespace markup {
         token_type get_token() { return (this->*c_scan)(); }
 
         // get value of TT_WORD, TT_SPACE, TT_ATTR and TT_DATA
-        const wchar *get_value();
+        const char *get_value();
 
         // get attribute name
         const char *get_attr_name();
@@ -71,7 +63,7 @@ namespace markup {
         const char *get_tag_name();
 
         // should be overrided to resolve entities, e.g. &nbsp;
-        virtual wchar resolve_entity(const char *buf, int buf_size) { return 0; }
+        virtual char resolve_entity(const char *buf, int buf_size) { return 0; }
 
     private: /* methods */
 
@@ -94,29 +86,27 @@ namespace markup {
 
         token_type scan_entity_decl();
 
-        wchar skip_whitespace();
+        char skip_whitespace();
 
-        void push_back(wchar c);
+        void push_back(char c);
 
-        wchar get_char();
+        char get_char();
 
-        wchar scan_entity();
+        char scan_entity();
 
-        static bool is_whitespace(wchar c);
+        static bool is_whitespace(char c);
 
-        void append_value(wchar c);
+        void append_value(char c);
 
-        void append_attr_name(wchar c);
+        void append_attr_name(char c);
 
-        void append_tag_name(wchar c);
+        void append_tag_name(char c);
 
     private: /* data */
 
-        //enum state { TEXT = 0, MARKUP = 1, COMMENT = 2, CDATA = 3, PI = 4 };
-        //state       where;
         token_type token;
 
-        wchar value[MAX_TOKEN_SIZE]{};
+        char value[MAX_TOKEN_SIZE]{};
         int value_length;
 
         char tag_name[MAX_NAME_SIZE]{};
@@ -126,11 +116,9 @@ namespace markup {
         int attr_name_length;
 
         instream &input;
-        wchar input_char;
+        char input_char;
 
         bool got_tail; // aux flag used in scan_comment, etc.
 
     };
 }
-
-#endif

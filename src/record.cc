@@ -13,7 +13,7 @@ struct str_istream : public markup::instream {
 
     explicit str_istream(const char *src) : p(src), end(src + strlen(src)) {}
 
-    wchar_t get_char() override { return p < end ? *p++ : 0; }
+    char get_char() override { return p < end ? *p++ : 0; }
 };
 
 namespace {
@@ -57,10 +57,10 @@ Record::Record(const std::string& content) {
     }
 }
 
-void Record::getPayloadPlainText(std::wstring &plaintext){
+void Record::getPayloadPlainText(std::string &plaintext){
     str_istream si(payload.c_str());
     markup::scanner sc(si);
-    const wchar_t *value;
+    const char *value;
     while (true) {
         int t = sc.get_token();
         std::unordered_set<std::string>::const_iterator got;
@@ -75,7 +75,7 @@ void Record::getPayloadPlainText(std::wstring &plaintext){
             case markup::scanner::TT_TAG_START:
                 got = startNL.find(sc.get_tag_name());
                 if (got != startNL.end()) {
-                    plaintext.append(L"\n");
+                    plaintext.append("\n");
                 }
                 //printf("TAG START:%s\n", sc.get_tag_name());
                 break;
@@ -83,9 +83,9 @@ void Record::getPayloadPlainText(std::wstring &plaintext){
                 got = endNL.find(sc.get_tag_name());
                 gotSelf = selfNL.find(sc.get_tag_name());
                 if (got != endNL.end() or gotSelf != selfNL.end()) {
-                    plaintext.append(L"\n");
+                    plaintext.append("\n");
                 } else {
-                    plaintext.append(L" ");
+                    plaintext.append(" ");
                 }
                 //printf("TAG END:%s\n", sc.get_tag_name());
                 break;
