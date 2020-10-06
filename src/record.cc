@@ -5,7 +5,7 @@
 #include "record.hh"
 #include <sstream>
 #include <boost/algorithm/string.hpp>
-#include "xh_scanner.h"
+#include "xh_scanner.hh"
 
 struct str_istream : public markup::instream {
     const char *p;

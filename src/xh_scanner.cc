@@ -1,6 +1,6 @@
-#include "xh_scanner.h"
 #include <cstring>
 #include <cctype>
+#include "xh_scanner.hh"
 
 namespace markup {
 
