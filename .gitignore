@@ -1,6 +1,10 @@
 build/
 *.swp
 
+# Submodules
+preprocess
+cld2
+
 # Prerequisites
 *.d
 

@@ -6,6 +6,6 @@ int main(int argv, char** argc){
     bool reliable = false;
     int valid_prefix_bytes = 0;
     CLD2::Language l = CLD2::DetectLanguageCheckUTF8(text.c_str(), text.size(), true, &reliable, &valid_prefix_bytes);
-    std::cout << CLD2::LanguageName(l) << std::endl;
+    std::cout << CLD2::LanguageName(l) << " " << CLD2::LanguageCode(l) << std::endl;
     return 0;
 }
