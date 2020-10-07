@@ -5,6 +5,7 @@
 #include "record.hh"
 #include <sstream>
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/trim_all.hpp>
 #include "xh_scanner.hh"
 
 struct str_istream : public markup::instream {
@@ -101,6 +102,7 @@ void Record::getPayloadPlainText(std::string &plaintext){
                 }
                 break;
             case markup::scanner::TT_SPACE:
+                plaintext.append(" ");
                 break;
             default:
                 //printf("Unknown tag\n");
@@ -109,6 +111,18 @@ void Record::getPayloadPlainText(std::string &plaintext){
     }
     FINISH:
     ;
+    std::stringstream ss(plaintext);
+    std::string to;
+    std::string cleanplaintext;
+
+    if (!plaintext.empty())
+    {
+        while(std::getline(ss,to,'\n')){
+            boost::trim_all(to);
+            if(!to.empty()) cleanplaintext += to + "\n";
+        }
+    }
+    plaintext = cleanplaintext;
     //printf("--------------------------\n");
 }
 
