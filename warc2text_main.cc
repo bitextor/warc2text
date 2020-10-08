@@ -14,10 +14,10 @@ void PreProcessFile(const std::string &filename) {
         if (record.getHeaderProperty("WARC-Type") == "response") {
             std::string plaintext;
             record.getPayloadPlainText(plaintext);
-            plaintext.erase(std::remove(plaintext.begin(), plaintext.end(), '\r'), plaintext.end());
             if (!plaintext.empty()) {
                 std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
-                std::cout << record.getHTTPheaderProperty("Content-Type") << std::endl;
+                std::string cleanContentType = boost::algorithm::to_lower_copy(record.getHTTPheaderProperty("Content-Type"));
+                std::cout << cleanContentType.substr(0, cleanContentType.find(";")) << std::endl;
 
                 // CLD2::CLDHints hints = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
                 // cld2 output

@@ -8,6 +8,8 @@
 #include <boost/algorithm/string/trim_all.hpp>
 #include "xh_scanner.hh"
 
+extern "C" size_t decode_html_entities_utf8(char *dest, const char *src);
+
 struct str_istream : public markup::instream {
     const char *p;
     const char *end;
@@ -109,8 +111,10 @@ void Record::getPayloadPlainText(std::string &plaintext){
                 got = noText.find(sc.get_tag_name());
                 if (got == noText.end()) {
                     value = sc.get_value();
-                    plaintext.append(value);
-                    //printf("{%S}\n", value);
+                    if (strcmp(value,"&nbsp;") != 0) {
+                        plaintext.append(value);
+                    }
+                    //printf("{%s}\n", value);
                 }
                 break;
             case markup::scanner::TT_SPACE:
@@ -123,6 +127,11 @@ void Record::getPayloadPlainText(std::string &plaintext){
     }
     FINISH:
     ;
+    char * decodedplaintext = new char [plaintext.size() + 1];
+    decode_html_entities_utf8(decodedplaintext, plaintext.c_str());
+    plaintext = decodedplaintext;
+    free(decodedplaintext);
+
     std::stringstream ss(plaintext);
     std::string to;
     std::string cleanplaintext;
