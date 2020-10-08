@@ -9,7 +9,7 @@ int main(int argv, char** argc){
     CLD2::CLDHints hints = {NULL, NULL, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
 
     // output
-    CLD2::Language top3[3] = {0, 0, 0};
+    CLD2::Language top3[3] = {CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE};
     int percent3[3] = {0, 0, 0};
     double scores3[3] = {0.0, 0.0, 0.0};
     CLD2::ResultChunkVector chunks;
