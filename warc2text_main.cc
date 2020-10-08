@@ -10,6 +10,7 @@ void PreProcessFile(const std::string& filename);
 void PreProcessFile(const std::string &filename) {
     WARCReader reader(filename);
     std::string str;
+    std::string url;
     while (reader.getRecord(str)) {
         Record record = Record(str);
         if (record.getHeaderProperty("WARC-Type") == "response") {
@@ -18,7 +19,8 @@ void PreProcessFile(const std::string &filename) {
             plaintext.erase(std::remove(plaintext.begin(), plaintext.end(), '\r'), plaintext.end());
             if (!plaintext.empty()) {
                 std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
-                std::cout << record.getHTTPheaderProperty("Date") << std::endl;
+                if (record.HTTPheaderExists("Date"))
+                    std::cout << record.getHTTPheaderProperty("Date") << std::endl;
                 std::cout << plaintext << std::endl;
             }
         }
@@ -36,7 +38,7 @@ int main(int argc, char *argv[]) {
     PreProcessFile(filename);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-    unsigned char elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+    unsigned int elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
 
 //    printf("total records: %d\n", proc.TotalRecords)
 //    printf("text records: %d\n", proc.TextRecords)
@@ -44,7 +46,7 @@ int main(int argc, char *argv[]) {
 //    printf("total bytes: %d\n", proc.TotalBytes)
 //    printf("text bytes: %d\n", proc.TextBytes)
 //    printf("lang bytes: %d\n", proc.LangBytes)
-    printf("elapsed time: %d\n", elapsed);
+    std::cerr << "elapsed time: " << elapsed << "s\n";
 
     return 0;
 }

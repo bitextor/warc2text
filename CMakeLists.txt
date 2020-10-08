@@ -33,12 +33,11 @@ add_subdirectory(src)
 
 # if (PREPROCESS_PATH)
 #     include_directories(${PREPROCESS_PATH})
-#     add_subdirectory(${PREPROCESS_PATH} preprocess-bin)
+#     add_subdirectory(${PREPROCESS_PATH})
 # else ()
-#     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/preprocess)
-#     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/preprocess preprocess-bin)
+#     include_directories(${PROJECT_SOURCE_DIR}/preprocess)
+#     add_subdirectory(${PROJECT_SOURCE_DIR}/preprocess)
 # endif ()
-# include_directories(preprocess)
 
 # build libcld2.so
 if(NOT EXISTS "${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so")

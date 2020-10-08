@@ -23,39 +23,51 @@ namespace {
     static std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
 }
 
-Record::Record(const std::string& content) {
-    std::stringstream ss(content);
-    std::string to;
-    bool readingHeader = true;
-    bool readingHTTPHeader = true;
-    std::string delimiter = ": ";
-    payload = "";
-    while (std::getline(ss, to, '\n')) {
-        std::string trimmed;
-        if (readingHeader or readingHTTPHeader){
-            trimmed = boost::trim_right_copy(to);
-        }
-        if (trimmed.empty() && readingHeader) {
-            readingHeader = false;
-        } else if (trimmed.empty() && readingHTTPHeader) {
-            readingHTTPHeader = false;
-        }
+std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
+    std::string line = "";
+    std::size_t header_end = content.find("\r\n\r\n", last_pos);
+    std::size_t pos = 0;
+    if (header_end == std::string::npos) return std::string::npos;
+    pos = content.find(":", last_pos);
+    while (pos < header_end){
+        line = content.substr(last_pos, pos - last_pos);
+        pos = content.find_first_not_of(" ", pos + 1);
+        last_pos = pos;
+        pos = content.find("\r\n", pos);
+        header[line] = content.substr(last_pos, pos - last_pos);
+        last_pos = pos + 2;
+        pos = content.find(":", last_pos);
+    }
+    return header_end + 4;
+}
 
-        if (readingHeader) {
-            std::string key = trimmed.substr(0, trimmed.find(delimiter));
-            std::string value = trimmed.substr(trimmed.find(delimiter) + 2, trimmed.length());
-            header[key] = value;
-        } else if (readingHTTPHeader) {
-            if (trimmed.find(delimiter) != std::string::npos) {
-                std::string key = trimmed.substr(0, trimmed.find(delimiter));
-                std::string value = trimmed.substr(trimmed.find(delimiter) + 2, trimmed.length());
-                HTTPheader[key] = value;
-            }
-        } else {
-            payload = payload + to + "\n";
+Record::Record(const std::string& content) {
+    std::string line = "";
+    std::size_t last_pos = 0, payload_start = 0;
+    std::size_t pos = content.find("WARC/1.0\r\n");
+    // TODO: throw proper exceptions
+    if (pos != 0) throw "Error while parsing WARC header: version line not found";
+    last_pos = pos + 10;
+    // parse WARC header
+    last_pos = read_header(content, last_pos, header);
+    if (last_pos == std::string::npos) throw "Error while parsing WARC header";
+    payload_start = last_pos;
+    // TODO: check for mandatory header fields
+    if (header["WARC-Type"] == "response") {
+        // parse HTTP header
+        pos = content.find("HTTP/1.", last_pos);
+        if (pos == last_pos) { // found HTTP header
+            pos = content.find("\r\n", last_pos);
+            payload_start = read_header(content, pos + 2, HTTPheader);
+            if (payload_start == std::string::npos)
+                payload_start = last_pos; // could not parse the header, so treat it as part of the payload
+                //throw "Error while parsing HTTP header";
         }
     }
+    // read payload
+    payload = std::string(content, payload_start, content.size() - last_pos - 4); // the -4 is for \r\n\r\n at the end
 }
+
 
 void Record::getPayloadPlainText(std::string &plaintext){
     str_istream si(payload.c_str());

@@ -11,6 +11,8 @@
 
 class Record {
 public:
+    Record() : header(), HTTPheader(), payload() {};
+
     explicit Record(const std::string& content);
 
     const std::string& getHeaderProperty(const std::string& property) const;
