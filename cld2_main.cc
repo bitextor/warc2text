@@ -6,7 +6,7 @@ int main(int argv, char** argc){
 
     // input
     std::string text = "the quick brown fox jumps over the lazy dog. съешь ещё этих мягких французких булок, да выпей же чаю. le gustaba cenar un exquisito sándwich de jamón con zumo de piña y vodka frío";
-    CLD2::CLDHints hints = {NULL, NULL, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
+    CLD2::CLDHints hints = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
 
     // output
     CLD2::Language top3[3] = {CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE};

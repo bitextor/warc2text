@@ -3,23 +3,35 @@
 #include <boost/algorithm/string.hpp>
 #include "src/record.hh"
 #include "src/warcreader.hh"
+#include "cld2/public/compact_lang_det.h"
+#include "cld2/public/encodings.h"
 
 void PreProcessFile(const std::string& filename);
 
 void PreProcessFile(const std::string &filename) {
     WARCReader reader(filename);
-    std::string str;
-    std::string url;
-    while (reader.getRecord(str)) {
-        Record record = Record(str);
+    std::string content;
+    while (reader.getRecord(content)) {
+        Record record = Record(content);
         if (record.getHeaderProperty("WARC-Type") == "response") {
             std::string plaintext;
             record.getPayloadPlainText(plaintext);
             plaintext.erase(std::remove(plaintext.begin(), plaintext.end(), '\r'), plaintext.end());
             if (!plaintext.empty()) {
                 std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
-                if (record.HTTPheaderExists("Date"))
-                    std::cout << record.getHTTPheaderProperty("Date") << std::endl;
+                std::cout << record.getHTTPheaderProperty("Content-Type") << std::endl;
+
+                CLD2::CLDHints hints = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
+                // cld2 output
+                CLD2::ResultChunkVector chunks;
+                bool reliable = false;
+                CLD2::Language l = CLD2::DetectLanguage(plaintext.data(), plaintext.size(), true, &reliable);
+                std::cout << CLD2::LanguageCode(l) << std::endl;
+
+                // Testing code for language detection chunks in a document
+                //for (auto chunk : chunks)
+                //    std::cout << CLD2::LanguageCode( (CLD2::Language) chunk.lang1) << " " << plaintext.substr(chunk.offset, chunk.bytes) << std::endl; // substr makes a copy, don't use it in production
+
                 std::cout << plaintext << std::endl;
             }
         }
