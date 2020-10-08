@@ -6,8 +6,6 @@
 #include "cld2/public/compact_lang_det.h"
 #include "cld2/public/encodings.h"
 
-void PreProcessFile(const std::string& filename);
-
 void PreProcessFile(const std::string &filename) {
     WARCReader reader(filename);
     std::string content;
@@ -21,17 +19,18 @@ void PreProcessFile(const std::string &filename) {
                 std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
                 std::cout << record.getHTTPheaderProperty("Content-Type") << std::endl;
 
-                CLD2::CLDHints hints = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
+                // CLD2::CLDHints hints = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
                 // cld2 output
-                CLD2::ResultChunkVector chunks;
+                // CLD2::ResultChunkVector chunks;
+
                 bool reliable = false;
-                CLD2::Language l = CLD2::DetectLanguage(plaintext.data(), plaintext.size(), true, &reliable);
+                int valid_bytes = 0;
+                CLD2::Language l = CLD2::DetectLanguageCheckUTF8(plaintext.data(), plaintext.size(), true, &reliable, &valid_bytes);
                 std::cout << CLD2::LanguageCode(l) << std::endl;
 
                 // Testing code for language detection chunks in a document
                 //for (auto chunk : chunks)
                 //    std::cout << CLD2::LanguageCode( (CLD2::Language) chunk.lang1) << " " << plaintext.substr(chunk.offset, chunk.bytes) << std::endl; // substr makes a copy, don't use it in production
-
                 std::cout << plaintext << std::endl;
             }
         }
