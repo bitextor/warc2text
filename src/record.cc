@@ -21,32 +21,32 @@ struct str_istream : public markup::instream {
 };
 
 namespace {
-    static std::unordered_set<std::string> startNL ( {"ul", "ol", "dl", "tr"} );
-    static std::unordered_set<std::string> endNL ( {"p", "div", "li", "dd", "th", "td", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"} );
-    static std::unordered_set<std::string> selfNL ( {"br"} );
-    static std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
+    std::unordered_set<std::string> startNL ( {"ul", "ol", "dl", "tr"} );
+    std::unordered_set<std::string> endNL ( {"p", "div", "li", "dd", "th", "td", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"} );
+    std::unordered_set<std::string> selfNL ( {"br"} );
+    std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
 }
 
 std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
-    std::string line = "";
+    std::string line;
     std::size_t header_end = content.find("\r\n\r\n", last_pos);
     std::size_t pos = 0;
     if (header_end == std::string::npos) return std::string::npos;
-    pos = content.find(":", last_pos);
+    pos = content.find(':', last_pos);
     while (pos < header_end){
         line = content.substr(last_pos, pos - last_pos);
-        pos = content.find_first_not_of(" ", pos + 1);
+        pos = content.find_first_not_of(' ', pos + 1);
         last_pos = pos;
         pos = content.find("\r\n", pos);
         header[line] = content.substr(last_pos, pos - last_pos);
         last_pos = pos + 2;
-        pos = content.find(":", last_pos);
+        pos = content.find(':', last_pos);
     }
     return header_end + 4;
 }
 
 Record::Record(const std::string& content) {
-    std::string line = "";
+    std::string line;
     std::size_t last_pos = 0, payload_start = 0;
     std::size_t pos = content.find("WARC/1.0\r\n");
     // TODO: throw proper exceptions
@@ -83,17 +83,13 @@ void Record::cleanPayload(){
         t = sc.get_token();
         switch (t) {
             case markup::scanner::TT_ERROR:
-                //printf("ERROR\n");
-                break;
             case markup::scanner::TT_EOF:
-                //printf("EOF\n");
                 break;
             case markup::scanner::TT_TAG_START:
                 got = startNL.find(sc.get_tag_name());
                 if (got != startNL.end()) {
                     plaintext.append("\n");
                 }
-                //printf("TAG START:%s\n", sc.get_tag_name());
                 break;
             case markup::scanner::TT_TAG_END:
                 got = endNL.find(sc.get_tag_name());
@@ -103,10 +99,8 @@ void Record::cleanPayload(){
                 } else {
                     plaintext.append(" ");
                 }
-                //printf("TAG END:%s\n", sc.get_tag_name());
                 break;
             case markup::scanner::TT_ATTR:
-                //printf("\tATTR:%s=%S\n", sc.get_attr_name(), sc.get_value());
                 break;
             case markup::scanner::TT_WORD:
                 got = noText.find(sc.get_tag_name());
@@ -115,14 +109,12 @@ void Record::cleanPayload(){
                     if (strcmp(value,"&nbsp;") != 0) {
                         plaintext.append(value);
                     }
-                    //printf("{%s}\n", value);
                 }
                 break;
             case markup::scanner::TT_SPACE:
                 plaintext.append(" ");
                 break;
             default:
-                //printf("Unknown tag\n");
                 break;
         }
     }
