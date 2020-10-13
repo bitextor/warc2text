@@ -7,28 +7,7 @@ namespace markup {
     // case sensitive string equality test
     // s_lowcase shall be lowercase string
     inline bool equal(const char *s, const char *s1, size_t length) {
-        switch (length) {
-            case 8:
-                if (s1[7] != s[7]) return false;
-            case 7:
-                if (s1[6] != s[6]) return false;
-            case 6:
-                if (s1[5] != s[5]) return false;
-            case 5:
-                if (s1[4] != s[4]) return false;
-            case 4:
-                if (s1[3] != s[3]) return false;
-            case 3:
-                if (s1[2] != s[2]) return false;
-            case 2:
-                if (s1[1] != s[1]) return false;
-            case 1:
-                if (s1[0] != s[0]) return false;
-            case 0:
-                return true;
-            default:
-                return strncmp(s, s1, length) == 0;
-        }
+        return strncmp(s, s1, length) == 0;
     }
 
     const char *scanner::get_value() {
@@ -269,8 +248,8 @@ namespace markup {
             if (equal(buf, "apos", 4)) return '\'';
             if (equal(buf, "quot", 4)) return '\"';
         }
-        t = resolve_entity(buf, i);
-        if (t) return t;
+        //t = resolve_entity(buf, i);
+        //if (t) return t;
         // no luck ...
         append_value('&');
         for (int n = 0; n < i; ++n)
