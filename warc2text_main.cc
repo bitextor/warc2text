@@ -4,7 +4,6 @@
 #include "src/record.hh"
 #include "src/warcreader.hh"
 #include "cld2/public/compact_lang_det.h"
-#include "cld2/public/encodings.h"
 
 void PreProcessFile(const std::string &filename) {
     WARCReader reader(filename);
@@ -17,7 +16,7 @@ void PreProcessFile(const std::string &filename) {
     auto lang_detection = warc_reading;
 
     bool done = !reader.getRecord(content);
-    std::string plaintext = "";
+    std::string plaintext;
     while (!done) {
         start = std::chrono::steady_clock::now();
         Record record = Record(content);
@@ -33,7 +32,7 @@ void PreProcessFile(const std::string &filename) {
                 std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
                 if (record.HTTPheaderExists("Content-Type")) {
                     std::string cleanContentType = boost::algorithm::to_lower_copy(record.getHTTPheaderProperty("Content-Type"));
-                    std::cout << cleanContentType.substr(0, cleanContentType.find(";")) << std::endl;
+                    std::cout << cleanContentType.substr(0, cleanContentType.find(';')) << std::endl;
                 }
 
                 // CLD2::CLDHints hints = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
