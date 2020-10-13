@@ -13,7 +13,7 @@ class WARCReader {
     private:
         std::FILE* file;
         z_stream s{};
-        static const std::size_t BUFFER_SIZE = 1024;
+        static const std::size_t BUFFER_SIZE = 4096;
         uint8_t* buf;
         uint8_t* scratch;
 

@@ -9,15 +9,32 @@
 void PreProcessFile(const std::string &filename) {
     WARCReader reader(filename);
     std::string content;
-    while (reader.getRecord(content)) {
+    auto start = std::chrono::steady_clock::now();
+    auto end = start;
+    auto warc_reading = start - end;
+    auto record_parsing = warc_reading;
+    auto html_cleaning = warc_reading;
+    auto lang_detection = warc_reading;
+
+    bool done = !reader.getRecord(content);
+    std::string plaintext = "";
+    while (!done) {
+        start = std::chrono::steady_clock::now();
         Record record = Record(content);
+        end = std::chrono::steady_clock::now();
+        record_parsing += (end - start);
         if (record.getHeaderProperty("WARC-Type") == "response") {
-            std::string plaintext;
-            record.getPayloadPlainText(plaintext);
+            start = std::chrono::steady_clock::now();
+            record.cleanPayload();
+            plaintext = record.getPlainText();
+            end = std::chrono::steady_clock::now();
+            html_cleaning += (end - start);
             if (!plaintext.empty()) {
                 std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
-                std::string cleanContentType = boost::algorithm::to_lower_copy(record.getHTTPheaderProperty("Content-Type"));
-                std::cout << cleanContentType.substr(0, cleanContentType.find(";")) << std::endl;
+                if (record.HTTPheaderExists("Content-Type")) {
+                    std::string cleanContentType = boost::algorithm::to_lower_copy(record.getHTTPheaderProperty("Content-Type"));
+                    std::cout << cleanContentType.substr(0, cleanContentType.find(";")) << std::endl;
+                }
 
                 // CLD2::CLDHints hints = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
                 // cld2 output
@@ -25,7 +42,10 @@ void PreProcessFile(const std::string &filename) {
 
                 bool reliable = false;
                 int valid_bytes = 0;
+                start = std::chrono::steady_clock::now();
                 CLD2::Language l = CLD2::DetectLanguageCheckUTF8(plaintext.data(), plaintext.size(), true, &reliable, &valid_bytes);
+                end = std::chrono::steady_clock::now();
+                lang_detection += (end - start);
                 std::cout << CLD2::LanguageCode(l) << std::endl;
 
                 // Testing code for language detection chunks in a document
@@ -34,7 +54,15 @@ void PreProcessFile(const std::string &filename) {
                 std::cout << plaintext << std::endl;
             }
         }
+        start = std::chrono::steady_clock::now();
+        done = !reader.getRecord(content);
+        end = std::chrono::steady_clock::now();
+        warc_reading += (end - start);
     }
+    std::cerr << "warc reading: " << std::chrono::duration_cast<std::chrono::seconds>(warc_reading).count() << "s\n";
+    std::cerr << "record parsing: " << std::chrono::duration_cast<std::chrono::seconds>(record_parsing).count() << "s\n";
+    std::cerr << "html cleaning: " << std::chrono::duration_cast<std::chrono::seconds>(html_cleaning).count() << "s\n";
+    std::cerr << "lang detection: " << std::chrono::duration_cast<std::chrono::seconds>(lang_detection).count() << "s\n";
 }
 
 int main(int argc, char *argv[]) {
@@ -43,6 +71,7 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         filename = std::string(argv[1]);
     }
+
     PreProcessFile(filename);
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 

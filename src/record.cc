@@ -3,6 +3,7 @@
 //
 
 #include "record.hh"
+#include "util.hh"
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
@@ -72,21 +73,21 @@ Record::Record(const std::string& content) {
 }
 
 
-void Record::getPayloadPlainText(std::string &plaintext){
+void Record::cleanPayload(){
     str_istream si(payload.c_str());
     markup::scanner sc(si);
     const char *value;
-    while (true) {
-        int t = sc.get_token();
-        std::unordered_set<std::string>::const_iterator got;
-        std::unordered_set<std::string>::const_iterator gotSelf;
+    int t = markup::scanner::TT_SPACE;
+    std::unordered_set<std::string>::const_iterator got, gotSelf;
+    while (t != markup::scanner::TT_EOF) {
+        t = sc.get_token();
         switch (t) {
             case markup::scanner::TT_ERROR:
                 //printf("ERROR\n");
                 break;
             case markup::scanner::TT_EOF:
                 //printf("EOF\n");
-                goto FINISH;
+                break;
             case markup::scanner::TT_TAG_START:
                 got = startNL.find(sc.get_tag_name());
                 if (got != startNL.end()) {
@@ -125,26 +126,12 @@ void Record::getPayloadPlainText(std::string &plaintext){
                 break;
         }
     }
-    FINISH:
-    ;
     char * decodedplaintext = new char [plaintext.size() + 1];
     decode_html_entities_utf8(decodedplaintext, plaintext.c_str());
     plaintext = decodedplaintext;
     free(decodedplaintext);
 
-    std::stringstream ss(plaintext);
-    std::string to;
-    std::string cleanplaintext;
-
-    if (!plaintext.empty())
-    {
-        while(std::getline(ss,to,'\n')){
-            boost::trim_all(to);
-            if(!to.empty()) cleanplaintext += to + "\n";
-        }
-    }
-    plaintext = cleanplaintext;
-    //printf("--------------------------\n");
+    util::trimAllSpaces(plaintext);
 }
 
 
@@ -155,6 +142,7 @@ void Record::getPayloadPlainText(std::string &plaintext){
 // std::unordered_map<std::string, std::string> Record::getHTTPHeader() {
 //     return HTTPheader;
 // }
+
 
 
 const std::string& Record::getHeaderProperty(const std::string& property) const {
@@ -173,5 +161,9 @@ bool Record::HTTPheaderExists(const std::string& property) const{
 
 const std::string& Record::getPayload() const {
     return payload;
+}
+
+const std::string& Record::getPlainText() const {
+    return plaintext;
 }
 
