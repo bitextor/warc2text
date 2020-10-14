@@ -35,21 +35,11 @@ void PreProcessFile(const std::string &filename) {
                     std::cout << cleanContentType.substr(0, cleanContentType.find(';')) << std::endl;
                 }
 
-                // CLD2::CLDHints hints = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
-                // cld2 output
-                // CLD2::ResultChunkVector chunks;
-
-                bool reliable = false;
-                int valid_bytes = 0;
                 start = std::chrono::steady_clock::now();
-                CLD2::Language l = CLD2::DetectLanguageCheckUTF8(plaintext.data(), plaintext.size(), true, &reliable, &valid_bytes);
+                record.detectLanguage();
                 end = std::chrono::steady_clock::now();
                 lang_detection += (end - start);
-                std::cout << CLD2::LanguageCode(l) << std::endl;
-
-                // Testing code for language detection chunks in a document
-                //for (auto chunk : chunks)
-                //    std::cout << CLD2::LanguageCode( (CLD2::Language) chunk.lang1) << " " << plaintext.substr(chunk.offset, chunk.bytes) << std::endl; // substr makes a copy, don't use it in production
+                std::cout << record.getLanguage() << std::endl;
                 std::cout << plaintext << std::endl;
             }
         }

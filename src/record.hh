@@ -11,7 +11,7 @@
 
 class Record {
 public:
-    Record() : header(), HTTPheader(), payload(), plaintext() {};
+    Record() : header(), HTTPheader(), payload(), plaintext(), language() {};
 
     explicit Record(const std::string& content);
 
@@ -23,17 +23,17 @@ public:
 
     const std::string& getPayload() const;
     const std::string& getPlainText() const;
+    const std::string& getLanguage() const;
 
     void cleanPayload();
-    // std::unordered_map<std::string, std::string> getHeader();
-
-    // std::unordered_map<std::string, std::string> getHTTPHeader();
+    bool detectLanguage();
 
 private:
     std::unordered_map<std::string, std::string> header;
     std::unordered_map<std::string, std::string> HTTPheader;
     std::string payload;
     std::string plaintext;
+    std::string language;
 };
 
 #endif //WARC2TEXT_RECORD_HH

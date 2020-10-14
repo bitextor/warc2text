@@ -5,6 +5,7 @@
 #include "record.hh"
 #include "util.hh"
 #include "xh_scanner.hh"
+#include "lang.hh"
 #include <string.h>
 
 extern "C" size_t decode_html_entities_utf8(char *dest, const char *src);
@@ -124,16 +125,9 @@ void Record::cleanPayload(){
     util::trimLines(plaintext);
 }
 
-
-// std::unordered_map<std::string, std::string> Record::getHeader() {
-//     return header;
-// }
-//
-// std::unordered_map<std::string, std::string> Record::getHTTPHeader() {
-//     return HTTPheader;
-// }
-
-
+bool Record::detectLanguage(){
+    return cld2::detectLanguage(plaintext, language);
+}
 
 const std::string& Record::getHeaderProperty(const std::string& property) const {
     return header.at(property);
@@ -157,3 +151,6 @@ const std::string& Record::getPlainText() const {
     return plaintext;
 }
 
+const std::string& Record::getLanguage() const {
+    return language;
+}
