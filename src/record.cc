@@ -129,9 +129,9 @@ void Record::cleanPayload(){
     char * decodedplaintext = new char [plaintext.size() + 1];
     decode_html_entities_utf8(decodedplaintext, plaintext.c_str());
     plaintext = decodedplaintext;
-    free(decodedplaintext);
+    delete[] (decodedplaintext);
 
-    util::trimAllSpaces(plaintext);
+    util::trimLines(plaintext);
 }
 
 

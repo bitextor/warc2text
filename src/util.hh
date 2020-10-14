@@ -5,7 +5,8 @@
 
 namespace util {
     // trim consecutive spaces but respect newlines
-    void trimAllSpaces(std::string& text);
+    void trimLines(std::string& text);
+    void trimLinesCopy(const std::string& original, std::string& result);
 
 }
 
