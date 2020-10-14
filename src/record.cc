@@ -4,8 +4,8 @@
 
 #include "record.hh"
 #include "util.hh"
-#include <boost/algorithm/string/trim_all.hpp>
 #include "xh_scanner.hh"
+#include <string.h>
 
 extern "C" size_t decode_html_entities_utf8(char *dest, const char *src);
 

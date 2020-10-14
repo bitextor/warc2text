@@ -1,9 +1,8 @@
 #ifndef WARC_HH
 #define WARC_HH
 
-#include <iostream>
 #include "zlib.h"
-#include <vector>
+#include <string>
 
 class WARCReader {
     public:
