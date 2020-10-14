@@ -43,11 +43,11 @@ namespace markup {
     public:
 
         explicit scanner(instream &is) :
-                input(is),
-                input_char(0),
                 value_length(0),
                 tag_name_length(0),
                 attr_name_length(0),
+                input(is),
+                input_char(0),
                 got_tail(false) { c_scan = &scanner::scan_body; }
 
         // get next token
@@ -63,7 +63,7 @@ namespace markup {
         const char *get_tag_name();
 
         // should be overrided to resolve entities, e.g. &nbsp;
-        virtual char resolve_entity(const char *buf, int buf_size) { return 0; }
+        //virtual char resolve_entity(const char *buf, int buf_size) { return 0; }
 
     private: /* methods */
 
@@ -103,8 +103,6 @@ namespace markup {
         void append_tag_name(char c);
 
     private: /* data */
-
-        token_type token;
 
         char value[MAX_TOKEN_SIZE]{};
         int value_length;
