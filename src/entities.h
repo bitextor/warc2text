@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 
-extern size_t decode_html_entities_utf8(char *dest, const char *src);
+size_t decode_html_entities_utf8(char *dest, const char *src);
 /*	Takes input from <src> and decodes into <dest>, which should be a buffer
 	large enough to hold <strlen(src) + 1> characters.
 

@@ -1,6 +1,6 @@
 #include "src/lang.hh"
 
-namespace cld2 {
+namespace warc2text {
     // hint = {content language code(s), tld, original encoding, CLD2::Language}
     const CLD2::CLDHints NO_HINT = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
     
@@ -32,4 +32,4 @@ namespace cld2 {
         lang = CLD2::LanguageCode(l);
         return reliable;
     } 
-} // namespace cld2
+} // namespace warc2text

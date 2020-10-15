@@ -4,27 +4,8 @@
 
 #include "record.hh"
 #include "util.hh"
-#include "xh_scanner.hh"
 #include "lang.hh"
-#include <string.h>
-
-extern "C" size_t decode_html_entities_utf8(char *dest, const char *src);
-
-struct str_istream : public markup::instream {
-    const char *p;
-    const char *end;
-
-    explicit str_istream(const char *src) : p(src), end(src + strlen(src)) {}
-
-    char get_char() override { return p < end ? *p++ : 0; }
-};
-
-namespace {
-    std::unordered_set<std::string> startNL ( {"ul", "ol", "dl", "tr"} );
-    std::unordered_set<std::string> endNL ( {"p", "div", "li", "dd", "th", "td", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"} );
-    std::unordered_set<std::string> selfNL ( {"br"} );
-    std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
-}
+#include "html.hh"
 
 std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
     std::string line;
@@ -73,60 +54,13 @@ Record::Record(const std::string& content) {
 
 
 void Record::cleanPayload(){
-    str_istream si(payload.c_str());
-    markup::scanner sc(si);
-    const char *value;
-    int t = markup::scanner::TT_SPACE;
-    std::unordered_set<std::string>::const_iterator got, gotSelf;
-    while (t != markup::scanner::TT_EOF) {
-        t = sc.get_token();
-        switch (t) {
-            case markup::scanner::TT_ERROR:
-            case markup::scanner::TT_EOF:
-                break;
-            case markup::scanner::TT_TAG_START:
-                got = startNL.find(sc.get_tag_name());
-                if (got != startNL.end()) {
-                    plaintext.append("\n");
-                }
-                break;
-            case markup::scanner::TT_TAG_END:
-                got = endNL.find(sc.get_tag_name());
-                gotSelf = selfNL.find(sc.get_tag_name());
-                if (got != endNL.end() or gotSelf != selfNL.end()) {
-                    plaintext.append("\n");
-                } else {
-                    plaintext.append(" ");
-                }
-                break;
-            case markup::scanner::TT_ATTR:
-                break;
-            case markup::scanner::TT_WORD:
-                got = noText.find(sc.get_tag_name());
-                if (got == noText.end()) {
-                    value = sc.get_value();
-                    if (strcmp(value,"&nbsp;") != 0) {
-                        plaintext.append(value);
-                    }
-                }
-                break;
-            case markup::scanner::TT_SPACE:
-                plaintext.append(" ");
-                break;
-            default:
-                break;
-        }
-    }
-    char * decodedplaintext = new char [plaintext.size() + 1];
-    decode_html_entities_utf8(decodedplaintext, plaintext.c_str());
-    plaintext = decodedplaintext;
-    delete[] (decodedplaintext);
-
+    warc2text::processHTML(payload, plaintext);
+    warc2text::unescapeEntities(plaintext, plaintext);
     util::trimLines(plaintext);
 }
 
 bool Record::detectLanguage(){
-    return cld2::detectLanguage(plaintext, language);
+    return warc2text::detectLanguage(plaintext, language);
 }
 
 const std::string& Record::getHeaderProperty(const std::string& property) const {

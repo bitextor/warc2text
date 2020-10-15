@@ -6,7 +6,7 @@
 #include "cld2/public/compact_lang_det.h"
 #include "cld2/public/encodings.h"
 
-namespace cld2 {
+namespace warc2text {
     struct LanguageDetection {
         std::string languageCode;
         int percent;
