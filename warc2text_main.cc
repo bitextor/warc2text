@@ -1,13 +1,18 @@
 #include <iostream>
 #include <chrono>
-#include <boost/algorithm/string.hpp>
+#include <string>
+#include <vector>
+#include <boost/program_options.hpp>
+#include <boost/program_options/positional_options.hpp>
+
 #include "src/record.hh"
 #include "src/warcreader.hh"
-#include "cld2/public/compact_lang_det.h"
+#include "src/bilangwriter.hh"
 
 using namespace warc2text;
 
-void PreProcessFile(const std::string &filename) {
+void PreProcessFile(const std::string &filename, const std::string &folder) {
+    BilangWriter writer(folder);
     WARCReader reader(filename);
     std::string content;
     auto start = std::chrono::steady_clock::now();
@@ -16,6 +21,7 @@ void PreProcessFile(const std::string &filename) {
     auto record_parsing = warc_reading;
     auto html_cleaning = warc_reading;
     auto lang_detection = warc_reading;
+    auto record_writing = warc_reading;
 
     bool done = !reader.getRecord(content);
     std::string plaintext;
@@ -31,18 +37,15 @@ void PreProcessFile(const std::string &filename) {
             end = std::chrono::steady_clock::now();
             html_cleaning += (end - start);
             if (!plaintext.empty()) {
-                std::cout << record.getHeaderProperty("WARC-Target-URI") << std::endl;
-                if (record.HTTPheaderExists("Content-Type")) {
-                    std::string cleanContentType = boost::algorithm::to_lower_copy(record.getHTTPheaderProperty("Content-Type"));
-                    std::cout << cleanContentType.substr(0, cleanContentType.find(';')) << std::endl;
-                }
-
                 start = std::chrono::steady_clock::now();
                 record.detectLanguage();
                 end = std::chrono::steady_clock::now();
                 lang_detection += (end - start);
-                std::cout << record.getLanguage() << std::endl;
-                std::cout << plaintext << std::endl;
+
+                start = std::chrono::steady_clock::now();
+                writer.write(record);
+                end = std::chrono::steady_clock::now();
+                record_writing += (end - start);
             }
         }
         start = std::chrono::steady_clock::now();
@@ -54,16 +57,45 @@ void PreProcessFile(const std::string &filename) {
     std::cerr << "record parsing: " << std::chrono::duration_cast<std::chrono::seconds>(record_parsing).count() << "s\n";
     std::cerr << "html cleaning: " << std::chrono::duration_cast<std::chrono::seconds>(html_cleaning).count() << "s\n";
     std::cerr << "lang detection: " << std::chrono::duration_cast<std::chrono::seconds>(lang_detection).count() << "s\n";
+    std::cerr << "record writing: " << std::chrono::duration_cast<std::chrono::seconds>(record_writing).count() << "s\n";
 }
+
+struct Options {
+    std::vector<std::string> warcs;
+    std::string output;
+};
+
+void parseArgs(int argc, char *argv[], Options& out) {
+    namespace po = boost::program_options;
+    po::options_description desc("Arguments");
+    desc.add_options()
+        ("help,h", po::bool_switch(), "Show this help message")
+        ("output,o", po::value(&out.output)->default_value("."), "Output folder")
+        ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)");
+
+    po::positional_options_description pd;
+    pd.add("input", -1);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
+    if (argc == 1 || vm["help"].as<bool>()) {
+        std::cerr << "you forgot the arguments you dumm-dumm!\n";
+        exit(1);
+    }
+    po::notify(vm);
+}
+
 
 int main(int argc, char *argv[]) {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    std::string filename = "-";
-    if (argc > 1) {
-        filename = std::string(argv[1]);
-    }
 
-    PreProcessFile(filename);
+    // parse arguments
+    Options options;
+    parseArgs(argc,argv, options);
+
+    for (std::string file : options.warcs){
+        PreProcessFile(file, options.output);
+    }
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
     unsigned int elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
