@@ -79,7 +79,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
     if (argc == 1 || vm["help"].as<bool>()) {
-        std::cerr << "you forgot the arguments you dumm-dumm!\n";
+        std::cerr << "Usage: ./warc2text -o output_folder [WARC_files]" << std::endl;
         exit(1);
     }
     po::notify(vm);
