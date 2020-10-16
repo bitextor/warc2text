@@ -27,7 +27,9 @@ namespace util {
     }
 
     void encodeBase64(const std::string& original, std::string& base64){
+        int pad = (3 - original.size() % 3) % 3;
         base64 = std::string(base64_text(original.begin()), base64_text(original.end()));
+        base64.append(pad, '=');
     }
 
 }
