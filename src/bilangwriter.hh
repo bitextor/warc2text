@@ -9,7 +9,7 @@
 #include "record.hh"
 
 namespace warc2text {
-    bool createDirectory(const std::string& path);
+    bool createDirectories(const std::string& path);
 
     class GzipWriter {
         private:

@@ -1,7 +1,8 @@
 #include "bilangwriter.hh"
+#include "util.hh"
 
 namespace warc2text{
-    bool createDirectory(const std::string& path){
+    bool createDirectories(const std::string& path){
         if (!boost::filesystem::exists(path))
             return boost::filesystem::create_directories(path);
         else return false; // throw exception??
@@ -39,7 +40,7 @@ namespace warc2text{
         if (!url->is_open()) {
             // if one file does not exist, the rest shouldn't either
             std::string path = folder + "/" + *lang;
-            createDirectory(path);
+            createDirectories(path);
             url->open(path + "/url.gz");
             mime->open(path + "/mime.gz");
             text->open(path + "/text.gz");
@@ -48,7 +49,9 @@ namespace warc2text{
         url->write(record.getHeaderProperty("WARC-Target-URI").data(), record.getHeaderProperty("WARC-Target-URI").size());
         std::string type = "text/html";
         mime->write(type.data(), type.size());
-        text->write(record.getPlainText().data(), record.getPlainText().size());
+        std::string base64text;
+        util::encodeBase64(record.getPlainText(), base64text);
+        text->write(base64text.data(), base64text.size());
     }
 }
 
