@@ -25,4 +25,9 @@ namespace util {
             last = std::find(first, original.end(), '\n');
         }
     }
+
+    void encodeBase64(const std::string& original, std::string& base64){
+        base64 = std::string(base64_text(original.begin()), base64_text(original.end()));
+    }
+
 }
