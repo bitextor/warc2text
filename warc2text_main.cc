@@ -5,6 +5,8 @@
 #include "src/warcreader.hh"
 #include "cld2/public/compact_lang_det.h"
 
+using namespace warc2text;
+
 void PreProcessFile(const std::string &filename) {
     WARCReader reader(filename);
     std::string content;

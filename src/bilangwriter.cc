@@ -47,6 +47,7 @@ namespace warc2text{
         }
 
         url->write(record.getHeaderProperty("WARC-Target-URI").data(), record.getHeaderProperty("WARC-Target-URI").size());
+        // TODO: write actual content type
         std::string type = "text/html";
         mime->write(type.data(), type.size());
         std::string base64text;
