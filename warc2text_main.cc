@@ -1,68 +1,12 @@
 #include <iostream>
-#include <chrono>
 #include <string>
 #include <vector>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
 
-#include "src/record.hh"
-#include "src/warcreader.hh"
-#include "src/bilangwriter.hh"
+#include "src/warcpreprocessor.hh"
 
 using namespace warc2text;
-
-void PreProcessFile(const std::string &filename, const std::string &folder) {
-    BilangWriter writer(folder);
-    WARCReader reader(filename);
-    std::string content;
-    auto start = std::chrono::steady_clock::now();
-    auto end = start;
-    auto warc_reading = start - end;
-    auto record_parsing = warc_reading;
-    auto html_cleaning = warc_reading;
-    auto lang_detection = warc_reading;
-    auto record_writing = warc_reading;
-
-    bool done = !reader.getRecord(content);
-    bool reliable;
-    std::string plaintext;
-    while (!done) {
-        start = std::chrono::steady_clock::now();
-        Record record = Record(content);
-        end = std::chrono::steady_clock::now();
-        record_parsing += (end - start);
-        if (record.getHeaderProperty("warc-type") == "response") {
-            start = std::chrono::steady_clock::now();
-            record.cleanPayload();
-            plaintext = record.getPlainText();
-            end = std::chrono::steady_clock::now();
-            html_cleaning += (end - start);
-
-            if (!plaintext.empty()) {
-                start = std::chrono::steady_clock::now();
-                reliable = record.detectLanguage();
-                end = std::chrono::steady_clock::now();
-                lang_detection += (end - start);
-
-                if (reliable) {
-                    start = std::chrono::steady_clock::now();
-                    writer.write(record);
-                    end = std::chrono::steady_clock::now();
-                    record_writing += (end - start);
-                }
-            }
-        }
-        start = std::chrono::steady_clock::now();
-        done = !reader.getRecord(content);
-        end = std::chrono::steady_clock::now();
-        warc_reading += (end - start);
-    }
-    std::cerr << "warc reading: " << std::chrono::duration_cast<std::chrono::seconds>(warc_reading).count() << "s\n";
-    std::cerr << "record parsing: " << std::chrono::duration_cast<std::chrono::seconds>(record_parsing).count() << "s\n";
-    std::cerr << "html cleaning: " << std::chrono::duration_cast<std::chrono::seconds>(html_cleaning).count() << "s\n";
-    std::cerr << "lang detection: " << std::chrono::duration_cast<std::chrono::seconds>(lang_detection).count() << "s\n";
-    std::cerr << "record writing: " << std::chrono::duration_cast<std::chrono::seconds>(record_writing).count() << "s\n";
-}
 
 struct Options {
     std::vector<std::string> warcs;
@@ -83,7 +27,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
     if (argc == 1 || vm["help"].as<bool>()) {
-        std::cerr << "Usage: ./warc2text -o output_folder [WARC_files]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " -o output_folder [WARC_files]" << std::endl;
         exit(1);
     }
     po::notify(vm);
@@ -97,8 +41,9 @@ int main(int argc, char *argv[]) {
     Options options;
     parseArgs(argc,argv, options);
 
+    WARCPreprocessor warcpproc(options.output);
     for (std::string file : options.warcs){
-        PreProcessFile(file, options.output);
+        warcpproc.Process(file);
     }
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
