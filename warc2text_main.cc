@@ -38,7 +38,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
 
 
 int main(int argc, char *argv[]) {
-    boost::log::add_console_log(std::cerr, boost::log::keywords::format = "[%TimeStamp%]: %Message%");
+    boost::log::add_console_log(std::cerr, boost::log::keywords::format = "[%TimeStamp%] [\%Severity%]: %Message%");
     boost::log::add_common_attributes();
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::info);
 
