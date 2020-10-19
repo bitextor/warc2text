@@ -2,6 +2,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
     WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder) : writer(outputFolder) {}
@@ -19,13 +20,12 @@ namespace warc2text {
             if (done)
                 continue;
             Record record(content);
-            if (record.getRecordType() != "response" && record.getRecordType() != "resource")
+            if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getContentType().find("application/http") != std::string::npos)
                 continue;
 
             ++totalRecords;
-            // TODO: add url filter
-            // TODO: add content type filters
-
+            if (boost::algorithm::ends_with(record.getURL(), "robots.txt"))
+                continue;
 
             record.cleanPayload();
             if (record.getPlainText().empty())
