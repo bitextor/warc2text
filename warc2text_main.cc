@@ -24,6 +24,7 @@ void PreProcessFile(const std::string &filename, const std::string &folder) {
     auto record_writing = warc_reading;
 
     bool done = !reader.getRecord(content);
+    bool reliable;
     std::string plaintext;
     while (!done) {
         start = std::chrono::steady_clock::now();
@@ -36,16 +37,19 @@ void PreProcessFile(const std::string &filename, const std::string &folder) {
             plaintext = record.getPlainText();
             end = std::chrono::steady_clock::now();
             html_cleaning += (end - start);
+
             if (!plaintext.empty()) {
                 start = std::chrono::steady_clock::now();
-                record.detectLanguage();
+                reliable = record.detectLanguage();
                 end = std::chrono::steady_clock::now();
                 lang_detection += (end - start);
 
-                start = std::chrono::steady_clock::now();
-                writer.write(record);
-                end = std::chrono::steady_clock::now();
-                record_writing += (end - start);
+                if (reliable) {
+                    start = std::chrono::steady_clock::now();
+                    writer.write(record);
+                    end = std::chrono::steady_clock::now();
+                    record_writing += (end - start);
+                }
             }
         }
         start = std::chrono::steady_clock::now();
