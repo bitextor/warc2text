@@ -1,8 +1,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/positional_options.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
 #include "src/warcpreprocessor.hh"
 
@@ -35,6 +38,10 @@ void parseArgs(int argc, char *argv[], Options& out) {
 
 
 int main(int argc, char *argv[]) {
+    boost::log::add_console_log(std::cerr, boost::log::keywords::format = "[%TimeStamp%]: %Message%");
+    boost::log::add_common_attributes();
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= boost::log::trivial::info);
+
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
     // parse arguments
@@ -43,19 +50,15 @@ int main(int argc, char *argv[]) {
 
     WARCPreprocessor warcpproc(options.output);
     for (std::string file : options.warcs){
-        warcpproc.Process(file);
+        warcpproc.process(file);
     }
+    warcpproc.printStatistics();
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-    unsigned int elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
-
-//    printf("total records: %d\n", proc.TotalRecords)
-//    printf("text records: %d\n", proc.TextRecords)
-//    printf("lang records: %d\n", proc.LangRecords)
-//    printf("total bytes: %d\n", proc.TotalBytes)
-//    printf("text bytes: %d\n", proc.TextBytes)
-//    printf("lang bytes: %d\n", proc.LangBytes)
-    std::cerr << "elapsed time: " << elapsed << "s\n";
+    unsigned int hours = std::chrono::duration_cast<std::chrono::hours>(end - start).count();
+    unsigned int minutes = std::chrono::duration_cast<std::chrono::minutes>(end - start).count() - hours*60;
+    unsigned int seconds = std::chrono::duration_cast<std::chrono::seconds>(end - start).count() - hours*60*60 - minutes*60;
+    BOOST_LOG_TRIVIAL(info) << "elapsed: " << hours << "h" << minutes << "m" << seconds << "s";
 
     return 0;
 }

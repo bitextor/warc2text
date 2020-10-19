@@ -16,8 +16,9 @@ namespace warc2text {
             std::string outputFolder;
 
         public:
-            WARCPreprocessor(const std::string& outputFolder) : writer(outputFolder) {}
-            void Process(const std::string &filename);
+            WARCPreprocessor(const std::string& outputFolder);
+            void process(const std::string &filename);
+            void printStatistics();
     };
 }
 

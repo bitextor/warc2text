@@ -1,7 +1,13 @@
 #include "warcpreprocessor.hh"
+#include <boost/log/trivial.hpp>
+#include <boost/log/utility/setup/console.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
 
 namespace warc2text {
-    void WARCPreprocessor::Process(const std::string& filename) {
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder) : writer(outputFolder) {}
+
+    void WARCPreprocessor::process(const std::string& filename) {
+        BOOST_LOG_TRIVIAL(info) << "Processing " << filename;
         WARCReader reader(filename);
 
         std::string content;
@@ -9,7 +15,7 @@ namespace warc2text {
         bool reliable;
 
         while (!done) {
-            done = !reader.getRecord(content); 
+            done = !reader.getRecord(content);
             if (done)
                 continue;
             Record record(content);
@@ -29,11 +35,18 @@ namespace warc2text {
 
             reliable = record.detectLanguage();
             if (!reliable)
-                continue; 
+                continue;
 
             ++langRecords;
 
             writer.write(record);
         }
     }
+
+    void WARCPreprocessor::printStatistics(){
+        BOOST_LOG_TRIVIAL(info) << "total records: " << totalRecords;
+        BOOST_LOG_TRIVIAL(info) << "text records: " << textRecords;
+        BOOST_LOG_TRIVIAL(info) << "lang recods: " << langRecords;
+    }
+
 }
