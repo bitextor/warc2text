@@ -46,10 +46,9 @@ namespace warc2text{
             text->open(path + "/text.gz");
         }
 
-        url->write(record.getHeaderProperty("WARC-Target-URI").data(), record.getHeaderProperty("WARC-Target-URI").size());
+        url->write(record.getURL().data(), record.getURL().size());
         // TODO: write actual content type
-        std::string type = "text/html";
-        mime->write(type.data(), type.size());
+        mime->write(record.getContentType().data(), record.getContentType().size());
         std::string base64text;
         util::encodeBase64(record.getPlainText(), base64text);
         text->write(base64text.data(), base64text.size());

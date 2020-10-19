@@ -7,6 +7,7 @@
 namespace warc2text {
     class WARCReader {
         public:
+            WARCReader();
             explicit WARCReader(const std::string& filename);
             bool getRecord(std::string& out);
             ~WARCReader();
@@ -19,7 +20,7 @@ namespace warc2text {
 
             void openFile(const std::string& filename);
             void closeFile() {std::fclose(file);}
-            std::size_t readChunk(); 
+            std::size_t readChunk();
     };
 }
 

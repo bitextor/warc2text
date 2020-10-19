@@ -14,6 +14,7 @@ namespace warc2text {
         Record() : header(), HTTPheader(), payload(), plaintext(), language() {};
 
         explicit Record(const std::string& content);
+        void process(); // does the entire processing of the record
 
         const std::string& getHeaderProperty(const std::string& property) const;
         bool headerExists(const std::string& property) const;
@@ -24,6 +25,9 @@ namespace warc2text {
         const std::string& getPayload() const;
         const std::string& getPlainText() const;
         const std::string& getLanguage() const;
+        const std::string& getURL() const;
+        const std::string& getRecordType() const;
+        const std::string& getContentType() const;
 
         void cleanPayload();
         bool detectLanguage();
@@ -34,6 +38,11 @@ namespace warc2text {
         std::string payload;
         std::string plaintext;
         std::string language;
+
+        // these are present in the headers, but it's convenient to have them apart also
+        std::string recordType;
+        std::string contentType;
+        std::string url;
     };
 
 } // warc2text

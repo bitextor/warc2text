@@ -3,10 +3,8 @@
 #include <cassert>
 
 namespace warc2text {
-    WARCReader::WARCReader(const std::string& filename){
+    WARCReader::WARCReader(){
         file = nullptr;
-
-        openFile(filename);
 
         buf = new uint8_t[BUFFER_SIZE];
         scratch = new uint8_t[BUFFER_SIZE];
@@ -18,6 +16,10 @@ namespace warc2text {
         s.next_in = buf;
 
         assert(inflateInit2(&s, 32) == Z_OK);
+    }
+
+    WARCReader::WARCReader(const std::string& filename) : WARCReader() {
+        openFile(filename);
     }
 
     WARCReader::~WARCReader(){

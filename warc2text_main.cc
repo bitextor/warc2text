@@ -30,7 +30,7 @@ void PreProcessFile(const std::string &filename, const std::string &folder) {
         Record record = Record(content);
         end = std::chrono::steady_clock::now();
         record_parsing += (end - start);
-        if (record.getHeaderProperty("WARC-Type") == "response") {
+        if (record.getHeaderProperty("warc-type") == "response") {
             start = std::chrono::steady_clock::now();
             record.cleanPayload();
             plaintext = record.getPlainText();
