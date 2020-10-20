@@ -66,12 +66,13 @@ namespace warc2text {
                 pos = content.find("\r\n", last_pos);
                 payload_start = read_header(content, pos + 2, HTTPheader);
                 if (payload_start == std::string::npos) {
-                    BOOST_LOG_TRIVIAL(warning) << "Response record without HTTP header";
+                    // BOOST_LOG_TRIVIAL(warning) << "Response record without HTTP header";
                     payload_start = last_pos; // could not parse the header, so treat it as part of the payload
                 }
-            } else {
-                BOOST_LOG_TRIVIAL(warning) << "Response record without HTTP header";
             }
+            // else {
+            //     BOOST_LOG_TRIVIAL(warning) << "Response record without HTTP header";
+            // }
 
             if (HTTPheader.count("content-type") == 1)
                 HTTPcontentType = HTTPheader["content-type"];
