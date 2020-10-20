@@ -3,7 +3,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder) : writer(outputFolder) {}
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder) : writer(outputFolder), totalRecords(0), textRecords(0), langRecords(0) {}
 
     void WARCPreprocessor::process(const std::string& filename) {
         BOOST_LOG_TRIVIAL(info) << "Processing " << filename;

@@ -13,7 +13,6 @@ namespace warc2text {
             unsigned int totalRecords;
             unsigned int textRecords;
             unsigned int langRecords;
-            std::string outputFolder;
 
         public:
             WARCPreprocessor(const std::string& outputFolder);
