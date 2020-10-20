@@ -3,7 +3,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
+    const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml"};
+
     WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder) : writer(outputFolder), totalRecords(0), textRecords(0), langRecords(0) {}
+
 
     void WARCPreprocessor::process(const std::string& filename) {
         BOOST_LOG_TRIVIAL(info) << "Processing " << filename;
@@ -17,11 +20,14 @@ namespace warc2text {
             done = !reader.getRecord(content);
             if (done)
                 continue;
+
             Record record(content);
             if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
 
-            // TODO: add filter for allowed http content types
+            if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end())
+                continue;
+
 
             ++totalRecords;
             if (boost::algorithm::ends_with(record.getURL(), "robots.txt"))

@@ -5,6 +5,7 @@
 #include "warcreader.hh"
 #include "bilangwriter.hh"
 #include <string>
+#include <unordered_set>
 
 namespace warc2text {
     class WARCPreprocessor {
@@ -13,6 +14,7 @@ namespace warc2text {
             unsigned int totalRecords;
             unsigned int textRecords;
             unsigned int langRecords;
+            static const std::unordered_set<std::string> textContentTypes;
 
         public:
             WARCPreprocessor(const std::string& outputFolder);

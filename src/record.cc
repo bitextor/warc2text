@@ -6,7 +6,6 @@
 #include "util.hh"
 #include "lang.hh"
 #include "html.hh"
-#include <algorithm>
 #include <boost/log/trivial.hpp>
 
 namespace warc2text {
@@ -21,8 +20,8 @@ namespace warc2text {
             pos = content.find_first_not_of(' ', pos + 1);
             last_pos = pos;
             pos = content.find("\r\n", pos);
-            // normalize header keys case (tolower is fine because they are supposed to be ascii)
-            std::transform(line.begin(), line.end(), line.begin(), [](char c){return std::tolower(c);});
+            // normalize header keys case
+            util::toLower(line);
             header[line] = content.substr(last_pos, pos - last_pos);
             last_pos = pos + 2;
             pos = content.find(':', last_pos);
@@ -75,13 +74,27 @@ namespace warc2text {
             // }
 
             if (HTTPheader.count("content-type") == 1)
-                HTTPcontentType = HTTPheader["content-type"];
+                cleanContentType(HTTPheader["content-type"]);
         }
 
         // read payload
         payload = std::string(content, payload_start, content.size() - last_pos - 4); // the -4 is for \r\n\r\n at the end
     }
 
+    void Record::cleanContentType(const std::string& HTTPcontentType) {
+        // we assume the format is either "A/B; charset=C" or just "A/B"
+        std::size_t delim = HTTPcontentType.find(';');
+        if (delim == std::string::npos)
+            cleanHTTPcontentType = HTTPcontentType;
+        else {
+            cleanHTTPcontentType = HTTPcontentType.substr(0, delim);
+            delim = HTTPcontentType.find("charset=");
+            charset = HTTPcontentType.substr(delim+8, std::string::npos);
+            util::trim(charset);
+        }
+        // trim just in case
+        util::trim(cleanHTTPcontentType);
+    }
 
     void Record::cleanPayload(){
         processHTML(payload, plaintext);
@@ -94,28 +107,25 @@ namespace warc2text {
     }
 
     const std::string& Record::getHeaderProperty(const std::string& property) const {
-        std::string lc_key;
-        lc_key.resize(property.size());
-        std::transform(property.begin(), property.end(), lc_key.begin(), [](char c){return std::tolower(c);});
+        std::string lc_key = property;
+        util::toLower(lc_key);
         return header.at(lc_key);
     }
     bool Record::headerExists(const std::string& property) const {
-        std::string lc_key;
-        lc_key.resize(property.size());
-        std::transform(property.begin(), property.end(), lc_key.begin(), [](char c){return std::tolower(c);});
+        std::string lc_key = property;
+        util::toLower(lc_key);
         return header.find(lc_key) != header.end();
     }
 
     const std::string& Record::getHTTPheaderProperty(const std::string& property) const {
-        std::string lc_key;
-        lc_key.resize(property.size());
-        std::transform(property.begin(), property.end(), lc_key.begin(), [](char c){return std::tolower(c);});
+        std::string lc_key = property;
+        util::toLower(lc_key);
         return HTTPheader.at(lc_key);
     }
+
     bool Record::HTTPheaderExists(const std::string& property) const{
-        std::string lc_key;
-        lc_key.resize(property.size());
-        std::transform(property.begin(), property.end(), lc_key.begin(), [](char c){return std::tolower(c);});
+        std::string lc_key = property;
+        util::toLower(lc_key);
         return HTTPheader.find(lc_key) != HTTPheader.end();
     }
 
@@ -144,7 +154,7 @@ namespace warc2text {
     }
 
     const std::string& Record::getHTTPcontentType() const {
-        return HTTPcontentType;
+        return cleanHTTPcontentType;
     }
 
 } // warc2text

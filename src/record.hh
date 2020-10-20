@@ -43,8 +43,11 @@ namespace warc2text {
         // these are present in the headers, but it's convenient to have them apart also
         std::string recordType;
         std::string WARCcontentType;
-        std::string HTTPcontentType;
+        std::string cleanHTTPcontentType;
+        std::string charset;
         std::string url;
+
+        void cleanContentType(const std::string& HTTPcontentType);
     };
 
 } // warc2text

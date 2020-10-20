@@ -6,7 +6,12 @@
 #include <boost/archive/iterators/transform_width.hpp>
 
 namespace util {
-    // trim consecutive spaces but respect newlines
+    void toLower(std::string& s);
+
+    // trim consecutive spaces from left and right
+    void trim(std::string& s);
+
+    // trim consecutive spaces but respect newlines:
     void trimLines(std::string& text);
     void trimLinesCopy(const std::string& original, std::string& result);
 

@@ -1,8 +1,18 @@
 #include "util.hh"
 #include <algorithm>
 #include <boost/algorithm/string/trim_all.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 
 namespace util {
+    void toLower(std::string& s){
+        boost::algorithm::to_lower(s);
+    }
+
+    void trim(std::string& s){
+        boost::algorithm::trim(s);
+    }
+
     // TODO: right now this leaves a single space at the beginning and the end of the line
     void trimLines(std::string& text) {
         std::string::iterator new_end = std::unique(text.begin(), text.end(), [](char lhs, char rhs){return (lhs == '\n' && rhs == '\n') || (std::isspace(lhs) && rhs != '\n' && std::isspace(rhs));});
