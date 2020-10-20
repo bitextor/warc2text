@@ -27,7 +27,8 @@ namespace warc2text {
         const std::string& getLanguage() const;
         const std::string& getURL() const;
         const std::string& getRecordType() const;
-        const std::string& getContentType() const;
+        const std::string& getWARCcontentType() const;
+        const std::string& getHTTPcontentType() const;
 
         void cleanPayload();
         bool detectLanguage();
@@ -41,7 +42,8 @@ namespace warc2text {
 
         // these are present in the headers, but it's convenient to have them apart also
         std::string recordType;
-        std::string contentType;
+        std::string WARCcontentType;
+        std::string HTTPcontentType;
         std::string url;
     };
 

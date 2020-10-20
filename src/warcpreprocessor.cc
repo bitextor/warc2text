@@ -1,7 +1,5 @@
 #include "warcpreprocessor.hh"
 #include <boost/log/trivial.hpp>
-#include <boost/log/utility/setup/console.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
@@ -20,8 +18,10 @@ namespace warc2text {
             if (done)
                 continue;
             Record record(content);
-            if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getContentType().find("application/http") != std::string::npos)
+            if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
+
+            // TODO: add filter for allowed http content types
 
             ++totalRecords;
             if (boost::algorithm::ends_with(record.getURL(), "robots.txt"))

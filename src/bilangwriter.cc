@@ -48,7 +48,7 @@ namespace warc2text{
 
         url->write(record.getURL().data(), record.getURL().size());
         // TODO: write actual content type
-        mime->write(record.getContentType().data(), record.getContentType().size());
+        mime->write(record.getHTTPcontentType().data(), record.getHTTPcontentType().size());
         std::string base64text;
         util::encodeBase64(record.getPlainText(), base64text);
         text->write(base64text.data(), base64text.size());

@@ -7,6 +7,7 @@
 #include "lang.hh"
 #include "html.hh"
 #include <algorithm>
+#include <boost/log/trivial.hpp>
 
 namespace warc2text {
     std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
@@ -33,13 +34,19 @@ namespace warc2text {
         std::string line;
         std::size_t last_pos = 0, payload_start = 0;
         std::size_t pos = content.find("WARC/1.0\r\n");
-        // TODO: throw proper exceptions
-        if (pos != 0) throw "Error while parsing WARC header: version line not found";
+        if (pos != 0) {
+            BOOST_LOG_TRIVIAL(error) << "WARC version line not found";
+            return;
+        }
         last_pos = pos + 10;
         // parse WARC header
         last_pos = read_header(content, last_pos, header);
 
-        if (last_pos == std::string::npos) throw "Error while parsing WARC header";
+        if (last_pos == std::string::npos) {
+            BOOST_LOG_TRIVIAL(error) << "Could not parse WARC header";
+            return;
+        }
+
         // get the most important stuff:
         // TODO: check for mandatory header fields
         if (header.count("warc-type") == 1)
@@ -49,25 +56,25 @@ namespace warc2text {
             url = header["warc-target-uri"];
 
         if (header.count("content-type") == 1)
-            contentType = header["content-type"];
+            WARCcontentType = header["content-type"];
 
         payload_start = last_pos;
         if (header["warc-type"] == "response") {
             // parse HTTP header
             pos = content.find("HTTP/1.", last_pos);
             if (pos == last_pos) { // found HTTP header
-                // get contentType from here
-                // as well as encoding
                 pos = content.find("\r\n", last_pos);
                 payload_start = read_header(content, pos + 2, HTTPheader);
-                if (payload_start == std::string::npos)
+                if (payload_start == std::string::npos) {
+                    BOOST_LOG_TRIVIAL(warning) << "Response record without HTTP header";
                     payload_start = last_pos; // could not parse the header, so treat it as part of the payload
-                    //throw "Error while parsing HTTP header";
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "Response record without HTTP header";
             }
 
-            // content type from http header tend to be more accurate
             if (HTTPheader.count("content-type") == 1)
-                contentType = HTTPheader["content-type"];
+                HTTPcontentType = HTTPheader["content-type"];
         }
 
         // read payload
@@ -131,8 +138,12 @@ namespace warc2text {
         return recordType;
     }
 
-    const std::string& Record::getContentType() const {
-        return contentType;
+    const std::string& Record::getWARCcontentType() const {
+        return WARCcontentType;
+    }
+
+    const std::string& Record::getHTTPcontentType() const {
+        return HTTPcontentType;
     }
 
 } // warc2text
