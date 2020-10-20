@@ -37,6 +37,7 @@ namespace warc2text{
         GzipWriter* url = &url_files[*lang];
         GzipWriter* mime = &mime_files[*lang];
         GzipWriter* text = &text_files[*lang];
+        GzipWriter* html = &html_files[*lang];
         if (!url->is_open()) {
             // if one file does not exist, the rest shouldn't either
             std::string path = folder + "/" + *lang;
@@ -44,6 +45,7 @@ namespace warc2text{
             url->open(path + "/url.gz");
             mime->open(path + "/mime.gz");
             text->open(path + "/text.gz");
+            html->open(path + "/html.gz");
         }
 
         url->write(record.getURL().data(), record.getURL().size());
