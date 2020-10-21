@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(warc2text_src)
 
 find_package(ZLIB REQUIRED)
-find_package( Boost 1.61 COMPONENTS iostreams filesystem log log_setup REQUIRED )
+find_package( Boost 1.61 COMPONENTS locale iostreams filesystem log REQUIRED )
 include_directories(
     ${ZLIB_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}

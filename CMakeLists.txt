@@ -14,7 +14,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-find_package(Boost 1.61 COMPONENTS program_options iostreams log log_setup REQUIRED)
+find_package(Boost 1.61 COMPONENTS program_options log log_setup REQUIRED)
 
 # compile executable into bin/
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -50,4 +50,3 @@ endif ()
 # define executables
 add_executable(warc2text warc2text_main.cc)
 target_link_libraries(warc2text ${Boost_LIBRARIES} warc2text_lib ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so)
-# target_link_libraries(warc2text preprocess_util)

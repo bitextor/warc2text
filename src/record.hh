@@ -11,7 +11,7 @@
 namespace warc2text {
     class Record {
     public:
-        Record() : header(), HTTPheader(), payload(), plaintext(), language() {};
+        Record() {};
 
         explicit Record(const std::string& content);
         void process(); // does the entire processing of the record
@@ -29,6 +29,7 @@ namespace warc2text {
         const std::string& getRecordType() const;
         const std::string& getWARCcontentType() const;
         const std::string& getHTTPcontentType() const;
+        const std::string& getCharset() const;
 
         void cleanPayload();
         bool detectLanguage();
@@ -41,6 +42,7 @@ namespace warc2text {
         std::string language;
 
         // these are present in the headers, but it's convenient to have them apart also
+        std::string uuid;
         std::string recordType;
         std::string WARCcontentType;
         std::string cleanHTTPcontentType;

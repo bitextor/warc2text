@@ -8,6 +8,11 @@
 #include "html.hh"
 #include <boost/log/trivial.hpp>
 
+// #include <boost/iostreams/stream.hpp>
+// #include <boost/iostreams/categories.hpp>
+// #include <boost/iostreams/code_converter.hpp>
+#include <boost/locale.hpp>
+
 namespace warc2text {
     std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
         std::string line;
@@ -23,6 +28,7 @@ namespace warc2text {
             // normalize header keys case
             util::toLower(line);
             header[line] = content.substr(last_pos, pos - last_pos);
+            util::toLower(header[line]);
             last_pos = pos + 2;
             pos = content.find(':', last_pos);
         }
@@ -50,6 +56,8 @@ namespace warc2text {
         // TODO: check for mandatory header fields
         if (header.count("warc-type") == 1)
             recordType = header["warc-type"];
+        if (header.count("warc-record-id") == 1)
+            uuid = header["warc-record-id"];
 
         if (header.count("warc-target-uri") == 1)
             url = header["warc-target-uri"];
@@ -77,8 +85,21 @@ namespace warc2text {
                 cleanContentType(HTTPheader["content-type"]);
         }
 
-        // read payload
-        payload = std::string(content, payload_start, content.size() - last_pos - 4); // the -4 is for \r\n\r\n at the end
+        // convert to utf8
+        // assume utf8 if unknown for now
+        if (charset == "UTF-8" || charset == "") {
+            payload = std::string(content, payload_start, std::string::npos);
+        }
+        // if not utf8, convert based on charset
+        else {
+            try {
+                payload = boost::locale::conv::to_utf<char>(&content[payload_start], charset);
+            } catch (boost::locale::conv::invalid_charset_error e) {
+                BOOST_LOG_TRIVIAL(warning) << "In record " << uuid << " invalid charset " << charset;
+                payload = "";
+            }
+        }
+        util::trim(payload); //remove \r\n\r\n at the end
     }
 
     void Record::cleanContentType(const std::string& HTTPcontentType) {
@@ -89,8 +110,11 @@ namespace warc2text {
         else {
             cleanHTTPcontentType = HTTPcontentType.substr(0, delim);
             delim = HTTPcontentType.find("charset=");
-            charset = HTTPcontentType.substr(delim+8, std::string::npos);
-            util::trim(charset);
+            if (delim != std::string::npos) {
+                // cut until next ';' or until the end otherwise
+                charset = HTTPcontentType.substr(delim+8, HTTPcontentType.find(";", delim+8) - delim - 8);
+                util::trim(charset);
+            }
         }
         // trim just in case
         util::trim(cleanHTTPcontentType);
@@ -155,6 +179,10 @@ namespace warc2text {
 
     const std::string& Record::getHTTPcontentType() const {
         return cleanHTTPcontentType;
+    }
+
+    const std::string& Record::getCharset() const {
+        return charset;
     }
 
 } // warc2text
