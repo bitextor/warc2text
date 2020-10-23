@@ -59,7 +59,7 @@ namespace warc2text {
         }
     }
 
-    void WARCPreprocessor::printStatistics(){
+    void WARCPreprocessor::printStatistics() const{
         BOOST_LOG_TRIVIAL(info) << "total records: " << totalRecords;
         BOOST_LOG_TRIVIAL(info) << "text records: " << textRecords;
         BOOST_LOG_TRIVIAL(info) << "lang records: " << langRecords;

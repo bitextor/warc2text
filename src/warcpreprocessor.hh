@@ -20,9 +20,9 @@ namespace warc2text {
             static const std::unordered_set<std::string> textContentTypes;
 
         public:
-            WARCPreprocessor(const std::string& outputFolder);
+            explicit WARCPreprocessor(const std::string& outputFolder);
             void process(const std::string &filename);
-            void printStatistics();
+            void printStatistics() const;
     };
 }
 
