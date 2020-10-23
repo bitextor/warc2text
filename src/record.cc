@@ -116,7 +116,7 @@ namespace warc2text {
         if (charset != "UTF-8" && charset != "") {
             try {
                 plaintext = boost::locale::conv::to_utf<char>(plaintext, charset);
-            } catch (boost::locale::conv::invalid_charset_error e) {
+            } catch (const boost::locale::conv::invalid_charset_error& e) {
                 BOOST_LOG_TRIVIAL(warning) << "In record " << url << " invalid charset " << charset;
                 plaintext = "";
                 return false;
