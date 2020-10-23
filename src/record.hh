@@ -31,7 +31,7 @@ namespace warc2text {
         const std::string& getHTTPcontentType() const;
         const std::string& getCharset() const;
 
-        void cleanPayload();
+        bool cleanPayload();
         bool detectLanguage();
 
     private:
@@ -42,7 +42,6 @@ namespace warc2text {
         std::string language;
 
         // these are present in the headers, but it's convenient to have them apart also
-        std::string uuid;
         std::string recordType;
         std::string WARCcontentType;
         std::string cleanHTTPcontentType;

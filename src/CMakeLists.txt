@@ -9,5 +9,19 @@ include_directories(
     ${Boost_INCLUDE_DIR}
 )
 
-add_library(warc2text_lib warcreader.cc record.cc xh_scanner.cc entities.c util.cc lang.cc html.cc bilangwriter.cc warcpreprocessor.cc)
-target_link_libraries(warc2text_lib ${Boost_LIBRARIES} ${ZLIB_LIBRARIES})
+add_library(warc2text_lib
+    warcpreprocessor.cc
+    warcreader.cc
+    record.cc
+    html.cc
+    lang.cc
+    util.cc
+    bilangwriter.cc
+    xh_scanner.cc
+    entities.c
+)
+
+target_link_libraries(warc2text_lib
+    ${Boost_LIBRARIES}
+    ${ZLIB_LIBRARIES}
+)

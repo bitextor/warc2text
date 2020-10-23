@@ -49,4 +49,8 @@ endif ()
 
 # define executables
 add_executable(warc2text warc2text_main.cc)
-target_link_libraries(warc2text ${Boost_LIBRARIES} warc2text_lib ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so)
+target_link_libraries(warc2text
+    warc2text_lib
+    ${Boost_LIBRARIES}
+    ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so
+)

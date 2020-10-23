@@ -5,7 +5,11 @@
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml"};
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder) : writer(outputFolder), totalRecords(0), textRecords(0), langRecords(0) {}
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder) :
+        writer(outputFolder),
+        totalRecords(0),
+        textRecords(0),
+        langRecords(0) {}
 
 
     void WARCPreprocessor::process(const std::string& filename) {
@@ -30,6 +34,7 @@ namespace warc2text {
 
 
             ++totalRecords;
+            totalBytes += record.getPayload().size();
             if (boost::algorithm::ends_with(record.getURL(), "robots.txt"))
                 continue;
 
@@ -38,12 +43,14 @@ namespace warc2text {
                 continue;
 
             ++textRecords;
+            textBytes += record.getPlainText().size();
 
             reliable = record.detectLanguage();
             if (!reliable)
                 continue;
 
             ++langRecords;
+            langRecords += record.getPlainText().size();
 
             writer.write(record);
         }
@@ -52,7 +59,11 @@ namespace warc2text {
     void WARCPreprocessor::printStatistics(){
         BOOST_LOG_TRIVIAL(info) << "total records: " << totalRecords;
         BOOST_LOG_TRIVIAL(info) << "text records: " << textRecords;
-        BOOST_LOG_TRIVIAL(info) << "lang recods: " << langRecords;
+        BOOST_LOG_TRIVIAL(info) << "lang records: " << langRecords;
+
+        BOOST_LOG_TRIVIAL(info) << "total bytes: " << totalBytes;
+        BOOST_LOG_TRIVIAL(info) << "text bytes: " << textBytes;
+        BOOST_LOG_TRIVIAL(info) << "lang bytes: " << langBytes;
     }
 
 }

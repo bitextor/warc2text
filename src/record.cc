@@ -56,8 +56,6 @@ namespace warc2text {
         // TODO: check for mandatory header fields
         if (header.count("warc-type") == 1)
             recordType = header["warc-type"];
-        if (header.count("warc-record-id") == 1)
-            uuid = header["warc-record-id"];
 
         if (header.count("warc-target-uri") == 1)
             url = header["warc-target-uri"];
@@ -85,20 +83,9 @@ namespace warc2text {
                 cleanContentType(HTTPheader["content-type"]);
         }
 
-        // convert to utf8
-        // assume utf8 if unknown for now
-        if (charset == "UTF-8" || charset == "") {
-            payload = std::string(content, payload_start, std::string::npos);
-        }
-        // if not utf8, convert based on charset
-        else {
-            try {
-                payload = boost::locale::conv::to_utf<char>(&content[payload_start], charset);
-            } catch (boost::locale::conv::invalid_charset_error e) {
-                BOOST_LOG_TRIVIAL(warning) << "In record " << uuid << " invalid charset " << charset;
-                payload = "";
-            }
-        }
+        payload = std::string(content, payload_start, std::string::npos);
+        util::trim(payload);
+
         util::trim(payload); //remove \r\n\r\n at the end
     }
 
@@ -120,10 +107,24 @@ namespace warc2text {
         util::trim(cleanHTTPcontentType);
     }
 
-    void Record::cleanPayload(){
+    bool Record::cleanPayload(){
+        // remove HTML tags:
         processHTML(payload, plaintext);
+
+        // convert to utf8
+        // assume utf8 if unknown for now
+        if (charset != "UTF-8" && charset != "") {
+            try {
+                plaintext = boost::locale::conv::to_utf<char>(plaintext, charset);
+            } catch (boost::locale::conv::invalid_charset_error e) {
+                BOOST_LOG_TRIVIAL(warning) << "In record " << url << " invalid charset " << charset;
+                plaintext = "";
+                return false;
+            }
+        }
         unescapeEntities(plaintext, plaintext);
         util::trimLines(plaintext);
+        return true;
     }
 
     bool Record::detectLanguage(){

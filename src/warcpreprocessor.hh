@@ -14,6 +14,9 @@ namespace warc2text {
             unsigned int totalRecords;
             unsigned int textRecords;
             unsigned int langRecords;
+            unsigned int totalBytes;
+            unsigned int textBytes;
+            unsigned int langBytes;
             static const std::unordered_set<std::string> textContentTypes;
 
         public:
