@@ -24,7 +24,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("help,h", po::bool_switch(), "Show this help message")
         ("output,o", po::value(&out.output)->default_value("."), "Output folder")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
-        ("verbose,v", po::value(&out.verbose)->zero_tokens(), "Verbosity level");
+        ("verbose,v", po::bool_switch(&out.verbose), "Verbosity level");
 
     po::positional_options_description pd;
     pd.add("input", -1);
