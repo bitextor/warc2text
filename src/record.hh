@@ -14,8 +14,6 @@ namespace warc2text {
         Record() {};
 
         explicit Record(const std::string& content);
-        void process(); // does the entire processing of the record
-
         const std::string& getHeaderProperty(const std::string& property) const;
         bool headerExists(const std::string& property) const;
 

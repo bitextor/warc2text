@@ -1,6 +1,5 @@
 #include "html.hh"
 
-
 namespace warc2text {
 
     struct str_istream : public markup::instream {
@@ -23,7 +22,7 @@ namespace warc2text {
         markup::scanner sc(si);
         const char *value;
         int t = markup::scanner::TT_SPACE;
-        while (t != markup::scanner::TT_EOF) {
+        while (t != markup::scanner::TT_EOF && t != markup::scanner::TT_ERROR) {
             t = sc.get_token();
             switch (t) {
                 case markup::scanner::TT_ERROR:
@@ -31,14 +30,14 @@ namespace warc2text {
                     break;
                 case markup::scanner::TT_TAG_START:
                     if (startNL.find(sc.get_tag_name()) != startNL.end()) {
-                        plaintext.append("\n");
+                        plaintext.push_back('\n');
                     }
                     break;
                 case markup::scanner::TT_TAG_END:
                     if (endNL.find(sc.get_tag_name()) != endNL.end() or selfNL.find(sc.get_tag_name()) != selfNL.end()) {
-                        plaintext.append("\n");
+                        plaintext.push_back('\n');
                     } else {
-                        plaintext.append(" ");
+                        plaintext.push_back(' ');
                     }
                     break;
                 case markup::scanner::TT_ATTR:
@@ -52,7 +51,7 @@ namespace warc2text {
                     }
                     break;
                 case markup::scanner::TT_SPACE:
-                    plaintext.append(" ");
+                    plaintext.push_back(' ');
                     break;
                 default:
                     break;
