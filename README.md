@@ -6,6 +6,10 @@ On Debian/Ubuntu/Mint:
 ```
 apt-get install uchardet libuchardet-dev
 ```
+On Mac:
+```
+brew install uchardet
+```
 
 ## Compile
 ```
