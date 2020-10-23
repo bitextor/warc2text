@@ -3,6 +3,7 @@
 #include <boost/algorithm/string/trim_all.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <uchardet/uchardet.h>
 
 namespace util {
     void toLower(std::string& s){
@@ -34,6 +35,19 @@ namespace util {
             first = last + 1;
             last = std::find(first, original.end(), '\n');
         }
+    }
+
+    bool detectCharset(const std::string& text, std::string& charset){
+        uchardet_t handle = uchardet_new();
+        int chardet_result = uchardet_handle_data(handle, text.c_str(), text.size());
+        uchardet_data_end(handle);
+        bool success = (chardet_result == 0);
+        if (success){
+            charset = uchardet_get_charset(handle);
+            toLower(charset);
+        }
+        uchardet_delete(handle);
+        return (success && !charset.empty());
     }
 
     void encodeBase64(const std::string& original, std::string& base64){
