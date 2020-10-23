@@ -100,7 +100,7 @@ namespace warc2text {
             delim = HTTPcontentType.find("charset=");
             if (delim != std::string::npos) {
                 // cut until next ';' or until the end otherwise
-                charset = HTTPcontentType.substr(delim+8, HTTPcontentType.find(";", delim+8) - delim - 8);
+                charset = HTTPcontentType.substr(delim+8, HTTPcontentType.find(';', delim+8) - delim - 8);
                 util::trim(charset);
             }
         }
@@ -122,7 +122,7 @@ namespace warc2text {
             charset = detected_charset;
 
         // attempt conversion is we know the charset, and it is not utf8/ascii
-        if (charset != "" && charset != "utf-8" && charset != "ascii" && charset != "utf8") {
+        if (!charset.empty() && charset != "utf-8" && charset != "ascii" && charset != "utf8") {
             try {
                 plaintext = boost::locale::conv::to_utf<char>(plaintext, charset);
             } catch (const boost::locale::conv::invalid_charset_error& e) {

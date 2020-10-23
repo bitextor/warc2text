@@ -2,7 +2,8 @@
 #define WARC2TEXT_HTML_HH
 
 #include <unordered_set>
-#include <string.h>
+#include <cstring>
+#include <string>
 #include "xh_scanner.hh"
 extern "C" {
     #include "entities.h"
