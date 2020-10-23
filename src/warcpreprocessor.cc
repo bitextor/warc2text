@@ -9,7 +9,10 @@ namespace warc2text {
         writer(outputFolder),
         totalRecords(0),
         textRecords(0),
-        langRecords(0) {}
+        langRecords(0),
+        totalBytes(0),
+        textBytes(0),
+        langBytes(0) {}
 
 
     void WARCPreprocessor::process(const std::string& filename) {
@@ -50,7 +53,7 @@ namespace warc2text {
                 continue;
 
             ++langRecords;
-            langRecords += record.getPlainText().size();
+            langBytes += record.getPlainText().size();
 
             writer.write(record);
         }
