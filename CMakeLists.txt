@@ -42,7 +42,7 @@ add_subdirectory(src)
 # build libcld2.so
 if (NOT EXISTS "${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so")
     execute_process(
-            COMMAND bash -c "export CFLAGS='-Wno-narrowing -O3' && ./compile_libs.sh"
+            COMMAND bash -c "export CFLAGS='-Wno-narrowing -O3' && bash compile_libs.sh"
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/cld2/internal
     )
 endif ()
