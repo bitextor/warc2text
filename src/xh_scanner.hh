@@ -28,12 +28,12 @@ namespace markup {
             TT_SPACE,
 
             TT_DATA,        // content of followings:
+            // (also content of TT_TAG_START and TT_TAG_END, if the tag is 'script')
 
             TT_COMMENT_START, TT_COMMENT_END, // after "<!--" and "-->"
             TT_CDATA_START, TT_CDATA_END,     // after "<![CDATA[" and "]]>"
             TT_PI_START, TT_PI_END,           // after "<?" and "?>"
             TT_ENTITY_START, TT_ENTITY_END,   // after "<!ENTITY" and ">"
-            TT_SCRIPT_START, TT_SCRIPT_END,   // after "<script" and "</script>"
 
         };
 

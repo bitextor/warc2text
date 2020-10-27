@@ -68,12 +68,18 @@ namespace markup {
         char c = skip_whitespace();
 
         if (c == '>') {
-            c_scan = &scanner::scan_body;
+            if (equal(tag_name, "script", 6))
+                // script is special because we want to parse the attributes,
+                // but not the content
+                c_scan = &scanner::scan_script;
+            else
+                c_scan = &scanner::scan_body;
             return scan_body();
         }
         if (c == '/') {
             char t = get_char();
             if (t == '>') {
+                // self closing tag
                 c_scan = &scanner::scan_body;
                 return TT_TAG_END;
             }
@@ -169,12 +175,6 @@ namespace markup {
                     if (equal(tag_name, "!--", 3)) {
                         c_scan = &scanner::scan_comment;
                         return TT_COMMENT_START;
-                    }
-                    break;
-                case 6:
-                    if (equal(tag_name, "script", 6)) {
-                        c_scan = &scanner::scan_script;
-                        return TT_SCRIPT_START;
                     }
                     break;
                 case 8:
@@ -310,7 +310,7 @@ namespace markup {
         if (got_tail) {
             c_scan = &scanner::scan_body;
             got_tail = false;
-            return TT_SCRIPT_END;
+            return TT_TAG_END;
         }
         for (value_length = 0; value_length < (MAX_TOKEN_SIZE - 1); ++value_length) {
             char c = get_char();
