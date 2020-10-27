@@ -171,6 +171,12 @@ namespace markup {
                         return TT_COMMENT_START;
                     }
                     break;
+                case 6:
+                    if (equal(tag_name, "script", 6)) {
+                        c_scan = &scanner::scan_script;
+                        return TT_SCRIPT_START;
+                    }
+                    break;
                 case 8:
                     if (equal(tag_name, "![CDATA[", 8)) {
                         c_scan = &scanner::scan_cdata;
@@ -300,6 +306,36 @@ namespace markup {
         return TT_DATA;
     }
 
+    scanner::token_type scanner::scan_script() {
+        if (got_tail) {
+            c_scan = &scanner::scan_body;
+            got_tail = false;
+            return TT_SCRIPT_END;
+        }
+        for (value_length = 0; value_length < (MAX_TOKEN_SIZE - 1); ++value_length) {
+            char c = get_char();
+            if (c == 0)
+                return TT_EOF;
+            value[value_length] = c;
+
+            if (value_length >= 8
+                && value[value_length] == '>'
+                && value[value_length - 1] == 't'
+                && value[value_length - 2] == 'p'
+                && value[value_length - 3] == 'i'
+                && value[value_length - 4] == 'r'
+                && value[value_length - 5] == 'c'
+                && value[value_length - 6] == 's'
+                && value[value_length - 7] == '/'
+                && value[value_length - 8] == '<' ) {
+                got_tail = true;
+                value_length -= 8;
+                break;
+            }
+        }
+        return TT_DATA;
+    }
+
     scanner::token_type scanner::scan_cdata() {
         if (got_tail) {
             c_scan = &scanner::scan_body;
@@ -368,4 +404,4 @@ namespace markup {
 
 
 }
- 
+

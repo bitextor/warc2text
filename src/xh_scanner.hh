@@ -33,6 +33,7 @@ namespace markup {
             TT_CDATA_START, TT_CDATA_END,     // after "<![CDATA[" and "]]>"
             TT_PI_START, TT_PI_END,           // after "<?" and "?>"
             TT_ENTITY_START, TT_ENTITY_END,   // after "<!ENTITY" and ">"
+            TT_SCRIPT_START, TT_SCRIPT_END,   // after "<script" and "</script>"
 
         };
 
@@ -79,6 +80,8 @@ namespace markup {
         token_type scan_comment();
 
         token_type scan_cdata();
+
+        token_type scan_script();
 
         token_type scan_pi();
 
