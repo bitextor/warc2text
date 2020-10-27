@@ -30,7 +30,6 @@ HTML Tokenizer by [c-smile](https://www.codeproject.com/Articles/14076/Fast-and-
 HTML entities decoder by [Christoph Gärtner](https://bitbucket.org/cggaertner/cstuff/src/master/entities.c)
 
 Charset detection [uchardet](https://www.freedesktop.org/wiki/Software/uchardet/)
-=======
 
 ___
 
