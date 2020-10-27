@@ -1,4 +1,6 @@
 #include "html.hh"
+#include "util.hh"
+#include <unordered_map>
 
 namespace warc2text {
 
@@ -16,16 +18,27 @@ namespace warc2text {
     std::unordered_set<std::string> selfNL ( {"br"} );
     std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
 
-    void processHTML(const std::string& html, std::string& plaintext){
+    std::unordered_map<std::string, std::unordered_map<std::string, std::string>> filterTags ({
+        {"link", { {"rel", "alternate machine-translated-from"}, {"id", "gtranslate-style-css"} }},
+        {"meta", { {"name", "translation-stats"} } },
+        {"aside", { {"id", "gtranslate"} } },
+        {"script", { {"source", "gtranslate.net"} } },
+    });
+
+    int processHTML(const std::string& html, std::string& plaintext){
         plaintext = "";
         str_istream si(html.c_str());
         markup::scanner sc(si);
-        const char *value;
+
+        auto tag_it = filterTags.cbegin();
+        auto attr_it = tag_it->second.cbegin();
         int t = markup::scanner::TT_SPACE;
+        int retval = util::SUCCESS;
         while (t != markup::scanner::TT_EOF && t != markup::scanner::TT_ERROR) {
             t = sc.get_token();
             switch (t) {
                 case markup::scanner::TT_ERROR:
+                    retval = util::HTML_PARSING_ERROR;
                 case markup::scanner::TT_EOF:
                     break;
                 case markup::scanner::TT_TAG_START:
@@ -40,23 +53,31 @@ namespace warc2text {
                         plaintext.push_back(' ');
                     }
                     break;
-                case markup::scanner::TT_ATTR:
-                    break;
                 case markup::scanner::TT_WORD:
                     if (noText.find(sc.get_tag_name()) == noText.end()) {
-                        value = sc.get_value();
-                        if (strcmp(value,"&nbsp;") != 0) {
-                            plaintext.append(value);
+                        if (strcmp(sc.get_value(),"&nbsp;") != 0) {
+                            plaintext.append(sc.get_value());
                         }
                     }
                     break;
                 case markup::scanner::TT_SPACE:
                     plaintext.push_back(' ');
                     break;
+                case markup::scanner::TT_ATTR:
+                    tag_it = filterTags.find(sc.get_tag_name());
+                    if (tag_it != filterTags.end()) {
+                        attr_it = tag_it->second.find(sc.get_attr_name());
+                        if (attr_it != tag_it->second.cend()
+                            && strstr(sc.get_value(), attr_it->second.c_str())) {
+                            retval = util::FILTERED_DOCUMENT_ERROR;
+                        }
+                    }
+                    break;
                 default:
                     break;
             }
         }
+        return retval;
     }
 
 

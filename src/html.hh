@@ -10,7 +10,7 @@ extern "C" {
 }
 
 namespace warc2text {
-    void processHTML(const std::string& html, std::string& text);
+    int processHTML(const std::string& html, std::string& text);
 
     void unescapeEntities(const std::string& text, std::string& processed);
 }

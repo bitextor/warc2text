@@ -107,9 +107,9 @@ namespace warc2text {
         util::trim(cleanHTTPcontentType);
     }
 
-    bool Record::cleanPayload(){
+    int Record::cleanPayload(){
         // remove HTML tags:
-        processHTML(payload, plaintext);
+        int retval = processHTML(payload, plaintext);
 
         // convert to utf8
         // assume utf8 if unknown for now
@@ -119,12 +119,12 @@ namespace warc2text {
             } catch (const boost::locale::conv::invalid_charset_error& e) {
                 BOOST_LOG_TRIVIAL(warning) << "In record " << url << " invalid charset " << charset;
                 plaintext = "";
-                return false;
+                return util::UTF8_CONVERSION_ERROR;
             }
         }
         unescapeEntities(plaintext, plaintext);
         util::trimLines(plaintext);
-        return true;
+        return retval;
     }
 
     bool Record::detectLanguage(){

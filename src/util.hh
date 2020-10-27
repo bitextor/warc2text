@@ -25,6 +25,14 @@ namespace util {
 
     void encodeBase64(const std::string& original, std::string& base64);
 
+
+    enum ErrorCode : int {
+        SUCCESS = 0,
+        HTML_PARSING_ERROR = 1,
+        FILTERED_DOCUMENT_ERROR = 2,
+        UNKNOWN_ENCODING_ERROR = 3,
+        UTF8_CONVERSION_ERROR = 4
+    };
 }
 
 #endif

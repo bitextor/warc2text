@@ -29,7 +29,7 @@ namespace warc2text {
         const std::string& getHTTPcontentType() const;
         const std::string& getCharset() const;
 
-        bool cleanPayload();
+        int cleanPayload();
         bool detectLanguage();
 
     private:
