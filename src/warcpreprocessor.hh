@@ -4,6 +4,7 @@
 #include "record.hh"
 #include "warcreader.hh"
 #include "bilangwriter.hh"
+#include "util.hh"
 #include <string>
 #include <unordered_set>
 
@@ -18,9 +19,10 @@ namespace warc2text {
             unsigned int textBytes;
             unsigned int langBytes;
             static const std::unordered_set<std::string> textContentTypes;
+            util::umap_tag_filters tagFilters;
 
         public:
-            explicit WARCPreprocessor(const std::string& outputFolder);
+            explicit WARCPreprocessor(const std::string& outputFolder, const std::string& tagFiltersFile = "");
             void process(const std::string &filename);
             void printStatistics() const;
     };

@@ -3,7 +3,6 @@
 //
 
 #include "record.hh"
-#include "util.hh"
 #include "lang.hh"
 #include "html.hh"
 #include <boost/log/trivial.hpp>
@@ -109,8 +108,13 @@ namespace warc2text {
     }
 
     int Record::cleanPayload(){
+        util::umap_tag_filters tagFilters;
+        return cleanPayload(tagFilters);
+    }
+
+    int Record::cleanPayload(const util::umap_tag_filters& tagFilters){
         // remove HTML tags:
-        int retval = processHTML(payload, plaintext);
+        int retval = processHTML(payload, plaintext, tagFilters);
 
         // detect charset
         std::string detected_charset;
@@ -126,14 +130,17 @@ namespace warc2text {
             try {
                 plaintext = boost::locale::conv::to_utf<char>(plaintext, charset);
             } catch (const boost::locale::conv::invalid_charset_error& e) {
-                BOOST_LOG_TRIVIAL(warning) << "In record " << url << " invalid charset " << charset;
+                // BOOST_LOG_TRIVIAL(warning) << "In record " << url << " invalid charset " << charset;
+                plaintext = "";
                 return util::UNKNOWN_ENCODING_ERROR;
             } catch (const boost::locale::conv::conversion_error& e) {
-                BOOST_LOG_TRIVIAL(warning) << "In record " << url << " conversion error from " << charset;
+                // BOOST_LOG_TRIVIAL(warning) << "In record " << url << " conversion error from " << charset;
+                plaintext = "";
                 return util::UTF8_CONVERSION_ERROR;
             }
         } else if (charset.empty()) {
             // throw out documents if we don't know the charset
+            plaintext = "";
             return util::UNKNOWN_ENCODING_ERROR;
         }
         unescapeEntities(plaintext, plaintext);

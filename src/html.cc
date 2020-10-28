@@ -1,5 +1,4 @@
 #include "html.hh"
-#include "util.hh"
 #include <unordered_map>
 
 namespace warc2text {
@@ -18,20 +17,14 @@ namespace warc2text {
     std::unordered_set<std::string> selfNL ( {"br"} );
     std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
 
-    std::unordered_map<std::string, std::unordered_map<std::string, std::string>> filterTags ({
-        {"link", { {"rel", "alternate machine-translated-from"}, {"id", "gtranslate-style-css"} }},
-        {"meta", { {"name", "translation-stats"} } },
-        {"aside", { {"id", "gtranslate"} } },
-        {"script", { {"source", "gtranslate.net"} } },
-    });
 
-    int processHTML(const std::string& html, std::string& plaintext){
+    int processHTML(const std::string& html, std::string& plaintext, const util::umap_tag_filters& tagFilters){
         plaintext = "";
         str_istream si(html.c_str());
         markup::scanner sc(si);
 
-        auto tag_it = filterTags.cbegin();
-        auto attr_it = tag_it->second.cbegin();
+        util::umap_tag_filters::const_iterator tag_it;
+        util::umap_attr_filters::const_iterator attr_it;
         int t = markup::scanner::TT_SPACE;
         int retval = util::SUCCESS;
         while (t != markup::scanner::TT_EOF && t != markup::scanner::TT_ERROR) {
@@ -64,12 +57,16 @@ namespace warc2text {
                     plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_ATTR:
-                    tag_it = filterTags.find(sc.get_tag_name());
-                    if (tag_it != filterTags.end()) {
-                        attr_it = tag_it->second.find(sc.get_attr_name());
-                        if (attr_it != tag_it->second.cend()
-                            && strstr(sc.get_value(), attr_it->second.c_str())) {
+                    tag_it = tagFilters.find(sc.get_tag_name());
+                    if (tag_it == tagFilters.cend())
+                        break;
+                    attr_it = tag_it->second.find(sc.get_attr_name());
+                    if (attr_it == tag_it->second.cend())
+                        break;
+                    for (const std::string& value : attr_it->second){
+                        if (strstr(sc.get_value(), value.c_str())) {
                             retval = util::FILTERED_DOCUMENT_ERROR;
+                            break; // passing one filter is enough
                         }
                     }
                     break;

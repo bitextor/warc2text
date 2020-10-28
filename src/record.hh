@@ -7,6 +7,7 @@
 
 #include <string>
 #include <unordered_map>
+#include "util.hh"
 
 namespace warc2text {
     class Record {
@@ -30,6 +31,7 @@ namespace warc2text {
         const std::string& getCharset() const;
 
         int cleanPayload();
+        int cleanPayload(const util::umap_tag_filters& tagFilters);
         bool detectLanguage();
 
     private:

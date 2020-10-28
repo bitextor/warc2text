@@ -15,6 +15,7 @@ struct Options {
     std::vector<std::string> warcs;
     bool verbose;
     std::string output;
+    std::string tag_filters_filename;
 };
 
 void parseArgs(int argc, char *argv[], Options& out) {
@@ -24,7 +25,8 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("help,h", po::bool_switch(), "Show this help message")
         ("output,o", po::value(&out.output)->default_value("."), "Output folder")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
-        ("verbose,v", po::bool_switch(&out.verbose), "Verbosity level");
+        ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
+        ("verbose,v", po::bool_switch(&out.verbose)->default_value(""), "Verbosity level");
 
     po::positional_options_description pd;
     pd.add("input", -1);
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]) {
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
-    WARCPreprocessor warcpproc(options.output);
+    WARCPreprocessor warcpproc(options.output, options.tag_filters_filename);
     for (std::string file : options.warcs){
         warcpproc.process(file);
     }
