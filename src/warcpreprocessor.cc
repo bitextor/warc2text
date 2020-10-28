@@ -29,6 +29,9 @@ namespace warc2text {
                 continue;
 
             Record record(content);
+            if (record.getPayload().empty())
+                continue;
+
             if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
 

@@ -12,6 +12,7 @@
 // #include <boost/iostreams/categories.hpp>
 // #include <boost/iostreams/code_converter.hpp>
 #include <boost/locale.hpp>
+#include <uchardet/uchardet.h>
 
 namespace warc2text {
     std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
@@ -111,9 +112,17 @@ namespace warc2text {
         // remove HTML tags:
         processHTML(payload, plaintext);
 
-        // convert to utf8
-        // assume utf8 if unknown for now
-        if (charset != "UTF-8" && !charset.empty()) {
+        // detect charset
+        std::string detected_charset;
+        bool detection_result = util::detectCharset(plaintext, detected_charset);
+
+        // trust the detected more than the specified charset
+        // if detection fails, go with the original one
+        if (detection_result)
+            charset = detected_charset;
+
+        // attempt conversion is we know the charset, and it is not utf8/ascii
+        if (!charset.empty() && charset != "utf-8" && charset != "ascii" && charset != "utf8") {
             try {
                 plaintext = boost::locale::conv::to_utf<char>(plaintext, charset);
             } catch (const boost::locale::conv::invalid_charset_error& e) {
@@ -121,6 +130,9 @@ namespace warc2text {
                 plaintext = "";
                 return false;
             }
+        } else if (charset.empty()) {
+            // throw out documents if we don't know the charset
+            return false;
         }
         unescapeEntities(plaintext, plaintext);
         util::trimLines(plaintext);

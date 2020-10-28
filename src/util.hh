@@ -15,6 +15,9 @@ namespace util {
     void trimLines(std::string& text);
     void trimLinesCopy(const std::string& original, std::string& result);
 
+    // detect charset using uchardet
+    bool detectCharset(const std::string& text, std::string& charset);
+
     typedef boost::archive::iterators::base64_from_binary<
         boost::archive::iterators::transform_width<
             std::string::const_iterator,
