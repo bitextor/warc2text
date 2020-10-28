@@ -127,12 +127,14 @@ namespace warc2text {
                 plaintext = boost::locale::conv::to_utf<char>(plaintext, charset);
             } catch (const boost::locale::conv::invalid_charset_error& e) {
                 BOOST_LOG_TRIVIAL(warning) << "In record " << url << " invalid charset " << charset;
-                plaintext = "";
+                return util::UNKNOWN_ENCODING_ERROR;
+            } catch (const boost::locale::conv::conversion_error& e) {
+                BOOST_LOG_TRIVIAL(warning) << "In record " << url << " conversion error from " << charset;
                 return util::UTF8_CONVERSION_ERROR;
             }
         } else if (charset.empty()) {
             // throw out documents if we don't know the charset
-            return false;
+            return util::UNKNOWN_ENCODING_ERROR;
         }
         unescapeEntities(plaintext, plaintext);
         util::trimLines(plaintext);
