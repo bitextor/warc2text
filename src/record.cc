@@ -130,6 +130,9 @@ namespace warc2text {
                 plaintext = "";
                 return false;
             }
+        } else if (charset.empty()) {
+            // throw out documents if we don't know the charset
+            return false;
         }
         unescapeEntities(plaintext, plaintext);
         util::trimLines(plaintext);
