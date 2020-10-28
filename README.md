@@ -24,6 +24,12 @@ make
 warc2text -o [output folder] [ WARC ... ]
 ```
 
+
+## Broader document formats
+For a broader document format processing (.docx, .pptx, .odt, .epub, .pdf, etc.) you can use [warc2htmlwarc](https://raw.githubusercontent.com/bitextor/bitextor/snake_performance/bitextor-warc2htmlwarc.py) script with `--only-broader` argument to only output XHTML versions of these special WARC record payloads:
+
+`warc2text -o output <(cat input.warc.gz <(python3 bitextor-warc2htmlwarc.py -i input.warc.gz --only-broader))`
+
 ## Included dependencies
 HTML Tokenizer by [c-smile](https://www.codeproject.com/Articles/14076/Fast-and-Compact-HTML-XML-Scanner-Tokenizer)
 
