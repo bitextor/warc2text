@@ -34,8 +34,8 @@ namespace markup {
 
         if (c == 0) return TT_EOF;
         else if (c == '<') return scan_tag();
-        else if (c == '&')
-            c = scan_entity();
+        // else if (c == '&')
+        //     c = scan_entity();
         else
             ws = is_whitespace(c);
 
@@ -120,7 +120,7 @@ namespace markup {
             c = get_char();
             while (c) {
                 if (c == '\"') return TT_ATTR;
-                if (c == '&') c = scan_entity();
+                // if (c == '&') c = scan_entity();
                 append_value(c);
                 c = get_char();
             }
@@ -129,7 +129,7 @@ namespace markup {
             c = get_char();
             while (c) {
                 if (c == '\'') return TT_ATTR;
-                if (c == '&') c = scan_entity();
+                // if (c == '&') c = scan_entity();
                 append_value(c);
                 c = get_char();
             }
