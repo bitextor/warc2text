@@ -68,12 +68,13 @@ namespace markup {
         char c = skip_whitespace();
 
         if (c == '>') {
-            if (equal(tag_name, "script", 6))
+            if (equal(tag_name, "script", 6)){
                 // script is special because we want to parse the attributes,
                 // but not the content
                 c_scan = &scanner::scan_script;
-            else
-                c_scan = &scanner::scan_body;
+                return scan_script();
+            }
+            c_scan = &scanner::scan_body;
             return scan_body();
         }
         if (c == '/') {
