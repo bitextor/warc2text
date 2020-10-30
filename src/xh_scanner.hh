@@ -6,7 +6,10 @@
 
 namespace markup {
     struct instream {
-        virtual char get_char() = 0;
+        const char *p;
+        const char *end;
+        explicit instream(const char *src) : p(src), end(src+strlen(src)) {}
+        char get_char() { return p < end ? *p++ : 0; }
     };
 
 
