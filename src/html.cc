@@ -1,5 +1,4 @@
 #include "html.hh"
-#include <unordered_map>
 
 namespace warc2text {
 
