@@ -3,15 +3,6 @@
 
 namespace warc2text {
 
-    struct str_istream : public markup::instream {
-        const char *p;
-        const char *end;
-
-        explicit str_istream(const char *src) : p(src), end(src + strlen(src)) {}
-
-        char get_char() override { return p < end ? *p++ : 0; }
-    };
-
     std::unordered_set<std::string> startNL ( {"ul", "ol", "dl", "tr"} );
     std::unordered_set<std::string> endNL ( {"p", "div", "li", "dd", "th", "td", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"} );
     std::unordered_set<std::string> selfNL ( {"br"} );
@@ -20,7 +11,7 @@ namespace warc2text {
 
     int processHTML(const std::string& html, std::string& plaintext, const util::umap_tag_filters& tagFilters){
         plaintext = "";
-        str_istream si(html.c_str());
+        markup::instream si(html.c_str());
         markup::scanner sc(si);
 
         util::umap_tag_filters::const_iterator tag_it;
