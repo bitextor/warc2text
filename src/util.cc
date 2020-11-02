@@ -13,6 +13,9 @@ namespace util {
     void toLower(std::string& s){
         boost::algorithm::to_lower(s);
     }
+    std::string toLowerCopy(const std::string& s){
+        return boost::algorithm::to_lower_copy(s);
+    }
 
     void trim(std::string& s){
         boost::algorithm::trim(s);

@@ -11,7 +11,7 @@ extern "C" {
 }
 
 namespace warc2text {
-    int processHTML(const std::string& html, std::string& text, const util::umap_tag_filters& tagFilters);
+    int processHTML(const std::string& html, std::string& text, std::string& deferred, const util::umap_tag_filters& tagFilters);
 
     void unescapeEntities(const std::string& text, std::string& processed);
 }

@@ -31,10 +31,18 @@ namespace warc2text {
             std::unordered_map<std::string, GzipWriter> url_files;
             std::unordered_map<std::string, GzipWriter> mime_files;
             std::unordered_map<std::string, GzipWriter> text_files;
+            std::unordered_map<std::string, GzipWriter> deferred_files;
             std::unordered_map<std::string, GzipWriter> html_files;
 
         public:
-            BilangWriter(const std::string& folder) : folder(folder), url_files(), mime_files(), text_files() {};
+            BilangWriter(const std::string& folder) :
+                folder(folder),
+                url_files(),
+                mime_files(),
+                text_files(),
+                deferred_files(),
+                html_files() {};
+
             void write(const Record& record);
     };
 

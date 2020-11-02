@@ -114,7 +114,7 @@ namespace warc2text {
 
     int Record::cleanPayload(const util::umap_tag_filters& tagFilters){
         // remove HTML tags:
-        int retval = processHTML(payload, plaintext, tagFilters);
+        int retval = processHTML(payload, plaintext, deferred, tagFilters);
 
         // detect charset
         std::string detected_charset;
@@ -181,6 +181,10 @@ namespace warc2text {
 
     const std::string& Record::getPlainText() const {
         return plaintext;
+    }
+
+    const std::string& Record::getDeferred() const {
+        return deferred;
     }
 
     const std::string& Record::getLanguage() const {

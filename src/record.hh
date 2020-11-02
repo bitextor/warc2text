@@ -23,6 +23,7 @@ namespace warc2text {
 
         const std::string& getPayload() const;
         const std::string& getPlainText() const;
+        const std::string& getDeferred() const;
         const std::string& getLanguage() const;
         const std::string& getURL() const;
         const std::string& getRecordType() const;
@@ -39,6 +40,7 @@ namespace warc2text {
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;
         std::string plaintext;
+        std::string deferred;
         std::string language;
 
         // these are present in the headers, but it's convenient to have them apart also

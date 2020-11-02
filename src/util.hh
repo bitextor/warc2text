@@ -9,6 +9,7 @@
 
 namespace util {
     void toLower(std::string& s);
+    std::string toLowerCopy(const std::string& s);
 
     // trim consecutive spaces from left and right
     void trim(std::string& s);
