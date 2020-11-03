@@ -1,6 +1,5 @@
 #include "html.hh"
 #include <deque>
-#include <utility> // std::pair std::make_pair
 
 namespace warc2text {
 
@@ -14,17 +13,27 @@ namespace warc2text {
     inline bool isNoText(const char* tag) { return noText.find(tag) != noText.end(); }
     inline bool isVoidTag(const char* tag) { return voidTags.find(util::toLowerCopy(tag)) != voidTags.end(); }
 
+    struct deferred_node {
+        std::string tag;
+        int offset;
+        int index;
 
-    void add_deferred_word(const std::deque<std::pair<std::string, int>>& tagstack, int size, std::string& deferred) {
-        for (auto it = tagstack.cbegin(); it+1 != tagstack.cend(); ++it) {
-            deferred += it->first;
-            deferred += "/";
+        deferred_node(std::string tag, int offset, int index) : tag(tag), offset(offset), index(index) {};
+        deferred_node() : tag(), offset(), index() {};
+    } ;
+
+
+    void add_deferred_word(const std::deque<deferred_node>& tagstack, int size, std::string& deferred) {
+        for (auto it = tagstack.cbegin(); it != tagstack.cend(); ++it) {
+            deferred += it->tag;
+            deferred += "[";
+            deferred += std::to_string(it->index);
+            deferred += "]/";
         }
-        deferred += tagstack.back().first;
-        deferred += ":";
-        deferred += std::to_string(tagstack.back().second);
+        deferred[deferred.size()-1] = ':'; // replace last '/' by ':'
+        deferred += std::to_string(tagstack.back().offset);
         deferred += "-";
-        deferred += std::to_string(tagstack.back().second + size - 1);
+        deferred += std::to_string(tagstack.back().offset + size - 1);
         deferred += ";";
     }
 
@@ -53,7 +62,8 @@ namespace warc2text {
         int t = markup::scanner::TT_SPACE; // just start somewhere that isn't ERROR or EOF
         int retval = util::SUCCESS;
 
-        std::deque<std::pair<std::string, int>> tagstack;
+        std::deque<deferred_node> tagstack;
+        deferred_node prev_node;
 
         while (t != markup::scanner::TT_EOF and t != markup::scanner::TT_ERROR) {
             t = sc.get_token();
@@ -65,12 +75,18 @@ namespace warc2text {
                 case markup::scanner::TT_TAG_START:
                     if (isStartTag(sc.get_tag_name()))
                         plaintext.push_back('\n');
-                    if (!isVoidTag(sc.get_tag_name()))
-                        tagstack.emplace_back(std::make_pair(sc.get_tag_name(), 0));
+                    if (!isVoidTag(sc.get_tag_name())) {
+                        if (strcmp(sc.get_tag_name(), prev_node.tag.c_str()) == 0)
+                            tagstack.emplace_back(sc.get_tag_name(), 0, prev_node.index+1);
+                        else
+                            tagstack.emplace_back(sc.get_tag_name(), 0, 1); // apparently indices start by 1
+                    }
                     break;
                 case markup::scanner::TT_TAG_END:
-                    if (!isVoidTag(sc.get_tag_name()))
+                    if (!isVoidTag(sc.get_tag_name())) {
+                        prev_node = tagstack.back();
                         tagstack.pop_back();
+                    }
                     if (isEndTag(sc.get_tag_name()) or isVoidTag(sc.get_tag_name()))
                         plaintext.push_back('\n');
                     else
@@ -79,14 +95,14 @@ namespace warc2text {
                 case markup::scanner::TT_WORD:
                     if (!tagstack.empty()) {
                         add_deferred_word(tagstack, strlen(sc.get_value()), deferred);
-                        tagstack.back().second += strlen(sc.get_value());
+                        tagstack.back().offset += strlen(sc.get_value());
                     }
                     if (!isNoText(sc.get_tag_name()) and strcmp(sc.get_value(), "&nbsp;") != 0)
                             plaintext.append(sc.get_value());
                     break;
                 case markup::scanner::TT_SPACE:
                     if (!tagstack.empty())
-                        tagstack.back().second++;
+                        tagstack.back().offset++;
                     plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_ATTR:
