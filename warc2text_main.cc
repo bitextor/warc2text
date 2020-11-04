@@ -13,7 +13,7 @@ using namespace warc2text;
 
 struct Options {
     std::vector<std::string> warcs;
-    bool verbose;
+    bool verbose{};
     std::string output;
 };
 
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
     WARCPreprocessor warcpproc(options.output);
-    for (std::string file : options.warcs){
+    for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }
     warcpproc.printStatistics();
