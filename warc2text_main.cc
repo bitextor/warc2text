@@ -13,7 +13,7 @@ using namespace warc2text;
 
 struct Options {
     std::vector<std::string> warcs;
-    bool verbose;
+    bool verbose{};
     std::string output;
     std::string tag_filters_filename;
 };
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
     WARCPreprocessor warcpproc(options.output, options.tag_filters_filename);
-    for (std::string file : options.warcs){
+    for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }
     warcpproc.printStatistics();
