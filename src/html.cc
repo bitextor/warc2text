@@ -1,5 +1,6 @@
 #include "html.hh"
 #include <deque>
+#include "deferred.hh"
 
 namespace warc2text {
 
@@ -12,31 +13,6 @@ namespace warc2text {
     inline bool isEndTag(const char* tag) { return endNL.find(tag) != endNL.end(); }
     inline bool isNoText(const char* tag) { return noText.find(tag) != noText.end(); }
     inline bool isVoidTag(const char* tag) { return voidTags.find(util::toLowerCopy(tag)) != voidTags.end(); }
-
-    struct deferred_node {
-        std::string tag;
-        int offset;
-        int index;
-
-        deferred_node(std::string tag, int offset, int index) : tag(tag), offset(offset), index(index) {};
-        deferred_node() : tag(), offset(), index() {};
-    } ;
-
-
-    void add_deferred_word(const std::deque<deferred_node>& tagstack, int size, std::string& deferred) {
-        for (auto it = tagstack.cbegin(); it != tagstack.cend(); ++it) {
-            deferred += it->tag;
-            deferred += "[";
-            deferred += std::to_string(it->index);
-            deferred += "]/";
-        }
-        deferred[deferred.size()-1] = ':'; // replace last '/' by ':'
-        deferred += std::to_string(tagstack.back().offset);
-        deferred += "-";
-        deferred += std::to_string(tagstack.back().offset + size - 1);
-        deferred += ";";
-    }
-
 
     // true if doc is ok
     bool filter(markup::scanner& sc, const util::umap_tag_filters& tagFilters) {
@@ -62,8 +38,7 @@ namespace warc2text {
         int t = markup::scanner::TT_SPACE; // just start somewhere that isn't ERROR or EOF
         int retval = util::SUCCESS;
 
-        std::deque<deferred_node> tagstack;
-        deferred_node prev_node;
+        DeferredTree dtree;
 
         while (t != markup::scanner::TT_EOF and t != markup::scanner::TT_ERROR) {
             t = sc.get_token();
@@ -76,16 +51,12 @@ namespace warc2text {
                     if (isStartTag(sc.get_tag_name()))
                         plaintext.push_back('\n');
                     if (!isVoidTag(sc.get_tag_name())) {
-                        if (strcmp(sc.get_tag_name(), prev_node.tag.c_str()) == 0)
-                            tagstack.emplace_back(sc.get_tag_name(), 0, prev_node.index+1);
-                        else
-                            tagstack.emplace_back(sc.get_tag_name(), 0, 1); // apparently indices start by 1
+                        dtree.insertTag(sc.get_tag_name());
                     }
                     break;
                 case markup::scanner::TT_TAG_END:
                     if (!isVoidTag(sc.get_tag_name())) {
-                        prev_node = tagstack.back();
-                        tagstack.pop_back();
+                        dtree.endTag();
                     }
                     if (isEndTag(sc.get_tag_name()) or isVoidTag(sc.get_tag_name()))
                         plaintext.push_back('\n');
@@ -93,16 +64,17 @@ namespace warc2text {
                         plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_WORD:
-                    if (!tagstack.empty()) {
-                        add_deferred_word(tagstack, strlen(sc.get_value()), deferred);
-                        tagstack.back().offset += strlen(sc.get_value());
+                    if (!dtree.empty()) {
+                        deferred += dtree.printStandoff(strlen(sc.get_value()));
+                        deferred.push_back(';');
+                        dtree.addOffset(strlen(sc.get_value()));
                     }
                     if (!isNoText(sc.get_tag_name()) and strcmp(sc.get_value(), "&nbsp;") != 0)
                             plaintext.append(sc.get_value());
                     break;
                 case markup::scanner::TT_SPACE:
-                    if (!tagstack.empty())
-                        tagstack.back().offset++;
+                    if (!dtree.empty())
+                        dtree.addOffset(strlen(sc.get_value()));
                     plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_ATTR:
