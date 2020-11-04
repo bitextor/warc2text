@@ -62,9 +62,9 @@ namespace warc2text {
                 deferred.append(std::to_string(node->parent->counts.at(node->tag)));
                 deferred.push_back(']');
             }
-            if (node->children.empty()) break;
-            deferred.push_back('/');
+            if (node == current or node->children.empty()) break;
             node = node->children.back();
+            deferred.push_back('/');
         }
         deferred.push_back(':');
         deferred.append(std::to_string(node->offset));
