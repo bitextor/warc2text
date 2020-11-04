@@ -52,9 +52,8 @@ namespace warc2text {
         --level;
     }
 
-    std::string DeferredTree::printStandoff(int wordLength) const {
-        std::string deferred;
-        if (root == NULL or root->children.empty()) return deferred;
+    void DeferredTree::appendStandoff(std::string& deferred, int wordLength) const {
+        if (root == NULL or root->children.empty()) return;
         const DeferredNode* node = root->children.back();
         while (true) {
             deferred.append(node->tag);
@@ -71,7 +70,6 @@ namespace warc2text {
         deferred.append(std::to_string(node->offset));
         deferred.push_back('-');
         deferred.append(std::to_string(node->offset + wordLength - 1));
-        return deferred;
     }
 
     bool DeferredTree::empty() const {

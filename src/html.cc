@@ -65,7 +65,7 @@ namespace warc2text {
                     break;
                 case markup::scanner::TT_WORD:
                     if (!dtree.empty()) {
-                        deferred += dtree.printStandoff(strlen(sc.get_value()));
+                        dtree.appendStandoff(deferred, strlen(sc.get_value()));
                         deferred.push_back(';');
                         dtree.addOffset(strlen(sc.get_value()));
                     }

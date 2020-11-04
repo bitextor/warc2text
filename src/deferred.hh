@@ -30,7 +30,7 @@ namespace warc2text {
             void insertTag(const std::string& tag);
             void addOffset(int n);
             void endTag();
-            std::string printStandoff(int wordLength) const;
+            void appendStandoff(std::string& s, int wordLength) const;
             bool empty() const;
             void printTree() const;
     };
