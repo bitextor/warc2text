@@ -79,20 +79,19 @@ namespace warc2text {
                         plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_WORD:
-                    if (!dtree.empty()) {
-                        if (!deferred.empty() && deferred.back() != ';')
-                            deferred.push_back('+');
-                        dtree.appendStandoff(deferred, strlen(sc.get_value()));
-                        dtree.addOffset(strlen(sc.get_value()));
-                    }
-                    if (!isNoText(sc.get_tag_name()) and strcmp(sc.get_value(), "&nbsp;") != 0)
-                            plaintext.append(sc.get_value());
+                    // if the tag is is noText list, don't save the text or the standoff
+                    if (isNoText(sc.get_tag_name()))
+                        break;
+                    plaintext.append(sc.get_value());
+                    if (!deferred.empty() && deferred.back() != ';')
+                        deferred.push_back('+');
+                    dtree.appendStandoff(deferred, strlen(sc.get_value()));
+                    dtree.addOffset(strlen(sc.get_value()));
                     break;
                 case markup::scanner::TT_SPACE:
                     if (!deferred.empty() && deferred.back() != ';')
                         deferred.push_back(';'); // found space: previous word has ended
-                    if (!dtree.empty())
-                        dtree.addOffset(strlen(sc.get_value()));
+                    dtree.addOffset(strlen(sc.get_value()));
                     plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_ATTR:
