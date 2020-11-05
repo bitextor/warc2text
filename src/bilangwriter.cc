@@ -37,7 +37,7 @@ namespace warc2text{
         GzipWriter* url = &url_files[*lang];
         GzipWriter* mime = &mime_files[*lang];
         GzipWriter* text = &text_files[*lang];
-        GzipWriter* html = &html_files[*lang];
+        // GzipWriter* html = &html_files[*lang];
         GzipWriter* deferred = &deferred_files[*lang];
         if (!url->is_open()) {
             // if one file does not exist, the rest shouldn't either
@@ -46,7 +46,7 @@ namespace warc2text{
             url->open(path + "/url.gz");
             mime->open(path + "/mime.gz");
             text->open(path + "/text.gz");
-            html->open(path + "/html.gz");
+            // html->open(path + "/html.gz");
             deferred->open(path + "/deferred.gz");
         }
 
@@ -55,9 +55,9 @@ namespace warc2text{
         std::string base64text;
         util::encodeBase64(record.getPlainText(), base64text);
         text->write(base64text.data(), base64text.size());
-        std::string base64html;
-        util::encodeBase64(record.getPayload(), base64html);
-        html->write(base64html.data(), base64html.size());
+        // std::string base64html;
+        // util::encodeBase64(record.getPayload(), base64html);
+        // html->write(base64html.data(), base64html.size());
         deferred->write(record.getDeferred().data(), record.getDeferred().size());
     }
 }

@@ -13,7 +13,7 @@ using namespace warc2text;
 
 struct Options {
     std::vector<std::string> warcs;
-    bool verbose;
+    bool verbose{};
     std::string output;
     std::string tag_filters_filename;
 };
@@ -34,7 +34,11 @@ void parseArgs(int argc, char *argv[], Options& out) {
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
     if (argc == 1 || vm["help"].as<bool>()) {
-        std::cerr << "Usage: " << argv[0] << " -o output_folder [WARC_files]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " -o <output_folder> [--tag-filters <filters_file>] <warc_file>...\n"
+                "\n"
+                "Options:\n"
+                " -o                Output folder, required\n"
+                " --tag-filters     File containing filters, format: \"html_tag <tab> tag_attr <tab> value\"\n";
         exit(1);
     }
     po::notify(vm);
@@ -55,7 +59,7 @@ int main(int argc, char *argv[]) {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
     WARCPreprocessor warcpproc(options.output, options.tag_filters_filename);
-    for (std::string file : options.warcs){
+    for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }
     warcpproc.printStatistics();
