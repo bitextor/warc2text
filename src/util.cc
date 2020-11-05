@@ -1,8 +1,12 @@
 #include "util.hh"
+#include <iostream>
+#include <fstream>
 #include <algorithm>
+#include <vector>
 #include <boost/algorithm/string/trim_all.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <uchardet/uchardet.h>
 
 namespace util {
@@ -56,4 +60,20 @@ namespace util {
         base64.append(pad, '=');
     }
 
+    void readTagFilters(const std::string& filename, umap_tag_filters& filters) {
+        std::ifstream f(filename);
+        std::string line;
+        std::vector<std::string> fields;
+        while (std::getline(f, line)) {
+            fields.clear();
+            boost::algorithm::split(fields, line, [](char c){return c == '\t';});
+            if (fields.size() < 3)
+                break;
+            umap_attr_filters& attrs = filters[fields.at(0)];
+            std::unordered_set<std::string>& values = attrs[fields.at(1)];
+            for (unsigned int i = 2; i < fields.size(); ++i)
+                values.insert(fields.at(i));
+        }
+        f.close();
+    }
 }

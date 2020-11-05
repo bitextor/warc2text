@@ -5,12 +5,13 @@
 #include <cstring>
 #include <string>
 #include "xh_scanner.hh"
+#include "util.hh"
 extern "C" {
     #include "entities.h"
 }
 
 namespace warc2text {
-    void processHTML(const std::string& html, std::string& text);
+    int processHTML(const std::string& html, std::string& text, const util::umap_tag_filters& tagFilters);
 
     void unescapeEntities(const std::string& text, std::string& processed);
 }

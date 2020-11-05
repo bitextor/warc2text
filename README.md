@@ -23,6 +23,12 @@ make
 ```
 warc2text -o [output folder] [ WARC ... ]
 ```
+* `--output`/`-o` output folder
+* `--tag-filters` file containig filters that to eliminate some documents
+
+  Filter format is the following: `tag <tab> attribute <tab> value ...`
+  
+  For example, `meta <tab> name <tab> translation-stats` will remove documents that contain `<meta name="translation-stats" ... >`
 
 
 ## Broader document formats

@@ -2,6 +2,8 @@
 #define WARC2TEXT_UTIL_HH
 
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 
@@ -28,6 +30,19 @@ namespace util {
 
     void encodeBase64(const std::string& original, std::string& base64);
 
+    enum ErrorCode : int {
+        SUCCESS = 0,
+        HTML_PARSING_ERROR = 1,
+        FILTERED_DOCUMENT_ERROR = 2,
+        UNKNOWN_ENCODING_ERROR = 3,
+        UTF8_CONVERSION_ERROR = 4
+    };
+
+
+    typedef std::unordered_map<std::string, std::unordered_set<std::string>> umap_attr_filters;
+    typedef std::unordered_map<std::string, umap_attr_filters> umap_tag_filters;
+
+    void readTagFilters(const std::string& filename, umap_tag_filters& filters);
 }
 
 #endif
