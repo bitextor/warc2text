@@ -31,8 +31,9 @@ namespace warc2text {
             std::unordered_map<std::string, GzipWriter> url_files;
             std::unordered_map<std::string, GzipWriter> mime_files;
             std::unordered_map<std::string, GzipWriter> text_files;
+            // TODO make html output optional
+            std::unordered_map<std::string, GzipWriter> html_files;
             std::unordered_map<std::string, GzipWriter> deferred_files;
-            // std::unordered_map<std::string, GzipWriter> html_files;
 
         public:
             explicit BilangWriter(const std::string& folder) :
@@ -40,7 +41,7 @@ namespace warc2text {
                 url_files(),
                 mime_files(),
                 text_files(),
-                // html_files(),
+                html_files(),
                 deferred_files()
             {};
 
