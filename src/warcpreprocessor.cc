@@ -33,6 +33,7 @@ namespace warc2text {
                 continue;
 
             Record record(content);
+            // BOOST_LOG_TRIVIAL(trace) << "Processing record " << record.getURL() << "\n";
             if (record.getPayload().empty())
                 continue;
 

@@ -1,11 +1,12 @@
 #include "html.hh"
-#include <deque>
 #include "deferred.hh"
+#include <deque>
 
 namespace warc2text {
 
     std::unordered_set<std::string> startNL ( {"ul", "ol", "dl", "tr"} ); // put a new line BEFORE these elements
     std::unordered_set<std::string> endNL ( {"p", "div", "li", "dd", "th", "td", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"} ); // put a new line AFTER these elements
+
     std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} ); // do not extract text from the content of these elements
 
     // html elements that are self-closing (no content)

@@ -47,7 +47,9 @@ namespace warc2text {
     }
 
     void DeferredTree::endTag() {
+        if (current == NULL) return;
         deleteChildren(current);
+        if (current->parent == NULL) return;
         current = current->parent;
         --level;
     }
