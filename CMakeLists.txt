@@ -55,6 +55,8 @@ target_link_libraries(warc2text
     ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so
 )
 
+add_executable(wagnerfischer wagnerfischer.cpp)
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_command(TARGET warc2text
             POST_BUILD COMMAND
