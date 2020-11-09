@@ -1,5 +1,4 @@
 #include "util.hh"
-#include <iostream>
 #include <fstream>
 #include <algorithm>
 #include <vector>
@@ -8,6 +7,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <uchardet/uchardet.h>
+#include "preprocess/base64.hh"
 
 namespace util {
     void toLower(std::string& s){
@@ -58,9 +58,7 @@ namespace util {
     }
 
     void encodeBase64(const std::string& original, std::string& base64){
-        int pad = (3 - original.size() % 3) % 3;
-        base64 = std::string(base64_text(original.begin()), base64_text(original.end()));
-        base64.append(pad, '=');
+        preprocess::base64_encode(original, base64);
     }
 
     void readTagFilters(const std::string& filename, umap_tag_filters& filters) {

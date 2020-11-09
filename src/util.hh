@@ -4,8 +4,6 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
 
 namespace util {
     void toLower(std::string& s);
@@ -20,14 +18,6 @@ namespace util {
 
     // detect charset using uchardet
     bool detectCharset(const std::string& text, std::string& charset);
-
-    typedef boost::archive::iterators::base64_from_binary<
-        boost::archive::iterators::transform_width<
-            std::string::const_iterator,
-            6,
-            8
-        >
-    > base64_text;
 
     void encodeBase64(const std::string& original, std::string& base64);
 
