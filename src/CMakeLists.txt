@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(warc2text_src)
 
-if (UCHARDET_PATH)
-    include_directories(${UCHARDET_PATH}/include)
-endif ()
-
-find_library(UCHARDET uchardet
+find_library(uchardet_LIBRARIES uchardet
     REQUIRED
     PATHS ${UCHARDET_PATH}/lib
+)
+find_path(uchardet_INCLUDE_DIR uchardet/uchardet.h
+    REQUIRED
+    PATHS ${UCHARDET_PATH}/include
 )
 
 find_package(ZLIB REQUIRED)
@@ -16,6 +16,7 @@ find_package( Boost 1.61 COMPONENTS locale iostreams filesystem log REQUIRED )
 include_directories(
     ${ZLIB_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
+    ${uchardet_INCLUDE_DIR}
 )
 
 add_library(warc2text_lib
@@ -33,5 +34,5 @@ add_library(warc2text_lib
 target_link_libraries(warc2text_lib
     ${Boost_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    ${UCHARDET}
+    ${uchardet_LIBRARIES}
 )
