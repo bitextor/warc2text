@@ -21,13 +21,13 @@ namespace warc2text {
                                                   "i", "iframe", "img", "input", "ins", "kdb", "label", "map", "mark", "meter", "noscript", "object", "output", "picture", "progress", "q", "ruby",
                                                   "s", "samp", "script", "select", "slot", "small", "span", "strong", "sub", "sup", "svg", "template", "textarea", "time", "u", "tt", "var", "video", "wbr" });
 
-    inline bool startNewLine(const char* tag) { return startNL.find(util::toLowerCopy(tag)) != startNL.end(); }
-    inline bool endNewLine(const char* tag) { return endNL.find(util::toLowerCopy(tag)) != endNL.end() or voidTags.find(util::toLowerCopy(tag)) != voidTags.end(); }
+    inline bool startNewLine(const std::string& tag) { return startNL.find(tag) != startNL.end(); }
+    inline bool endNewLine(const std::string& tag) { return endNL.find(tag) != endNL.end() or voidTags.find(tag) != voidTags.end(); }
 
-    inline bool isNoText(const char* tag) { return noText.find(tag) != noText.end(); }
-    inline bool isVoidTag(const char* tag) { return voidTags.find(util::toLowerCopy(tag)) != voidTags.end(); }
-    inline bool isInlineTag(const char* tag) { return inlineTags.find(util::toLowerCopy(tag)) != inlineTags.end(); }
-    inline bool isBlockTag(const char* tag) { return blockTags.find(util::toLowerCopy(tag)) != blockTags.end(); }
+    inline bool isNoText(const std::string& tag) { return noText.find(tag) != noText.end(); }
+    inline bool isVoidTag(const std::string& tag) { return voidTags.find(tag) != voidTags.end(); }
+    inline bool isInlineTag(const std::string& tag) { return inlineTags.find(tag) != inlineTags.end(); }
+    inline bool isBlockTag(const std::string& tag) { return blockTags.find(tag) != blockTags.end(); }
 
     // true if doc is ok
     bool filter(markup::scanner& sc, const util::umap_tag_filters& tagFilters) {
@@ -52,6 +52,7 @@ namespace warc2text {
 
         int t = markup::scanner::TT_SPACE; // just start somewhere that isn't ERROR or EOF
         int retval = util::SUCCESS;
+        std::string tag;
 
         DeferredTree dtree;
 
@@ -63,24 +64,26 @@ namespace warc2text {
                 case markup::scanner::TT_EOF:
                     break;
                 case markup::scanner::TT_TAG_START:
-                    if (startNewLine(sc.get_tag_name()))
+                    tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
+                    if (startNewLine(tag))
                         plaintext.push_back('\n');
-                    if (!isVoidTag(sc.get_tag_name()))
+                    if (!isVoidTag(tag))
                         dtree.insertTag(sc.get_tag_name());
-                    if (isBlockTag(sc.get_tag_name()) and !deferred.empty() and deferred.back() != ';')
+                    if (isBlockTag(tag) and !deferred.empty() and deferred.back() != ';')
                         deferred.push_back(';'); // found block tag: previous word has ended
                     break;
                 case markup::scanner::TT_TAG_END:
-                    if (!isVoidTag(sc.get_tag_name()))
+                    tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
+                    if (!isVoidTag(tag))
                         dtree.endTag();
-                    if (endNewLine(sc.get_tag_name()))
+                    if (endNewLine(tag))
                         plaintext.push_back('\n');
                     else
                         plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_WORD:
                     // if the tag is is noText list, don't save the text or the standoff
-                    if (isNoText(sc.get_tag_name()))
+                    if (isNoText(tag))
                         break;
                     plaintext.append(sc.get_value());
                     if (!deferred.empty() && deferred.back() != ';')
