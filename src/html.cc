@@ -30,17 +30,17 @@ namespace warc2text {
     inline bool isBlockTag(const std::string& tag) { return blockTags.find(tag) != blockTags.end(); }
 
     // true if doc is ok
-    bool filter(markup::scanner& sc, const util::umap_tag_filters& tagFilters) {
-        util::umap_tag_filters::const_iterator tag_it = tagFilters.find(sc.get_tag_name());
+    bool filter(const std::string& lc_tag, const char* attr, const char* value, const util::umap_tag_filters& tagFilters) {
+        util::umap_tag_filters::const_iterator tag_it = tagFilters.find(lc_tag);
         if (tag_it == tagFilters.cend())
             return true;
-        util::umap_attr_filters::const_iterator attr_it = tag_it->second.find(sc.get_attr_name());
+        util::umap_attr_filters::const_iterator attr_it = tag_it->second.find(util::toLowerCopy(attr));
         if (attr_it == tag_it->second.cend())
             return true;
+        std::string lc_value = util::toLowerCopy(value);
         for (const std::string& filter : attr_it->second){
-            if (strstr(sc.get_value(), filter.c_str())) {
+            if (lc_value.find(filter) != std::string::npos)
                 return false;
-            }
         }
         return true;
     }
@@ -98,7 +98,7 @@ namespace warc2text {
                     plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_ATTR:
-                    if (!filter(sc, tagFilters))
+                    if (!filter(tag, sc.get_attr_name(), sc.get_value(), tagFilters))
                         retval = util::FILTERED_DOCUMENT_ERROR;
                     break;
                 default:
