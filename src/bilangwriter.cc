@@ -33,7 +33,7 @@ namespace warc2text{
         s.avail_out = 0;
         s.next_out = buf;
         int ret = Z_OK;
-        std::size_t written = 0; 
+        std::size_t written = 0;
         while (s.avail_out == 0) {
             s.avail_out = BUFFER_SIZE;
             s.next_out = buf;
@@ -43,7 +43,7 @@ namespace warc2text{
             written = std::fwrite(buf, 1, compressed, dest);
             // TODO error handling
             // if (written != compressed || std::ferror(dest)) {
-            // } 
+            // }
         };
         assert(s.avail_in == 0);
     }
