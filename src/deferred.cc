@@ -18,8 +18,11 @@ namespace warc2text {
         }
     }
 
+    bool DeferredTree::empty() const {
+        return tag_stack.empty();
+    }
+
     void DeferredTree::addOffset(int n) {
-        if (tag_stack.empty()) return;
         tag_stack.back().offset += n;
     }
 

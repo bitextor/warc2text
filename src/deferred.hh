@@ -24,6 +24,7 @@ namespace warc2text {
             void addOffset(int n);
             void endTag();
             void appendStandoff(std::string& s, int wordLength) const;
+            bool empty() const;
 
     };
 } //warc2text

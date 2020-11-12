@@ -65,20 +65,20 @@ namespace warc2text {
                     break;
                 case markup::scanner::TT_TAG_START:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (startNewLine(tag))
+                    if (startNewLine(tag) and plaintext.back() != '\n')
                         plaintext.push_back('\n');
                     if (!isVoidTag(tag))
-                        dtree.insertTag(sc.get_tag_name());
+                        dtree.insertTag(tag);
                     if (isBlockTag(tag) and !deferred.empty() and deferred.back() != ';')
                         deferred.push_back(';'); // found block tag: previous word has ended
                     break;
                 case markup::scanner::TT_TAG_END:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (!isVoidTag(tag))
+                    if (!isVoidTag(tag) and !dtree.empty())
                         dtree.endTag();
-                    if (endNewLine(tag))
+                    if (endNewLine(tag) and plaintext.back() != '\n')
                         plaintext.push_back('\n');
-                    else
+                    else if (!std::isspace(plaintext.back()))
                         plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_WORD:
@@ -88,14 +88,18 @@ namespace warc2text {
                     plaintext.append(sc.get_value());
                     if (!deferred.empty() && deferred.back() != ';')
                         deferred.push_back('+');
-                    dtree.appendStandoff(deferred, strlen(sc.get_value()));
-                    dtree.addOffset(strlen(sc.get_value()));
+                    if (!dtree.empty()) {
+                        dtree.appendStandoff(deferred, strlen(sc.get_value()));
+                        dtree.addOffset(strlen(sc.get_value()));
+                    }
                     break;
                 case markup::scanner::TT_SPACE:
                     if (!deferred.empty() && deferred.back() != ';')
                         deferred.push_back(';'); // found space: previous word has ended
-                    dtree.addOffset(strlen(sc.get_value()));
-                    plaintext.push_back(' ');
+                    if (!dtree.empty())
+                        dtree.addOffset(strlen(sc.get_value()));
+                    if (!std::isspace(plaintext.back()))
+                        plaintext.push_back(' ');
                     break;
                 case markup::scanner::TT_ATTR:
                     if (!filter(tag, sc.get_attr_name(), sc.get_value(), tagFilters))
