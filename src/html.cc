@@ -65,8 +65,12 @@ namespace warc2text {
                     break;
                 case markup::scanner::TT_TAG_START:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (startNewLine(tag) and plaintext.back() != '\n')
-                        plaintext.push_back('\n');
+                    if (startNewLine(tag)) {
+                        if (std::isspace(plaintext.back()))
+                            plaintext.back() = '\n';
+                        else
+                            plaintext.push_back('\n');
+                    }
                     if (!isVoidTag(tag))
                         dtree.insertTag(tag);
                     if (isBlockTag(tag) and !deferred.empty() and deferred.back() != ';')
@@ -76,8 +80,12 @@ namespace warc2text {
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
                     if (!isVoidTag(tag) and !dtree.empty())
                         dtree.endTag();
-                    if (endNewLine(tag) and plaintext.back() != '\n')
-                        plaintext.push_back('\n');
+                    if (endNewLine(tag)) {
+                        if (std::isspace(plaintext.back()))
+                            plaintext.back() = '\n';
+                        else
+                            plaintext.push_back('\n');
+                    }
                     else if (!std::isspace(plaintext.back()))
                         plaintext.push_back(' ');
                     break;

@@ -143,7 +143,7 @@ namespace warc2text {
             plaintext = "";
             return util::UNKNOWN_ENCODING_ERROR;
         }
-        unescapeEntities(plaintext, plaintext);
+        // unescapeEntities(plaintext, plaintext); // processHTML does this on the fly
         // util::trimLines(plaintext); // processHTML does this on the fly
         return retval;
     }

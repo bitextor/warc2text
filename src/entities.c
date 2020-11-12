@@ -5,7 +5,6 @@
 #include "entities.h"
 
 #include <errno.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -358,6 +357,35 @@ static bool parse_entity(
 		return 1;
 	}
 }
+
+bool simple_parse_entity(const char* from, char* to){
+    const char *end = strchr(from, ';');
+    if (!end) return 0;
+    if (from[1] == '#') {
+        char *tail = NULL;
+        int errno_save = errno;
+        bool hex = from[2] == 'x' || from[2] == 'X';
+
+        errno = 0;
+        unsigned long cp = strtoul(from + (hex ? 3 : 2), &tail, hex ? 16 : 10);
+
+        bool fail = errno || tail != end || cp > UNICODE_MAX;
+        errno = errno_save;
+        if(fail) return 0;
+
+        size_t len = putc_utf8(cp, to);
+        to[len] = 0;
+        return 1;
+    } else {
+        const char *entity = get_named_entity(&from[1]);
+        if (!entity) return 0;
+
+        memcpy(to, entity, strlen(entity));
+        to[strlen(entity)] = 0;
+        return 1;
+    }
+}
+
 
 size_t decode_html_entities_utf8(char *dest, const char *src)
 {
