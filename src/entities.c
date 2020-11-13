@@ -112,8 +112,11 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "ecirc;", "ê" },
 	{ "egrave;", "è" },
 	{ "empty;", "∅" },
-	{ "emsp;", "\xE2\x80\x83" },
-	{ "ensp;", "\xE2\x80\x82" },
+	// we don't want any weird spaces in the extracted text
+	// { "emsp;", "\xE2\x80\x83" },
+	// { "ensp;", "\xE2\x80\x82" },
+	{ "emsp;", " " },
+	{ "ensp;", " " },
 	{ "epsilon;", "ε" },
 	{ "equiv;", "≡" },
 	{ "eta;", "η" },
@@ -168,7 +171,9 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "minus;", "−" },
 	{ "mu;", "μ" },
 	{ "nabla;", "∇" },
-	{ "nbsp;", "\xC2\xA0" },
+	// we don't want nbsp in the extracted text
+	// { "nbsp;", "\xC2\xA0" },
+	{ "nbsp;", " " },
 	{ "ndash;", "–" },
 	{ "ne;", "≠" },
 	{ "ni;", "∋" },
@@ -242,7 +247,9 @@ static const char *const NAMED_ENTITIES[][2] = {
 	{ "there4;", "∴" },
 	{ "theta;", "θ" },
 	{ "thetasym;", "ϑ" },
-	{ "thinsp;", "\xE2\x80\x89" },
+	// we don't any weird spaces in the extracted text
+	// { "thinsp;", "\xE2\x80\x89" },
+	{ "thinsp;", " " },
 	{ "thorn;", "þ" },
 	{ "tilde;", "˜" },
 	{ "times;", "×" },
@@ -359,31 +366,31 @@ static bool parse_entity(
 }
 
 bool simple_parse_entity(const char* from, char* to){
-    const char *end = strchr(from, ';');
-    if (!end) return 0;
-    if (from[1] == '#') {
-        char *tail = NULL;
-        int errno_save = errno;
-        bool hex = from[2] == 'x' || from[2] == 'X';
+	const char *end = strchr(from, ';');
+	if (!end) return 0;
+	if (from[1] == '#') {
+		char *tail = NULL;
+		int errno_save = errno;
+		bool hex = from[2] == 'x' || from[2] == 'X';
 
-        errno = 0;
-        unsigned long cp = strtoul(from + (hex ? 3 : 2), &tail, hex ? 16 : 10);
+		errno = 0;
+		unsigned long cp = strtoul(from + (hex ? 3 : 2), &tail, hex ? 16 : 10);
 
-        bool fail = errno || tail != end || cp > UNICODE_MAX;
-        errno = errno_save;
-        if(fail) return 0;
+		bool fail = errno || tail != end || cp > UNICODE_MAX;
+		errno = errno_save;
+		if(fail) return 0;
 
-        size_t len = putc_utf8(cp, to);
-        to[len] = 0;
-        return 1;
-    } else {
-        const char *entity = get_named_entity(&from[1]);
-        if (!entity) return 0;
+		size_t len = putc_utf8(cp, to);
+		to[len] = 0;
+		return 1;
+	} else {
+		const char *entity = get_named_entity(&from[1]);
+		if (!entity) return 0;
 
-        memcpy(to, entity, strlen(entity));
-        to[strlen(entity)] = 0;
-        return 1;
-    }
+		memcpy(to, entity, strlen(entity));
+		to[strlen(entity)] = 0;
+		return 1;
+	}
 }
 
 

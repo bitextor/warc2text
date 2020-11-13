@@ -37,7 +37,10 @@ namespace markup {
 
         if (c == 0) return TT_EOF;
         else if (c == '<') return scan_tag();
-        else if (c == '&') c = scan_entity();
+        else if (c == '&') {
+            c = scan_entity();
+            ws = is_whitespace(c);
+        }
         else
             ws = is_whitespace(c);
 
