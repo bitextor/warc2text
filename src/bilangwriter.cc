@@ -23,7 +23,7 @@ namespace warc2text{
     GzipWriter::~GzipWriter() {
         this->compress("", 0, Z_FINISH);
         deflateEnd(&s);
-        delete buf;
+        delete[] buf;
     }
 
     void GzipWriter::compress(const char *in, std::size_t size, int flush) {
