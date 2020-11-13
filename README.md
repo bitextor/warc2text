@@ -1,6 +1,17 @@
 # warc2text
 Extracts plain text, language identification and more metadata from WARC records
 
+## Download
+Clone this repo along with submodules:
+```
+git clone --recurse-submodules https://github.com/bitextor/warc2text.git
+```
+Or:
+```
+git clone https://github.com/bitextor/warc2text.git
+git submodules update --init
+```
+
 ## Install dependencies
 On Debian/Ubuntu/Mint:
 ```
