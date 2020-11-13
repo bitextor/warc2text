@@ -14,7 +14,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-find_package(Boost 1.61 COMPONENTS program_options log log_setup REQUIRED)
+find_package(Boost 1.71 COMPONENTS program_options log log_setup REQUIRED)
 
 # compile executable into bin/
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
