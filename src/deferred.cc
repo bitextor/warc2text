@@ -50,7 +50,7 @@ namespace warc2text {
             }
             deferred.push_back('/');
         }
-        deferred.back() = ':';
+        if(!deferred.empty()) deferred.back() = ':';
         deferred.append(std::to_string(getCurrentOffset()));
         deferred.push_back('-');
         deferred.append(std::to_string(getCurrentOffset() + wordLength - 1));
