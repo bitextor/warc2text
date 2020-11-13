@@ -26,7 +26,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("output,o", po::value(&out.output)->default_value("."), "Output folder")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
-        ("verbose,v", po::bool_switch(&out.verbose)->default_value(""), "Verbosity level");
+        ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level");
 
     po::positional_options_description pd;
     pd.add("input", -1);
