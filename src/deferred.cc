@@ -23,16 +23,23 @@ namespace warc2text {
     }
 
     void DeferredTree::addOffset(int n) {
+        if (tag_stack.empty()) return;
         tag_stack.back().offset += n;
     }
 
     void DeferredTree::endTag() {
+        if (tag_stack.empty()) return;
         tag_stack.pop_back();
         counts.at(level).clear();
         --level;
     }
 
-    void DeferredTree::appendStandoff(std::string& deferred, int wordLength) const {
+    unsigned int DeferredTree::getCurrentOffset() const {
+        if (tag_stack.empty()) return 0;
+        return tag_stack.back().offset;
+    }
+
+    void DeferredTree::appendStandoff(std::string& deferred, unsigned int wordLength) const {
         for (unsigned int l = 0; l < tag_stack.size(); ++l) {
             deferred.append(tag_stack.at(l).tag);
             unsigned int i = counts.at(l).at(tag_stack.at(l).tag);
@@ -44,9 +51,9 @@ namespace warc2text {
             deferred.push_back('/');
         }
         deferred.back() = ':';
-        deferred.append(std::to_string(tag_stack.back().offset));
+        deferred.append(std::to_string(getCurrentOffset()));
         deferred.push_back('-');
-        deferred.append(std::to_string(tag_stack.back().offset + wordLength - 1));
+        deferred.append(std::to_string(getCurrentOffset() + wordLength - 1));
     }
 
 } //warc2text

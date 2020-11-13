@@ -68,8 +68,10 @@ namespace warc2text {
                     if (startNewLine(tag)) {
                         if (std::isspace(plaintext.back()))
                             plaintext.back() = '\n';
-                        else
+                        else if (!plaintext.empty()) {
                             plaintext.push_back('\n');
+                            dtree.addOffset(1);
+                        }
                     }
                     if (!isVoidTag(tag))
                         dtree.insertTag(tag);
@@ -78,16 +80,20 @@ namespace warc2text {
                     break;
                 case markup::scanner::TT_TAG_END:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (!isVoidTag(tag) and !dtree.empty())
+                    if (!isVoidTag(tag))
                         dtree.endTag();
                     if (endNewLine(tag)) {
                         if (std::isspace(plaintext.back()))
                             plaintext.back() = '\n';
-                        else
+                        else if (!plaintext.empty()) {
                             plaintext.push_back('\n');
+                            dtree.addOffset(1);
+                        }
                     }
-                    else if (!std::isspace(plaintext.back()))
+                    else if (!plaintext.empty() && !std::isspace(plaintext.back())) {
                         plaintext.push_back(' ');
+                        dtree.addOffset(1);
+                    }
                     break;
                 case markup::scanner::TT_WORD:
                     // if the tag is is noText list, don't save the text or the standoff
@@ -96,18 +102,16 @@ namespace warc2text {
                     plaintext.append(sc.get_value());
                     if (!deferred.empty() && deferred.back() != ';')
                         deferred.push_back('+');
-                    if (!dtree.empty()) {
-                        dtree.appendStandoff(deferred, strlen(sc.get_value()));
-                        dtree.addOffset(strlen(sc.get_value()));
-                    }
+                    dtree.appendStandoff(deferred, strlen(sc.get_value()));
+                    dtree.addOffset(strlen(sc.get_value()));
                     break;
                 case markup::scanner::TT_SPACE:
                     if (!deferred.empty() && deferred.back() != ';')
                         deferred.push_back(';'); // found space: previous word has ended
-                    if (!dtree.empty())
-                        dtree.addOffset(strlen(sc.get_value()));
-                    if (!std::isspace(plaintext.back()))
+                    if (!plaintext.empty() && !std::isspace(plaintext.back())) {
                         plaintext.push_back(' ');
+                        dtree.addOffset(1);
+                    }
                     break;
                 case markup::scanner::TT_ATTR:
                     if (!filter(tag, sc.get_attr_name(), sc.get_value(), tagFilters))
