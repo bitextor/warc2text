@@ -2,93 +2,58 @@
 #include <iostream>
 
 namespace warc2text {
-    DeferredNode *DeferredTree::newNode(const std::string& tag, DeferredNode* parent) {
-        DeferredNode *n = new DeferredNode;
-        n->tag = tag;
-        n->parent = parent;
-        n->offset = 0;
-        return n;
-    }
 
-    void DeferredTree::deleteNode(DeferredNode* node){
-        if (!node->children.empty())
-            deleteChildren(node);
-        node->parent = NULL;
-        delete node;
-    }
-
-    void DeferredTree::deleteChildren(DeferredNode* node){
-        while (!node->children.empty()){
-            deleteNode(node->children.back());
-            node->children.pop_back();
-        }
-    }
-
-    DeferredTree::DeferredTree() {
-        root = newNode("", NULL);
-        current = root;
-        level = 0;
-    }
-
-    DeferredTree::~DeferredTree() {
-        current = NULL;
-        deleteNode(root);
+    DeferredTree::DeferredTree() : level(0), tag_stack(), counts() {
+        std::unordered_map<std::string, unsigned int> umap;
+        counts.push_back(umap);
     }
 
     void DeferredTree::insertTag(const std::string& tag) {
-        current->children.push_back(newNode(tag, current));
-        current->counts[tag]++;
-        current = current->children.back();
+        tag_stack.push_back({tag, 0});
+        counts.at(level)[tag]++;
         ++level;
-    }
-
-    void DeferredTree::addOffset(int n) {
-        current->offset += n;
-    }
-
-    void DeferredTree::endTag() {
-        if (current == NULL) return;
-        deleteChildren(current);
-        if (current->parent == NULL) return;
-        current = current->parent;
-        --level;
-    }
-
-    void DeferredTree::appendStandoff(std::string& deferred, int wordLength) const {
-        if (root == NULL or root->children.empty()) return;
-        const DeferredNode* node = root->children.back();
-        while (true) {
-            deferred.append(node->tag);
-            if (node->parent != NULL and node->parent->counts.at(node->tag) > 1) {
-                deferred.push_back('[');
-                deferred.append(std::to_string(node->parent->counts.at(node->tag)));
-                deferred.push_back(']');
-            }
-            if (node == current or node->children.empty()) break;
-            node = node->children.back();
-            deferred.push_back('/');
+        if (counts.size() < level+1) {
+            std::unordered_map<std::string, unsigned int> umap;
+            counts.push_back(umap);
         }
-        deferred.push_back(':');
-        deferred.append(std::to_string(node->offset));
-        deferred.push_back('-');
-        deferred.append(std::to_string(node->offset + wordLength - 1));
     }
 
     bool DeferredTree::empty() const {
-        return root == NULL;
+        return tag_stack.empty();
     }
 
-    void DeferredTree::printPreorder(const DeferredNode* node, int level) {
-        for (int i = 0; i < level; ++i) std::cout << " ";
-        std::cout << node->tag << "\n";
-        for (const DeferredNode* child : node->children) {
-            printPreorder(child, level+1);
+    void DeferredTree::addOffset(int n) {
+        if (tag_stack.empty()) return;
+        tag_stack.back().offset += n;
+    }
+
+    void DeferredTree::endTag() {
+        if (tag_stack.empty()) return;
+        tag_stack.pop_back();
+        counts.at(level).clear();
+        --level;
+    }
+
+    unsigned int DeferredTree::getCurrentOffset() const {
+        if (tag_stack.empty()) return 0;
+        return tag_stack.back().offset;
+    }
+
+    void DeferredTree::appendStandoff(std::string& deferred, unsigned int wordLength) const {
+        for (unsigned int l = 0; l < tag_stack.size(); ++l) {
+            deferred.append(tag_stack.at(l).tag);
+            unsigned int i = counts.at(l).at(tag_stack.at(l).tag);
+            if (i > 1) {
+                deferred.push_back('[');
+                deferred.append(std::to_string(i));
+                deferred.push_back(']');
+            }
+            deferred.push_back('/');
         }
-    }
-
-    void DeferredTree::printTree() const {
-        // root is always empty, so -1
-        printPreorder(root, -1);
+        deferred.back() = ':';
+        deferred.append(std::to_string(getCurrentOffset()));
+        deferred.push_back('-');
+        deferred.append(std::to_string(getCurrentOffset() + wordLength - 1));
     }
 
 } //warc2text

@@ -6,6 +6,7 @@
 #define DECODE_HTML_ENTITIES_UTF8_
 
 #include <stddef.h>
+#include <stdbool.h>
 
 size_t decode_html_entities_utf8(char *dest, const char *src);
 /*	Takes input from <src> and decodes into <dest>, which should be a buffer
@@ -16,5 +17,8 @@ size_t decode_html_entities_utf8(char *dest, const char *src);
 
 	The function returns the length of the decoded string.
 */
+
+
+bool simple_parse_entity(const char* from, char* to);
 
 #endif

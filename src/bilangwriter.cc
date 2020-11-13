@@ -1,5 +1,6 @@
 #include "bilangwriter.hh"
 #include "util.hh"
+#include <cassert>
 
 namespace warc2text{
     bool createDirectories(const std::string& path){
@@ -8,28 +9,61 @@ namespace warc2text{
         else return false; // throw exception??
     }
 
-    GzipWriter::GzipWriter() : file(), outbuf(), outstream(&outbuf) {
+    GzipWriter::GzipWriter() {
+        dest = NULL;
+        compressed = 0;
+        s.zalloc = nullptr;
+        s.zfree = nullptr;
+        s.opaque = nullptr;
+        int ret = deflateInit2(&s, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY);
+        assert(ret == Z_OK);
+        buf = new unsigned char[BUFFER_SIZE];
     }
 
     GzipWriter::~GzipWriter() {
-        boost::iostreams::close(outbuf);
-        file.close();
+        this->compress("", 0, Z_FINISH);
+        deflateEnd(&s);
+        delete[] buf;
+    }
+
+    void GzipWriter::compress(const char *in, std::size_t size, int flush) {
+        if (size == 0 && flush == Z_NO_FLUSH) return;
+        s.avail_in = size;
+        s.next_in = (Bytef *) in;
+        s.avail_out = 0;
+        s.next_out = buf;
+        int ret = Z_OK;
+        std::size_t written = 0;
+        while (s.avail_out == 0) {
+            s.avail_out = BUFFER_SIZE;
+            s.next_out = buf;
+            ret = deflate(&s, flush);
+            assert(ret == Z_OK || ret == Z_STREAM_END); // Z_STREAM_END only happens if flush == Z_FINISH
+            compressed = BUFFER_SIZE - s.avail_out;
+            written = std::fwrite(buf, 1, compressed, dest);
+            // TODO error handling
+            // if (written != compressed || std::ferror(dest)) {
+            // }
+        };
+        assert(s.avail_in == 0);
     }
 
     void GzipWriter::open(const std::string& filename) {
-        file = std::ofstream(filename.data(), std::ios_base::out | std::ios_base::binary);
-        outbuf.push(boost::iostreams::gzip_compressor()); // can specify compression level here with boost::iostreams::gzip_params
-        outbuf.push(file);
-        // outstream(&outbuf);
+        dest = std::fopen(filename.c_str(), "wb");
     }
 
-    void GzipWriter::write(const char* text, unsigned int size) {
-        outstream.write(text, size);
-        outstream.write("\n", 1);
+    void GzipWriter::write(const char* text, std::size_t size) {
+        this->compress(text, size, Z_NO_FLUSH);
     }
+
+    void GzipWriter::writeLine(const char* text, std::size_t size) {
+        this->compress(text, size, Z_NO_FLUSH);
+        this->compress("\n", 1, Z_NO_FLUSH);
+    }
+
 
     bool GzipWriter::is_open(){
-        return file.is_open();
+        return dest != NULL;
     }
 
     void BilangWriter::write(const Record& record) {
@@ -50,15 +84,15 @@ namespace warc2text{
             deferred->open(path + "/deferred.gz");
         }
 
-        url->write(record.getURL().data(), record.getURL().size());
-        mime->write(record.getHTTPcontentType().data(), record.getHTTPcontentType().size());
+        url->writeLine(record.getURL().data(), record.getURL().size());
+        mime->writeLine(record.getHTTPcontentType().data(), record.getHTTPcontentType().size());
         std::string base64text;
         util::encodeBase64(record.getPlainText(), base64text);
-        text->write(base64text.data(), base64text.size());
+        text->writeLine(base64text.data(), base64text.size());
         std::string base64html;
         util::encodeBase64(record.getPayload(), base64html);
-        html->write(base64html.data(), base64html.size());
-        deferred->write(record.getDeferred().data(), record.getDeferred().size());
+        html->writeLine(base64html.data(), base64html.size());
+        deferred->writeLine(record.getDeferred().data(), record.getDeferred().size());
     }
 }
 

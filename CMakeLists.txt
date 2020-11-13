@@ -14,7 +14,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-find_package(Boost 1.61 COMPONENTS program_options log log_setup REQUIRED)
+find_package(Boost 1.71 COMPONENTS program_options log log_setup REQUIRED)
 
 # compile executable into bin/
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -31,13 +31,13 @@ include_directories(
 # process subdirectories
 add_subdirectory(src)
 
-# if (PREPROCESS_PATH)
-#     include_directories(${PREPROCESS_PATH})
-#     add_subdirectory(${PREPROCESS_PATH})
-# else ()
-#     include_directories(${PROJECT_SOURCE_DIR}/preprocess)
-#     add_subdirectory(${PROJECT_SOURCE_DIR}/preprocess)
-# endif ()
+if (PREPROCESS_PATH)
+    add_subdirectory(${PREPROCESS_PATH})
+    target_include_directories(warc2text_lib PUBLIC ${PREPROCESS_PATH})
+else ()
+    add_subdirectory(${CMAKE_SOURCE_DIR}/preprocess)
+    target_include_directories(warc2text_lib PUBLIC ${CMAKE_SOURCE_DIR}/preprocess)
+endif ()
 
 # build libcld2.so
 if (NOT EXISTS "${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so")

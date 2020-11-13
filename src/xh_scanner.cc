@@ -1,6 +1,9 @@
 #include <cctype>
 #include <cstring>
 #include "xh_scanner.hh"
+extern "C" {
+    #include "entities.h"
+}
 
 namespace markup {
 
@@ -34,8 +37,7 @@ namespace markup {
 
         if (c == 0) return TT_EOF;
         else if (c == '<') return scan_tag();
-        // else if (c == '&')
-        //     c = scan_entity();
+        else if (c == '&') c = scan_entity();
         else
             ws = is_whitespace(c);
 
@@ -120,7 +122,7 @@ namespace markup {
             c = get_char();
             while (c) {
                 if (c == '\"') return TT_ATTR;
-                // if (c == '&') c = scan_entity();
+                if (c == '&') c = scan_entity();
                 append_value(c);
                 c = get_char();
             }
@@ -129,7 +131,7 @@ namespace markup {
             c = get_char();
             while (c) {
                 if (c == '\'') return TT_ATTR;
-                // if (c == '&') c = scan_entity();
+                if (c == '&') c = scan_entity();
                 append_value(c);
                 c = get_char();
             }
@@ -231,12 +233,13 @@ namespace markup {
     // caller consumed '&'
     char scanner::scan_entity() {
         char buf[32];
-        int i = 0;
+        buf[0] = '&';
+        unsigned int i = 1;
         char t;
         for (; i < 31; ++i) {
             t = get_char();
             if (t == 0) return TT_EOF;
-            if (!isalnum(t)) {
+            if (t != ';' && !(i == 1 && t == '#') && !isalnum(t)) {
                 push_back(t);
                 break; // appears a erroneous entity token.
                 // but we try to use it.
@@ -245,23 +248,24 @@ namespace markup {
             if (t == ';')
                 break;
         }
-        buf[i] = 0;
-        if (i == 2) {
-            if (equal(buf, "gt", 2)) return '>';
-            if (equal(buf, "lt", 2)) return '<';
-        } else if (i == 3 && equal(buf, "amp", 3))
-            return '&';
-        else if (i == 4) {
-            if (equal(buf, "apos", 4)) return '\'';
-            if (equal(buf, "quot", 4)) return '\"';
+        buf[i+1]=0;
+        char out[32];
+        bool entity = simple_parse_entity(&buf[0], &out[0]);
+        if (!entity) {
+            append_value('&');
+            for ( i = 0; i < strlen(buf) - 1; ++i)
+                append_value(buf[i]);
+            // last character will be appended by the caller
+            t = buf[strlen(buf)-1];
         }
-        //t = resolve_entity(buf, i);
-        //if (t) return t;
-        // no luck ...
-        append_value('&');
-        for (int n = 0; n < i; ++n)
-            append_value(buf[n]);
-        return ';';
+        else {
+            for( i = 0; i < strlen(out) - 1; ++i){
+                append_value(out[i]);
+            }
+            // last character will be appended by the caller
+            t = out[strlen(out)-1]; 
+        }
+        return t;
     }
 
     bool scanner::is_whitespace(char c) {
