@@ -42,8 +42,7 @@ int main(int argc, char *argv[]) {
     auto start = std::chrono::high_resolution_clock::now();
     if (argc < 3) {
         printf("Usage: Pass two strings as command line arguments "
-               "to compare the edit distance between them.\n");
-        exit(1);
+               "to compare the edit distance between them.\n");return 1;
     }
 
     std::ifstream t(argv[1]);

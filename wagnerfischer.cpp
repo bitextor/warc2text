@@ -3,9 +3,8 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php
 
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdint>
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <boost/algorithm/string/classification.hpp> // Include boost::for is_any_of
@@ -17,14 +16,14 @@
 
 
 // Function declarations
-uint32_t get_edit_distance(std::vector<std::string> words_1, std::vector<std::string> words_2);
+uint32_t get_edit_distance(const std::vector<std::string>& words_1, const std::vector<std::string>& words_2, std::vector<char>& steps);
 
 int main(int argc, char *argv[]) {
     auto start = std::chrono::high_resolution_clock::now();
     if (argc < 3) {
         printf("Usage: Pass two strings as command line arguments "
                "to compare the edit distance between them.\n");
-        exit(1);
+        return 1;
     }
     std::vector<std::string> words_1;
     std::vector<std::string> words_2;
@@ -37,8 +36,8 @@ int main(int argc, char *argv[]) {
     std::stringstream buffer_2;
     buffer_2 << t_2.rdbuf();
     boost::split(words_2, buffer_2.str(), boost::is_any_of(" "), boost::token_compress_on);
-
-    uint32_t result = get_edit_distance(words_1, words_2);
+    std::vector<char> steps;
+    uint32_t result = get_edit_distance(words_1, words_2, steps);
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     printf("Edit distance between '%s' and '%s' is %d\n", argv[1], argv[2], result);
@@ -50,13 +49,13 @@ int main(int argc, char *argv[]) {
 //Receives an input of two vectors of strings (words/tokens) and returns the Levenshtein distance between
 //them as an unsigned integer. Function dynamically allocates a two dimensional
 //array it later frees before the function returns.
-uint32_t get_edit_distance(const std::vector<std::string> words_1, const std::vector<std::string> words_2) {
+uint32_t get_edit_distance(const std::vector<std::string> &words_1, const std::vector<std::string>& words_2, std::vector<char>& steps) {
     uint32_t str_len_1 = words_1.size();
     uint32_t str_len_2 = words_2.size();
     uint32_t i, j;
 
     // Create data matrix
-    uint32_t **data_mat = new uint32_t *[str_len_1 + 1];
+    auto **data_mat = new uint32_t *[str_len_1 + 1];
     for (i = 0; i <= str_len_1; i += 1)
         data_mat[i] = new uint32_t[str_len_2 + 1];
 
@@ -72,7 +71,13 @@ uint32_t get_edit_distance(const std::vector<std::string> words_1, const std::ve
             else
                 data_mat[i][j] = 1 + std::min(std::min(data_mat[i-1][j], data_mat[i][j-1]),data_mat[i-1][j-1]);
         }
+
+    //TODO: go from i = str_len_1, j = str_len_2 to beginning storing changes in 'steps'
+        i = 0;
+        j = 0;
+
     uint32_t result = data_mat[str_len_1][str_len_2];
+
     delete[] data_mat;
     return result;
 }
