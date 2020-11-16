@@ -4,9 +4,6 @@
 
 namespace warc2text {
 
-    std::unordered_set<std::string> startNL ( {"ul", "ol", "dl", "tr"} ); // put a new line BEFORE these elements
-    std::unordered_set<std::string> endNL ( {"p", "div", "li", "dd", "th", "td", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"} ); // put a new line AFTER these elements
-
     std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} ); // do not extract text from the content of these elements
 
     // html elements that are self-closing (no content)
@@ -14,15 +11,12 @@ namespace warc2text {
 
     // block html elements
     std::unordered_set<std::string> blockTags ( {"address", "article", "aside", "blockquote", "details", "dialog", "dd", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form",
-                                                 "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "hr", "li", "main", "nav", "ol", "p", "pre", "section", "table", "ul"} );
+                                                 "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "hr", "li", "main", "nav", "ol", "p", "pre", "section", "table", "td", "th", "tr", "ul"} );
 
     // inline html elements
     std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio", "b", "bdi", "bdo", "big", "br", "button", "canvas", "cite", "code", "data", "datalist", "del", "dfn", "em", "embed",
                                                   "i", "iframe", "img", "input", "ins", "kdb", "label", "map", "mark", "meter", "noscript", "object", "output", "picture", "progress", "q", "ruby",
                                                   "s", "samp", "script", "select", "slot", "small", "span", "strong", "sub", "sup", "svg", "template", "textarea", "time", "u", "tt", "var", "video", "wbr" });
-
-    inline bool startNewLine(const std::string& tag) { return startNL.find(tag) != startNL.end(); }
-    inline bool endNewLine(const std::string& tag) { return endNL.find(tag) != endNL.end() or voidTags.find(tag) != voidTags.end(); }
 
     inline bool isNoText(const std::string& tag) { return noText.find(tag) != noText.end(); }
     inline bool isVoidTag(const std::string& tag) { return voidTags.find(tag) != voidTags.end(); }
@@ -65,34 +59,30 @@ namespace warc2text {
                     break;
                 case markup::scanner::TT_TAG_START:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (startNewLine(tag)) {
+                    if (!isVoidTag(tag))
+                        dtree.insertTag(tag);
+                    if (isBlockTag(tag)) {
                         if (std::isspace(plaintext.back()))
                             plaintext.back() = '\n';
                         else if (!plaintext.empty()) {
                             plaintext.push_back('\n');
                             dtree.addOffset(1);
                         }
+                        if (!deferred.empty() and deferred.back() != ';')
+                            deferred.push_back(';'); // found block tag: previous word has ended
                     }
-                    if (!isVoidTag(tag))
-                        dtree.insertTag(tag);
-                    if (isBlockTag(tag) and !deferred.empty() and deferred.back() != ';')
-                        deferred.push_back(';'); // found block tag: previous word has ended
                     break;
                 case markup::scanner::TT_TAG_END:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
                     if (!isVoidTag(tag))
                         dtree.endTag();
-                    if (endNewLine(tag)) {
+                    if (isBlockTag(tag)) {
                         if (std::isspace(plaintext.back()))
                             plaintext.back() = '\n';
                         else if (!plaintext.empty()) {
                             plaintext.push_back('\n');
                             dtree.addOffset(1);
                         }
-                    }
-                    else if (!plaintext.empty() && !std::isspace(plaintext.back())) {
-                        plaintext.push_back(' ');
-                        dtree.addOffset(1);
                     }
                     break;
                 case markup::scanner::TT_WORD:
