@@ -133,6 +133,7 @@ namespace warc2text {
                     break;
             }
         }
+        if (deferred.back() == '+') deferred.back() = '\n';
         return retval;
     }
 

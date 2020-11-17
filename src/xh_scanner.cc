@@ -46,7 +46,7 @@ namespace markup {
 
         while (true) {
             append_value(c);
-            c = input.get_char();
+            c = get_char();
             if (c == 0) {
                 push_back(c);
                 break;
@@ -239,11 +239,14 @@ namespace markup {
         buf[0] = '&';
         unsigned int i = 1;
         char t;
+        bool entity = true;
         for (; i < 31; ++i) {
             t = get_char();
             if (t == 0) return TT_EOF;
             if (t != ';' && !(i == 1 && t == '#') && !isalnum(t)) {
                 push_back(t);
+                buf[i] = 0;
+                entity = false;
                 break; // appears a erroneous entity token.
                 // but we try to use it.
             }
@@ -253,13 +256,13 @@ namespace markup {
         }
         buf[i+1]=0;
         char out[32];
-        bool entity = simple_parse_entity(&buf[0], &out[0]);
+        if (entity)
+            entity = simple_parse_entity(&buf[0], &out[0]);
         if (!entity) {
-            append_value('&');
             for ( i = 0; i < strlen(buf) - 1; ++i)
                 append_value(buf[i]);
             // last character will be appended by the caller
-            t = buf[strlen(buf)-1];
+            t = buf[strlen(buf)-1]; 
         }
         else {
             for( i = 0; i < strlen(out) - 1; ++i){
