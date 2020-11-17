@@ -74,11 +74,11 @@ namespace warc2text {
                         }
                         // found block tag: previous word has ended
                         if (!deferred.empty()) {
-                            if (deferred.back() == '+') deferred.back() = '\n';
-                            else if (deferred.back() != '\n') deferred.push_back('\n');
+                            if (deferred.back() == '+') deferred.back() = ';';
+                            else if (deferred.back() != ';') deferred.push_back(';');
                         }
                     } else {
-                        if (!deferred.empty() and deferred.back() != '\n' and deferred.back() != '+')
+                        if (!deferred.empty() and deferred.back() != ';' and deferred.back() != '+')
                             deferred.push_back('+');
                     }
                     if (!isVoidTag(tag))
@@ -102,11 +102,11 @@ namespace warc2text {
                         }
                         // found block tag: previous word has ended
                         if (!deferred.empty()) {
-                            if (deferred.back() == '+') deferred.back() = '\n';
-                            else if (deferred.back() != '\n') deferred.push_back('\n');
+                            if (deferred.back() == '+') deferred.back() = ';';
+                            else if (deferred.back() != ';') deferred.push_back(';');
                         }
                     } else {
-                        if (!deferred.empty() and deferred.back() != '\n' and deferred.back() != '+')
+                        if (!deferred.empty() and deferred.back() != ';' and deferred.back() != '+')
                             deferred.push_back('+');
                     }
                     if (!isVoidTag(tag))
@@ -133,7 +133,8 @@ namespace warc2text {
                     break;
             }
         }
-        if (deferred.back() == '+') deferred.back() = '\n';
+        while (deferred.back() == '+' or deferred.back() == ';') deferred.pop_back();
+        if (plaintext.back() != '\n') plaintext.push_back('\n');
         return retval;
     }
 
