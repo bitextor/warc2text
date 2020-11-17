@@ -1,6 +1,5 @@
 #include "html.hh"
 #include "deferred.hh"
-#include <deque>
 
 namespace warc2text {
 
@@ -10,8 +9,8 @@ namespace warc2text {
     std::unordered_set<std::string> voidTags ( {"!doctype", "area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"} );
 
     // block html elements
-    std::unordered_set<std::string> blockTags ( {"address", "article", "aside", "blockquote", "details", "dialog", "dd", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form",
-                                                 "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "hr", "li", "main", "nav", "ol", "p", "pre", "section", "table", "td", "th", "tr", "ul"} );
+    std::unordered_set<std::string> blockTags ( {"address", "article", "aside", "blockquote", "body", "details", "dialog", "dd", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form",
+                                                 "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "html", "hr", "li", "main", "nav", "ol", "p", "pre", "section", "table", "td", "th", "title", "tr", "ul"} );
 
     // inline html elements
     std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio", "b", "bdi", "bdo", "big", "br", "button", "canvas", "cite", "code", "data", "datalist", "del", "dfn", "em", "embed",
@@ -59,48 +58,71 @@ namespace warc2text {
                     break;
                 case markup::scanner::TT_TAG_START:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (!isVoidTag(tag))
-                        dtree.insertTag(tag);
+                    if (dtree.getCurrentLength() > 0) {
+                        dtree.appendStandoff(deferred);
+                        dtree.setCurrentOffset(dtree.getCurrentLength());
+                        dtree.setCurrentLength(0);
+                    }
                     if (isBlockTag(tag)) {
-                        if (std::isspace(plaintext.back()))
+                        if (std::isspace(plaintext.back())) {
                             plaintext.back() = '\n';
+                            if (dtree.getCurrentLength() > 0)
+                                dtree.addLength(-1);
+                        }
                         else if (!plaintext.empty()) {
                             plaintext.push_back('\n');
-                            dtree.addOffset(1);
                         }
-                        if (!deferred.empty() and deferred.back() != ';')
-                            deferred.push_back(';'); // found block tag: previous word has ended
+                        // found block tag: previous word has ended
+                        if (!deferred.empty()) {
+                            if (deferred.back() == '+') deferred.back() = '\n';
+                            else if (deferred.back() != '\n') deferred.push_back('\n');
+                        }
+                    } else {
+                        if (!deferred.empty() and deferred.back() != '\n' and deferred.back() != '+')
+                            deferred.push_back('+');
                     }
+                    if (!isVoidTag(tag))
+                        dtree.insertTag(tag);
                     break;
                 case markup::scanner::TT_TAG_END:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (!isVoidTag(tag))
-                        dtree.endTag();
+                    if (dtree.getCurrentLength() > 0) {
+                        dtree.appendStandoff(deferred);
+                        dtree.setCurrentOffset(dtree.getCurrentLength());
+                        dtree.setCurrentLength(0);
+                    }
                     if (isBlockTag(tag)) {
-                        if (std::isspace(plaintext.back()))
+                        if (std::isspace(plaintext.back())) {
                             plaintext.back() = '\n';
+                            if (dtree.getCurrentLength() > 0)
+                                dtree.addLength(-1);
+                        }
                         else if (!plaintext.empty()) {
                             plaintext.push_back('\n');
-                            dtree.addOffset(1);
                         }
+                        // found block tag: previous word has ended
+                        if (!deferred.empty()) {
+                            if (deferred.back() == '+') deferred.back() = '\n';
+                            else if (deferred.back() != '\n') deferred.push_back('\n');
+                        }
+                    } else {
+                        if (!deferred.empty() and deferred.back() != '\n' and deferred.back() != '+')
+                            deferred.push_back('+');
                     }
+                    if (!isVoidTag(tag))
+                        dtree.endTag();
                     break;
                 case markup::scanner::TT_WORD:
                     // if the tag is is noText list, don't save the text or the standoff
                     if (isNoText(tag))
                         break;
                     plaintext.append(sc.get_value());
-                    if (!deferred.empty() && deferred.back() != ';')
-                        deferred.push_back('+');
-                    dtree.appendStandoff(deferred, strlen(sc.get_value()));
-                    dtree.addOffset(strlen(sc.get_value()));
+                    dtree.addLength(strlen(sc.get_value()));
                     break;
                 case markup::scanner::TT_SPACE:
-                    if (!deferred.empty() && deferred.back() != ';')
-                        deferred.push_back(';'); // found space: previous word has ended
                     if (!plaintext.empty() && !std::isspace(plaintext.back())) {
                         plaintext.push_back(' ');
-                        dtree.addOffset(1);
+                        dtree.addLength(1);
                     }
                     break;
                 case markup::scanner::TT_ATTR:

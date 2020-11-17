@@ -27,6 +27,11 @@ namespace warc2text {
         tag_stack.back().offset += n;
     }
 
+    void DeferredTree::addLength(int n) {
+        if (tag_stack.empty()) return;
+        tag_stack.back().length += n;
+    }
+
     void DeferredTree::endTag() {
         if (tag_stack.empty()) return;
         tag_stack.pop_back();
@@ -39,7 +44,22 @@ namespace warc2text {
         return tag_stack.back().offset;
     }
 
-    void DeferredTree::appendStandoff(std::string& deferred, unsigned int wordLength) const {
+    unsigned int DeferredTree::getCurrentLength() const {
+        if (tag_stack.empty()) return 0;
+        return tag_stack.back().length;
+    }
+
+    void DeferredTree::setCurrentOffset(unsigned int n) {
+        if (tag_stack.empty()) return;
+        tag_stack.back().offset = n;
+    }
+
+    void DeferredTree::setCurrentLength(unsigned int n) {
+        if (tag_stack.empty()) return;
+        tag_stack.back().length = n;
+    }
+
+    void DeferredTree::appendStandoff(std::string& deferred) const {
         for (unsigned int l = 0; l < tag_stack.size(); ++l) {
             deferred.append(tag_stack.at(l).tag);
             unsigned int i = counts.at(l).at(tag_stack.at(l).tag);
@@ -51,9 +71,10 @@ namespace warc2text {
             deferred.push_back('/');
         }
         if(!deferred.empty()) deferred.back() = ':';
-        deferred.append(std::to_string(getCurrentOffset()));
+        deferred.append(std::to_string(getCurrentOffset())); // start position
         deferred.push_back('-');
-        deferred.append(std::to_string(getCurrentOffset() + wordLength - 1));
+        deferred.append(std::to_string(getCurrentOffset() + getCurrentLength())); // length of segment
     }
+
 
 } //warc2text
