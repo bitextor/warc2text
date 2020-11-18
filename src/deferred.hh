@@ -18,12 +18,14 @@ namespace warc2text {
 
     class DeferredTree {
         private:
+            bool deferred;
             unsigned int level;
             std::deque<DeferredNode> tag_stack;
             std::vector<std::unordered_map<std::string, unsigned int>> counts;
 
         public:
             DeferredTree();
+            DeferredTree(bool deferred);
             void insertTag(const std::string& tag);
             void addOffset(int n);
             void addLength(int n);

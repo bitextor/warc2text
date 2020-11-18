@@ -14,59 +14,59 @@ namespace warc2text {
             deferred.push_back('+');
     }
 
-    DeferredTree::DeferredTree() : level(0), tag_stack(), counts() {
-        std::unordered_map<std::string, unsigned int> umap;
-        counts.push_back(umap);
+    DeferredTree::DeferredTree() : DeferredTree(true) {};
+
+    DeferredTree::DeferredTree(bool deferred) : deferred(deferred), level(0), tag_stack(), counts() {
+        counts.emplace_back();
     }
 
     void DeferredTree::insertTag(const std::string& tag) {
+        if (!deferred) return;
         tag_stack.push_back({tag, 0, 0});
         counts.at(level)[tag]++;
         ++level;
-        if (counts.size() < level+1) {
-            std::unordered_map<std::string, unsigned int> umap;
-            counts.push_back(umap);
-        }
+        if (counts.size() < level+1)
+            counts.emplace_back();
     }
 
     bool DeferredTree::empty() const {
-        return tag_stack.empty();
+        return !deferred or tag_stack.empty();
     }
 
     void DeferredTree::addOffset(int n) {
-        if (tag_stack.empty()) return;
+        if (empty()) return;
         tag_stack.back().offset += n;
     }
 
     void DeferredTree::addLength(int n) {
-        if (tag_stack.empty()) return;
+        if (empty()) return;
         tag_stack.back().length += n;
     }
 
     void DeferredTree::endTag() {
-        if (tag_stack.empty()) return;
+        if (empty()) return;
         tag_stack.pop_back();
         counts.at(level).clear();
         --level;
     }
 
     unsigned int DeferredTree::getCurrentOffset() const {
-        if (tag_stack.empty()) return 0;
+        if (empty()) return 0;
         return tag_stack.back().offset;
     }
 
     unsigned int DeferredTree::getCurrentLength() const {
-        if (tag_stack.empty()) return 0;
+        if (empty()) return 0;
         return tag_stack.back().length;
     }
 
     void DeferredTree::setCurrentOffset(unsigned int n) {
-        if (tag_stack.empty()) return;
+        if (empty()) return;
         tag_stack.back().offset = n;
     }
 
     void DeferredTree::setCurrentLength(unsigned int n) {
-        if (tag_stack.empty()) return;
+        if (empty()) return;
         tag_stack.back().length = n;
     }
 
@@ -79,6 +79,7 @@ namespace warc2text {
     }
 
     void DeferredTree::appendStandoff(std::string& deferred) const {
+        if (!this->deferred) return;
         for (unsigned int l = 0; l < tag_stack.size(); ++l) {
             deferred.append(tag_stack.at(l).tag);
             unsigned int i = counts.at(l).at(tag_stack.at(l).tag);
@@ -94,6 +95,5 @@ namespace warc2text {
         deferred.push_back('-');
         deferred.append(std::to_string(getCurrentOffset() + getCurrentLength())); // length of segment
     }
-
 
 } //warc2text

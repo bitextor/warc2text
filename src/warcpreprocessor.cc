@@ -13,7 +13,8 @@ namespace warc2text {
         totalBytes(0),
         textBytes(0),
         langBytes(0),
-        tagFilters() {
+        tagFilters(),
+        output_files(output_files) {
             if (!tagFiltersFile.empty())
                 util::readTagFilters(tagFiltersFile, tagFilters);
         }
@@ -25,6 +26,7 @@ namespace warc2text {
 
         std::string content;
         bool done = false;
+        bool extractStandoff = output_files.count("deferred");
         bool reliable;
 
         while (!done) {
@@ -50,7 +52,7 @@ namespace warc2text {
             if (boost::algorithm::ends_with(record.getURL(), "robots.txt"))
                 continue;
 
-            int clean_retval = record.cleanPayload(tagFilters);
+            int clean_retval = record.cleanPayload(extractStandoff, tagFilters);
             if (clean_retval == util::FILTERED_DOCUMENT_ERROR) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to tag filters";
                 continue;

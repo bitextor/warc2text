@@ -1,16 +1,22 @@
+#include <cstring>
+#include <unordered_set>
+#include "util.hh"
 #include "html.hh"
 #include "deferred.hh"
+#include "xh_scanner.hh"
 
 namespace warc2text {
 
-    std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} ); // do not extract text from the content of these elements
+    // do not extract text from the content of these elements
+    std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
 
     // html elements that are self-closing (no content)
     std::unordered_set<std::string> voidTags ( {"!doctype", "area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"} );
 
     // block html elements
     std::unordered_set<std::string> blockTags ( {"address", "article", "aside", "blockquote", "body", "details", "dialog", "dd", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form",
-                                                 "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "html", "hr", "li", "main", "nav", "ol", "p", "pre", "section", "table", "td", "th", "title", "tr", "ul"} );
+                                                 "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "html", "hr", "li", "main", "nav", "ol", "p", "pre", "section", "table", "td", "th",
+                                                 "title", "tr", "ul"} );
 
     // inline html elements
     std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio", "b", "bdi", "bdo", "big", "br", "button", "canvas", "cite", "code", "data", "datalist", "del", "dfn", "em", "embed",
@@ -55,7 +61,7 @@ namespace warc2text {
         }
     }
 
-    int processHTML(const std::string& html, std::string& plaintext, std::string& deferred, const util::umap_tag_filters& tagFilters){
+    int processHTML(const std::string& html, std::string& plaintext, bool extractStandoff, std::string& deferred, const util::umap_tag_filters& tagFilters){
         plaintext = "";
         markup::instream si(html.c_str());
         markup::scanner sc(si);
@@ -64,7 +70,7 @@ namespace warc2text {
         int retval = util::SUCCESS;
         std::string tag;
 
-        DeferredTree dtree;
+        DeferredTree dtree(extractStandoff);
 
         while (t != markup::scanner::TT_EOF and t != markup::scanner::TT_ERROR) {
             t = sc.get_token();
@@ -110,13 +116,6 @@ namespace warc2text {
         while (deferred.back() == '+' or deferred.back() == ';') deferred.pop_back();
         if (plaintext.back() != '\n') plaintext.push_back('\n');
         return retval;
-    }
-
-    void unescapeEntities(const std::string& plaintext, std::string& decoded) {
-        char* decodedplaintext = new char [plaintext.size() + 1];
-        decode_html_entities_utf8(decodedplaintext, plaintext.data());
-        decoded = decodedplaintext;
-        delete[] (decodedplaintext);
     }
 
 }
