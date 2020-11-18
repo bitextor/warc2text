@@ -2,6 +2,17 @@
 #include <iostream>
 
 namespace warc2text {
+    void endStandoffSegment(std::string& deferred) {
+        if (!deferred.empty() and deferred.back() == '+')
+            deferred.back() = ';';
+        else if (!deferred.empty() and deferred.back() != ';')
+            deferred.push_back(';');
+    }
+
+    void continueStandoffSegment(std::string& deferred) {
+        if (!deferred.empty() and deferred.back() != ';' and deferred.back() != '+')
+            deferred.push_back('+');
+    }
 
     DeferredTree::DeferredTree() : level(0), tag_stack(), counts() {
         std::unordered_map<std::string, unsigned int> umap;
@@ -9,7 +20,7 @@ namespace warc2text {
     }
 
     void DeferredTree::insertTag(const std::string& tag) {
-        tag_stack.push_back({tag, 0});
+        tag_stack.push_back({tag, 0, 0});
         counts.at(level)[tag]++;
         ++level;
         if (counts.size() < level+1) {
@@ -57,6 +68,14 @@ namespace warc2text {
     void DeferredTree::setCurrentLength(unsigned int n) {
         if (tag_stack.empty()) return;
         tag_stack.back().length = n;
+    }
+
+    void DeferredTree::appendAndOffset(std::string& deferred) {
+        if (getCurrentLength() > 0) {
+            appendStandoff(deferred);
+            setCurrentOffset(getCurrentLength());
+            setCurrentLength(0);
+        }
     }
 
     void DeferredTree::appendStandoff(std::string& deferred) const {

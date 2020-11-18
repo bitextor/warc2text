@@ -38,6 +38,23 @@ namespace warc2text {
         return true;
     }
 
+    void addNewLine(std::string& plaintext, DeferredTree& dtree) {
+        if (std::isspace(plaintext.back())) {
+            plaintext.back() = '\n';
+            if (dtree.getCurrentLength() > 0)
+                dtree.addLength(-1);
+        } else if (!plaintext.empty()) {
+            plaintext.push_back('\n');
+        }
+    }
+
+    void addSpace(std::string& plaintext, DeferredTree& dtree) {
+        if (!plaintext.empty() && !std::isspace(plaintext.back())) {
+            plaintext.push_back(' ');
+            dtree.addLength(1);
+        }
+    }
+
     int processHTML(const std::string& html, std::string& plaintext, std::string& deferred, const util::umap_tag_filters& tagFilters){
         plaintext = "";
         markup::instream si(html.c_str());
@@ -57,60 +74,20 @@ namespace warc2text {
                 case markup::scanner::TT_EOF:
                     break;
                 case markup::scanner::TT_TAG_START:
-                    tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (dtree.getCurrentLength() > 0) {
-                        dtree.appendStandoff(deferred);
-                        dtree.setCurrentOffset(dtree.getCurrentLength());
-                        dtree.setCurrentLength(0);
-                    }
-                    if (isBlockTag(tag)) {
-                        if (std::isspace(plaintext.back())) {
-                            plaintext.back() = '\n';
-                            if (dtree.getCurrentLength() > 0)
-                                dtree.addLength(-1);
-                        }
-                        else if (!plaintext.empty()) {
-                            plaintext.push_back('\n');
-                        }
-                        // found block tag: previous word has ended
-                        if (!deferred.empty()) {
-                            if (deferred.back() == '+') deferred.back() = ';';
-                            else if (deferred.back() != ';') deferred.push_back(';');
-                        }
-                    } else {
-                        if (!deferred.empty() and deferred.back() != ';' and deferred.back() != '+')
-                            deferred.push_back('+');
-                    }
-                    if (!isVoidTag(tag))
-                        dtree.insertTag(tag);
-                    break;
                 case markup::scanner::TT_TAG_END:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
-                    if (dtree.getCurrentLength() > 0) {
-                        dtree.appendStandoff(deferred);
-                        dtree.setCurrentOffset(dtree.getCurrentLength());
-                        dtree.setCurrentLength(0);
-                    }
+                    dtree.appendAndOffset(deferred);
                     if (isBlockTag(tag)) {
-                        if (std::isspace(plaintext.back())) {
-                            plaintext.back() = '\n';
-                            if (dtree.getCurrentLength() > 0)
-                                dtree.addLength(-1);
-                        }
-                        else if (!plaintext.empty()) {
-                            plaintext.push_back('\n');
-                        }
-                        // found block tag: previous word has ended
-                        if (!deferred.empty()) {
-                            if (deferred.back() == '+') deferred.back() = ';';
-                            else if (deferred.back() != ';') deferred.push_back(';');
-                        }
+                        // found block tag: previous block has ended
+                        addNewLine(plaintext, dtree);
+                        endStandoffSegment(deferred);
                     } else {
-                        if (!deferred.empty() and deferred.back() != ';' and deferred.back() != '+')
-                            deferred.push_back('+');
+                        continueStandoffSegment(deferred);
                     }
-                    if (!isVoidTag(tag))
-                        dtree.endTag();
+                    if (!isVoidTag(tag)) {
+                        if (t == markup::scanner::TT_TAG_START) dtree.insertTag(tag);
+                        else if (t == markup::scanner::TT_TAG_END) dtree.endTag();
+                    }
                     break;
                 case markup::scanner::TT_WORD:
                     // if the tag is is noText list, don't save the text or the standoff
@@ -120,10 +97,7 @@ namespace warc2text {
                     dtree.addLength(strlen(sc.get_value()));
                     break;
                 case markup::scanner::TT_SPACE:
-                    if (!plaintext.empty() && !std::isspace(plaintext.back())) {
-                        plaintext.push_back(' ');
-                        dtree.addLength(1);
-                    }
+                    addSpace(plaintext, dtree);
                     break;
                 case markup::scanner::TT_ATTR:
                     if (!filter(tag, sc.get_attr_name(), sc.get_value(), tagFilters))
