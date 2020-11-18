@@ -5,8 +5,8 @@
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml"};
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::string& tagFiltersFile) :
-        writer(outputFolder),
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& tagFiltersFile) :
+        writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
         langRecords(0),
@@ -33,12 +33,13 @@ namespace warc2text {
                 continue;
 
             Record record(content);
-            BOOST_LOG_TRIVIAL(trace) << "Processing record " << record.getURL() << "\n";
             if (record.getPayload().empty())
                 continue;
 
             if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
+
+            BOOST_LOG_TRIVIAL(trace) << "Processing HTML document " << record.getURL() << "\n";
 
             if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end())
                 continue;
@@ -52,6 +53,15 @@ namespace warc2text {
             int clean_retval = record.cleanPayload(tagFilters);
             if (clean_retval == util::FILTERED_DOCUMENT_ERROR) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to tag filters";
+                continue;
+            } else if (clean_retval == util::HTML_PARSING_ERROR) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": parsing error";
+                continue;
+            } else if (clean_retval == util::UNKNOWN_ENCODING_ERROR) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": unknown encoding";
+                continue;
+            } else if (clean_retval == util::UTF8_CONVERSION_ERROR) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": utf8 conversion error";
                 continue;
             }
             // TODO: decide what to do with other cases?

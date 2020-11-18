@@ -2,6 +2,7 @@
 #define WARC2TEXT_WRITER_HH
 
 #include <unordered_map>
+#include <unordered_set>
 #include <boost/filesystem.hpp>
 #include "record.hh"
 #include "zlib.h"
@@ -33,9 +34,9 @@ namespace warc2text {
             std::unordered_map<std::string, GzipWriter> url_files;
             std::unordered_map<std::string, GzipWriter> mime_files;
             std::unordered_map<std::string, GzipWriter> text_files;
-            // TODO make html output optional
             std::unordered_map<std::string, GzipWriter> html_files;
             std::unordered_map<std::string, GzipWriter> deferred_files;
+            std::unordered_set<std::string> output_files;
 
         public:
             explicit BilangWriter(const std::string& folder) :
@@ -44,7 +45,18 @@ namespace warc2text {
                 mime_files(),
                 text_files(),
                 html_files(),
-                deferred_files()
+                deferred_files(),
+                output_files({}) // url and text are mandatory regardless
+            {};
+
+            explicit BilangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files) :
+                folder(folder),
+                url_files(),
+                mime_files(),
+                text_files(),
+                html_files(),
+                deferred_files(),
+                output_files(output_files)
             {};
 
             void write(const Record& record);
