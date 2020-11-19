@@ -57,6 +57,8 @@ target_link_libraries(warc2text
 
 add_executable(wagnerfischer wagnerfischer.cpp)
 add_executable(lcs lcs.cpp)
+add_executable(naive naive.cpp)
+
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_command(TARGET warc2text
