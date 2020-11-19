@@ -40,6 +40,18 @@ namespace warc2text {
             else if ((tag_stack.back().tag == "dt" or tag_stack.back().tag == "dd") and (tag == "dt" or tag == "dd")) {
                 endTag(tag_stack.back().tag);
             }
+            // <td> and <th> close previous <td> or <th>
+            else if ((tag_stack.back().tag == "td" or tag_stack.back().tag == "th") and (tag == "td" or tag == "th")) {
+                endTag(tag_stack.back().tag);
+            }
+            // <tr> closes previous <tr>
+            else if (tag_stack.back().tag == "tr" and tag == "tr") {
+                endTag("tr");
+            }
+            // <tbody> and <tfoot> close <thead> and <tbody>
+            else if ((tag_stack.back().tag == "thead" or tag_stack.back().tag == "tbody") and (tag == "tbody" or tag == "tfoot")) {
+                endTag(tag_stack.back().tag);
+            }
             // any block tag closes previous <p> element
             else if (tag_stack.back().tag == "p" and html::isBlockTag(tag)) {
                 endTag(tag_stack.back().tag);
@@ -54,6 +66,8 @@ namespace warc2text {
             counts.emplace_back();
     }
 
+    const std::unordered_set<std::string> canBeClosedByParent({"li", "dt", "dd", "tr", "th", "td", "tbody", "tfoot"});
+
     void DeferredTree::endTag(const std::string& tag) {
         if (empty()) return;
         if (html::isVoidTag(tag)) return;
@@ -63,8 +77,8 @@ namespace warc2text {
             counts.at(level).clear();
             --level;
         }
-        // <li> <dt> and <dd> may be closed by closing the parent element
-        else if (tag_stack.back().tag == "li" or tag_stack.back().tag == "dt" or tag_stack.back().tag == "dd" ) {
+        // these elements may be closed by closing the parent element
+        else if (util::uset_contains(canBeClosedByParent, tag_stack.back().tag)) {
             endTag(tag_stack.back().tag);
             endTag(tag);
         }
