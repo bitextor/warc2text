@@ -29,11 +29,45 @@ namespace util {
         UTF8_CONVERSION_ERROR = 4
     };
 
+    inline bool uset_contains(const std::unordered_set<std::string>& uset, const std::string& value) {
+        return uset.find(value) != uset.end();
+    }
 
     typedef std::unordered_map<std::string, std::unordered_set<std::string>> umap_attr_filters;
     typedef std::unordered_map<std::string, umap_attr_filters> umap_tag_filters;
 
     void readTagFilters(const std::string& filename, umap_tag_filters& filters);
+}
+
+namespace html {
+    // do not extract text from the content of these elements
+    const std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
+
+    // html elements that are self-closing (no content)
+    const std::unordered_set<std::string> voidTags ( {"!doctype", "area", "base", "br",
+        "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta",
+        "param", "source", "track", "wbr"} );
+
+    // block html elements
+    const std::unordered_set<std::string> blockTags ( {"address", "article", "aside",
+        "blockquote", "body", "details", "dialog", "dd", "div", "dl", "dt",
+        "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4",
+        "h5", "h6", "head", "header", "hgroup", "html", "hr", "li", "main", "nav",
+        "ol", "p", "pre", "section", "table", "td", "th", "title", "tr", "ul"} );
+
+    // inline html elements
+    const std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio",
+        "b", "bdi", "bdo", "big", "br", "button", "canvas", "cite", "code", "data",
+        "datalist", "del", "dfn", "em", "embed", "i", "iframe", "img", "input",
+        "ins", "kdb", "label", "map", "mark", "meter", "noscript", "object",
+        "output", "picture", "progress", "q", "ruby", "s", "samp", "script",
+        "select", "slot", "small", "span", "strong", "sub", "sup", "svg", "template",
+        "textarea", "time", "u", "tt", "var", "video", "wbr" });
+
+    inline bool isBlockTag(const std::string& tag) { return util::uset_contains(blockTags, tag); }
+    inline bool isInlineTag(const std::string& tag) { return util::uset_contains(inlineTags, tag); }
+    inline bool isVoidTag(const std::string& tag) { return util::uset_contains(voidTags, tag); }
+    inline bool isNoTextTag(const std::string& tag) { return util::uset_contains(noText, tag); }
 }
 
 #endif

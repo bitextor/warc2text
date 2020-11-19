@@ -7,8 +7,6 @@
 #include <unordered_map>
 
 namespace warc2text {
-    void endStandoffSegment(std::string& deferred);
-    void continueStandoffSegment(std::string& deferred);
 
     struct DeferredNode {
         std::string tag;
@@ -29,7 +27,7 @@ namespace warc2text {
             void insertTag(const std::string& tag);
             void addOffset(int n);
             void addLength(int n);
-            void endTag();
+            void endTag(const std::string& tag);
             void appendAndOffset(std::string& s);
             void appendStandoff(std::string& s) const;
             unsigned int getCurrentOffset() const;
@@ -37,6 +35,8 @@ namespace warc2text {
             void setCurrentOffset(unsigned int n);
             void setCurrentLength(unsigned int n);
             bool empty() const;
+            static void endStandoffSegment(std::string& deferred);
+            static void continueStandoffSegment(std::string& deferred);
 
     };
 } //warc2text

@@ -7,27 +7,6 @@
 
 namespace warc2text {
 
-    // do not extract text from the content of these elements
-    std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
-
-    // html elements that are self-closing (no content)
-    std::unordered_set<std::string> voidTags ( {"!doctype", "area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"} );
-
-    // block html elements
-    std::unordered_set<std::string> blockTags ( {"address", "article", "aside", "blockquote", "body", "details", "dialog", "dd", "div", "dl", "dt", "fieldset", "figcaption", "figure", "footer", "form",
-                                                 "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "html", "hr", "li", "main", "nav", "ol", "p", "pre", "section", "table", "td", "th",
-                                                 "title", "tr", "ul"} );
-
-    // inline html elements
-    std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio", "b", "bdi", "bdo", "big", "br", "button", "canvas", "cite", "code", "data", "datalist", "del", "dfn", "em", "embed",
-                                                  "i", "iframe", "img", "input", "ins", "kdb", "label", "map", "mark", "meter", "noscript", "object", "output", "picture", "progress", "q", "ruby",
-                                                  "s", "samp", "script", "select", "slot", "small", "span", "strong", "sub", "sup", "svg", "template", "textarea", "time", "u", "tt", "var", "video", "wbr" });
-
-    inline bool isNoText(const std::string& tag) { return noText.find(tag) != noText.end(); }
-    inline bool isVoidTag(const std::string& tag) { return voidTags.find(tag) != voidTags.end(); }
-    inline bool isInlineTag(const std::string& tag) { return inlineTags.find(tag) != inlineTags.end(); }
-    inline bool isBlockTag(const std::string& tag) { return blockTags.find(tag) != blockTags.end(); }
-
     // true if doc is ok
     bool filter(const std::string& lc_tag, const char* attr, const char* value, const util::umap_tag_filters& tagFilters) {
         util::umap_tag_filters::const_iterator tag_it = tagFilters.find(lc_tag);
@@ -83,21 +62,19 @@ namespace warc2text {
                 case markup::scanner::TT_TAG_END:
                     tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
                     dtree.appendAndOffset(deferred);
-                    if (isBlockTag(tag)) {
+                    if (html::isBlockTag(tag)) {
                         // found block tag: previous block has ended
                         addNewLine(plaintext, dtree);
-                        endStandoffSegment(deferred);
+                        DeferredTree::endStandoffSegment(deferred);
                     } else {
-                        continueStandoffSegment(deferred);
+                        DeferredTree::continueStandoffSegment(deferred);
                     }
-                    if (!isVoidTag(tag)) {
-                        if (t == markup::scanner::TT_TAG_START) dtree.insertTag(tag);
-                        else if (t == markup::scanner::TT_TAG_END) dtree.endTag();
-                    }
+                    if (t == markup::scanner::TT_TAG_START) dtree.insertTag(tag);
+                    else if (t == markup::scanner::TT_TAG_END) dtree.endTag(tag);
                     break;
                 case markup::scanner::TT_WORD:
-                    // if the tag is is noText list, don't save the text or the standoff
-                    if (isNoText(tag))
+                    // if the tag is in noText list, don't save the text or the standoff
+                    if (html::isNoTextTag(tag))
                         break;
                     plaintext.append(sc.get_value());
                     dtree.addLength(strlen(sc.get_value()));
