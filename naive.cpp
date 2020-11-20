@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
     std::ifstream t_sentences(argv[3]);
     std::string line_sent;
     std::vector<std::string> decoded_doc_lines;
-    int pos_index;
-    int block_index;
+    int pos_index = 0;
+    int block_index = 0;
     std::string prev_url;
     std::string line_parts[5];
 
