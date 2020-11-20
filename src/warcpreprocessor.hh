@@ -21,6 +21,8 @@ namespace warc2text {
             util::umap_tag_filters tagFilters;
             std::unordered_set<std::string> output_files;
             static const std::unordered_set<std::string> textContentTypes;
+            static const std::unordered_set<std::string> removeExtensions;
+            static bool URLfilter(const std::string& url);
 
         public:
             explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string& tagFiltersFile = "");

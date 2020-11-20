@@ -36,7 +36,7 @@ namespace warc2text {
     void addSpace(std::string& plaintext, DeferredTree& dtree) {
         if (!plaintext.empty() && !std::isspace(plaintext.back())) {
             plaintext.push_back(' ');
-            dtree.addLength(1);
+            dtree.addLength(1); // comment this line if we don't want to count spaces
         }
     }
 
@@ -60,17 +60,20 @@ namespace warc2text {
                     break;
                 case markup::scanner::TT_TAG_START:
                 case markup::scanner::TT_TAG_END:
-                    tag = util::toLowerCopy(sc.get_tag_name()); // sc.get_tag_name() only changes value after a new tag is found
+                    // sc.get_tag_name() only changes value after a new tag is found
+                    tag = util::toLowerCopy(sc.get_tag_name());
                     dtree.appendAndOffset(deferred);
                     if (html::isBlockTag(tag)) {
                         // found block tag: previous block has ended
                         addNewLine(plaintext, dtree);
-                        DeferredTree::endStandoffSegment(deferred);
+                        dtree.endStandoffSegment(deferred);
                     } else {
-                        DeferredTree::continueStandoffSegment(deferred);
+                        dtree.continueStandoffSegment(deferred);
                     }
-                    if (t == markup::scanner::TT_TAG_START) dtree.insertTag(tag);
-                    else if (t == markup::scanner::TT_TAG_END) dtree.endTag(tag);
+                    if (t == markup::scanner::TT_TAG_START)
+                        dtree.insertTag(tag);
+                    else if (t == markup::scanner::TT_TAG_END)
+                        dtree.endTag(tag);
                     break;
                 case markup::scanner::TT_WORD:
                     // if the tag is in noText list, don't save the text or the standoff

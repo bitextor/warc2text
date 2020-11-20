@@ -21,42 +21,27 @@ namespace warc2text {
         counts.emplace_back();
     }
 
+    // list of elements that when opened may close the previous tag
+    const std::unordered_map<std::string, std::unordered_set<std::string>> closesPrevious({
+        {"li", {"li"}}, {"body", {"head"}}, {"dt", {"dt", "dd"}}, {"dd", {"dt", "dd"}}, {"tr", {"tr"}},
+        {"th", {"th", "td"}}, {"td", {"th", "td"}}, {"tbody", {"thead", "tbody"}}, {"tfoot", {"thead", "tbody"}}
+    });
+
     void DeferredTree::insertTag(const std::string& tag) {
         if (!deferred) return;
-        if (html::isVoidTag(tag))
-            return;
 
         // take care of elements that implicitly close previous one:
-        // each new li item implies closing the previous li
         if (!tag_stack.empty()) {
-            if (tag_stack.back().tag == "li" and tag == "li") {
-                endTag("li");
-            }
-            // body element implies closing head
-            else if (tag_stack.back().tag == "head" and tag == "body") {
-                endTag("head");
-            }
-            // <dt> and <dd> close previous <dd> or <dt>
-            else if ((tag_stack.back().tag == "dt" or tag_stack.back().tag == "dd") and (tag == "dt" or tag == "dd")) {
+            auto it = closesPrevious.find(tag);
+            if (it != closesPrevious.end() and it->second.find(tag_stack.back().tag) != it->second.end())
                 endTag(tag_stack.back().tag);
-            }
-            // <td> and <th> close previous <td> or <th>
-            else if ((tag_stack.back().tag == "td" or tag_stack.back().tag == "th") and (tag == "td" or tag == "th")) {
-                endTag(tag_stack.back().tag);
-            }
-            // <tr> closes previous <tr>
-            else if (tag_stack.back().tag == "tr" and tag == "tr") {
-                endTag("tr");
-            }
-            // <tbody> and <tfoot> close <thead> and <tbody>
-            else if ((tag_stack.back().tag == "thead" or tag_stack.back().tag == "tbody") and (tag == "tbody" or tag == "tfoot")) {
-                endTag(tag_stack.back().tag);
-            }
             // any block tag closes previous <p> element
-            else if (tag_stack.back().tag == "p" and html::isBlockTag(tag)) {
+            else if (tag_stack.back().tag == "p" and html::isBlockTag(tag))
                 endTag(tag_stack.back().tag);
-            }
         }
+
+        if (html::isVoidTag(tag))
+            return;
 
         // insert new element
         tag_stack.push_back({tag, 0, 0});

@@ -4,6 +4,7 @@
 
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml"};
+    const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
     WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& tagFiltersFile) :
         writer(outputFolder, output_files),
@@ -18,6 +19,18 @@ namespace warc2text {
             if (!tagFiltersFile.empty())
                 util::readTagFilters(tagFiltersFile, tagFilters);
         }
+
+    // true if url is good
+    bool WARCPreprocessor::URLfilter(const std::string& url) {
+        if (boost::algorithm::ends_with(url, "robots.txt"))
+            return false;
+        for (const std::string& ext : removeExtensions)
+            if (boost::algorithm::ends_with(url, ext))
+                return false;
+        // if (url.find("google.translate") != std::string::npos)
+        //     return false;
+        return true;
+    }
 
 
     void WARCPreprocessor::process(const std::string& filename) {
@@ -46,11 +59,11 @@ namespace warc2text {
             if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end())
                 continue;
 
+            if (!URLfilter(record.getURL()))
+                continue;
 
             ++totalRecords;
             totalBytes += record.getPayload().size();
-            if (boost::algorithm::ends_with(record.getURL(), "robots.txt"))
-                continue;
 
             int clean_retval = record.cleanPayload(extractStandoff, tagFilters);
             if (clean_retval == util::FILTERED_DOCUMENT_ERROR) {
