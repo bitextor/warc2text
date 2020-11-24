@@ -61,7 +61,6 @@ add_executable(naive naive.cpp)
 target_link_libraries(naive
         warc2text_lib
         ${Boost_LIBRARIES}
-        ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so
         )
 
 

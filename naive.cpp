@@ -77,7 +77,9 @@ int main(int argc, char *argv[]) {
 
         prev_url = line_parts[0];
         if (pos_index != -1)
-            std::cout << "Sentence '" << line_sent << "' found at block " << block_index << " at position: " << pos_index <<std::endl;
+            std::cout << "Sentence '" << line_sent << "' found at block " << block_index << " at position: " << pos_index << std::endl;
+        else
+            std::cout << "Sentence could not be found (maybe a concatenated string from sentence aligner)" << std::endl;
     }
 
     auto stop = std::chrono::high_resolution_clock::now();
