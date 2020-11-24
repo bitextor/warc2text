@@ -30,7 +30,7 @@ add_library(warc2text_lib
     util.cc
     bilangwriter.cc
     xh_scanner.cc
-    entities.c
+    entities.cc
 )
 
 target_link_libraries(warc2text_lib

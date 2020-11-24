@@ -17,7 +17,10 @@ namespace util {
     void trimLinesCopy(const std::string& original, std::string& result);
 
     // detect charset using uchardet
-    bool detectCharset(const std::string& text, std::string& charset);
+    bool detectCharset(const std::string& text, std::string& charset, const std::string& original_charset = "");
+    // convert to utf8
+    std::string toUTF8 (const std::string& text, const std::string& charset);
+    std::string toUTF8 (const char* text, const std::string& charset);
 
     void encodeBase64(const std::string& original, std::string& base64);
 

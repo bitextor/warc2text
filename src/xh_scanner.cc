@@ -1,9 +1,7 @@
 #include <cctype>
 #include <cstring>
 #include "xh_scanner.hh"
-extern "C" {
-    #include "entities.h"
-}
+#include "entities.hh"
 
 namespace markup {
 
@@ -37,10 +35,10 @@ namespace markup {
 
         if (c == 0) return TT_EOF;
         else if (c == '<') return scan_tag();
-        else if (c == '&') {
-            c = scan_entity();
-            ws = is_whitespace(c);
-        }
+        // else if (c == '&') {
+        //     c = scan_entity();
+        //     ws = is_whitespace(c);
+        // }
         else
             ws = is_whitespace(c);
 
@@ -125,7 +123,7 @@ namespace markup {
             c = get_char();
             while (c) {
                 if (c == '\"') return TT_ATTR;
-                if (c == '&') c = scan_entity();
+                // if (c == '&') c = scan_entity();
                 append_value(c);
                 c = get_char();
             }
@@ -134,7 +132,7 @@ namespace markup {
             c = get_char();
             while (c) {
                 if (c == '\'') return TT_ATTR;
-                if (c == '&') c = scan_entity();
+                // if (c == '&') c = scan_entity();
                 append_value(c);
                 c = get_char();
             }
@@ -257,19 +255,19 @@ namespace markup {
         buf[i+1]=0;
         char out[32];
         if (entity)
-            entity = simple_parse_entity(&buf[0], &out[0]);
+            entity = entities::simple_parse_entity(&buf[0], &out[0]);
         if (!entity) {
             for ( i = 0; i < strlen(buf) - 1; ++i)
                 append_value(buf[i]);
             // last character will be appended by the caller
-            t = buf[strlen(buf)-1]; 
+            t = buf[strlen(buf)-1];
         }
         else {
             for( i = 0; i < strlen(out) - 1; ++i){
                 append_value(out[i]);
             }
             // last character will be appended by the caller
-            t = out[strlen(out)-1]; 
+            t = out[strlen(out)-1];
         }
         return t;
     }

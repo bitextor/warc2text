@@ -7,12 +7,6 @@
 #include "html.hh"
 #include <boost/log/trivial.hpp>
 
-// #include <boost/iostreams/stream.hpp>
-// #include <boost/iostreams/categories.hpp>
-// #include <boost/iostreams/code_converter.hpp>
-#include <boost/locale.hpp>
-#include <uchardet/uchardet.h>
-
 namespace warc2text {
     std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
         std::string line;
@@ -113,38 +107,17 @@ namespace warc2text {
     }
 
     int Record::cleanPayload(bool extractStandoff, const util::umap_tag_filters& tagFilters){
-        // remove HTML tags:
-        int retval = processHTML(payload, plaintext, extractStandoff, deferred, tagFilters);
-
         // detect charset
         std::string detected_charset;
-        bool detection_result = util::detectCharset(plaintext, detected_charset);
+        bool detection_result = util::detectCharset(payload, detected_charset, charset);
 
-        // trust the detected more than the specified charset
-        // if detection fails, go with the original one
-        if (detection_result)
-            charset = detected_charset;
+        if (detection_result) charset = detected_charset;
+        // throw out documents if we don't know the charset
+        else return util::UNKNOWN_ENCODING_ERROR;
 
-        // attempt conversion is we know the charset, and it is not utf8/ascii
-        if (!charset.empty() && charset != "utf-8" && charset != "ascii" && charset != "utf8") {
-            try {
-                plaintext = boost::locale::conv::to_utf<char>(plaintext, charset);
-            } catch (const boost::locale::conv::invalid_charset_error& e) {
-                // BOOST_LOG_TRIVIAL(warning) << "In record " << url << " invalid charset " << charset;
-                plaintext = "";
-                return util::UNKNOWN_ENCODING_ERROR;
-            } catch (const boost::locale::conv::conversion_error& e) {
-                // BOOST_LOG_TRIVIAL(warning) << "In record " << url << " conversion error from " << charset;
-                plaintext = "";
-                return util::UTF8_CONVERSION_ERROR;
-            }
-        } else if (charset.empty()) {
-            // throw out documents if we don't know the charset
-            plaintext = "";
-            return util::UNKNOWN_ENCODING_ERROR;
-        }
-        // unescapeEntities(plaintext, plaintext); // processHTML does this on the fly
-        // util::trimLines(plaintext); // processHTML does this on the fly
+        // remove HTML tags:
+        int retval = processHTML(payload, charset, plaintext, extractStandoff, deferred, tagFilters);
+
         return retval;
     }
 

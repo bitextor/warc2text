@@ -6,6 +6,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/locale.hpp>
 #include <uchardet/uchardet.h>
 #include "preprocess/base64.hh"
 
@@ -44,17 +45,36 @@ namespace util {
         }
     }
 
-    bool detectCharset(const std::string& text, std::string& charset){
+    bool detectCharset(const std::string& text, std::string& charset, const std::string& original_charset){
         uchardet_t handle = uchardet_new();
         int chardet_result = uchardet_handle_data(handle, text.c_str(), text.size());
         uchardet_data_end(handle);
         bool success = (chardet_result == 0);
+        // trust the detected more than the specified charset
         if (success){
             charset = uchardet_get_charset(handle);
             toLower(charset);
+        } else {
+            // if detection fails, go with the original one
+            charset = toLowerCopy(original_charset);
         }
         uchardet_delete(handle);
-        return (success && !charset.empty());
+        if (charset.empty()) return false;
+
+        // check that boost can work with the detected charset
+        try {
+            boost::locale::conv::to_utf<char>("", charset);
+        } catch (const boost::locale::conv::invalid_charset_error& e) {
+            return false;
+        }
+        return true;
+    }
+
+    std::string toUTF8(const std::string& text, const std::string& charset) {
+        return boost::locale::conv::to_utf<char>(text, charset);
+    }
+    std::string toUTF8(const char* text, const std::string& charset) {
+        return boost::locale::conv::to_utf<char>(text, charset);
     }
 
     void encodeBase64(const std::string& original, std::string& base64){

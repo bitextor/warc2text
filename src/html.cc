@@ -4,6 +4,7 @@
 #include "html.hh"
 #include "deferred.hh"
 #include "xh_scanner.hh"
+#include "entities.hh"
 
 namespace warc2text {
 
@@ -40,7 +41,15 @@ namespace warc2text {
         }
     }
 
-    int processHTML(const std::string& html, std::string& plaintext, bool extractStandoff, std::string& deferred, const util::umap_tag_filters& tagFilters){
+    void decodeEntities(std::string& value) {
+        std::size_t pos = value.find('&');
+        if (pos == std::string::npos) return;
+        entities::decode_html_entities_utf8(&(value[pos]), &(value[pos]));
+        if (value.rfind('\0') != std::string::npos)
+            value.erase(value.find('\0'));
+    }
+
+    int processHTML(const std::string& html, const std::string& charset, std::string& plaintext, bool extractStandoff, std::string& deferred, const util::umap_tag_filters& tagFilters){
         plaintext = "";
         markup::instream si(html.c_str());
         markup::scanner sc(si);
@@ -50,6 +59,9 @@ namespace warc2text {
         std::string tag;
 
         DeferredTree dtree(extractStandoff);
+
+        bool needToConvert = !(charset == "utf8" or charset == "utf-8" or charset == "ascii");
+        std::string value;
 
         while (t != markup::scanner::TT_EOF and t != markup::scanner::TT_ERROR) {
             t = sc.get_token();
@@ -79,8 +91,13 @@ namespace warc2text {
                     // if the tag is in noText list, don't save the text or the standoff
                     if (html::isNoTextTag(tag))
                         break;
-                    plaintext.append(sc.get_value());
-                    dtree.addLength(strlen(sc.get_value()));
+                    if (needToConvert)
+                        value = util::toUTF8(sc.get_value(), charset);
+                    else
+                        value = sc.get_value();
+                    decodeEntities(value);
+                    plaintext.append(value);
+                    dtree.addLength(value.size());
                     break;
                 case markup::scanner::TT_SPACE:
                     addSpace(plaintext, dtree);
