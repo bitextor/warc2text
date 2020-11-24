@@ -1,4 +1,4 @@
-// The longest common subsequence in C++
+// The Naïve search algorithm in C++
 
 #include <iostream>
 #include <vector>
