@@ -81,6 +81,10 @@ namespace util {
         preprocess::base64_encode(original, base64);
     }
 
+    void decodeBase64(const std::string& base64, std::string& output){
+        preprocess::base64_decode(base64, output);
+    }
+
     void readTagFilters(const std::string& filename, umap_tag_filters& filters) {
         std::ifstream f(filename);
         std::string line;
