@@ -25,13 +25,16 @@ namespace warc2text {
     }
 
     void addNewLine(std::string& plaintext, DeferredTree& dtree) {
-        if (std::isspace(plaintext.back())) {
-            plaintext.back() = '\n';
-            if (dtree.getCurrentLength() > 0)
-                dtree.addLength(-1);
-        } else if (!plaintext.empty()) {
+        //if (std::isspace(plaintext.back())) {
+        //    plaintext.back() = '\n';
+        //    if (dtree.getCurrentLength() > 0)
+        //        dtree.addLength(-1);
+        //} else if (!plaintext.empty()) {
+        //    plaintext.push_back('\n');
+        //}
+        // don't remove trailing space because browsers don't do that apparently
+        if (!plaintext.empty() and plaintext.back() != '\n')
             plaintext.push_back('\n');
-        }
     }
 
     void addSpace(std::string& plaintext, DeferredTree& dtree) {
@@ -39,14 +42,6 @@ namespace warc2text {
             plaintext.push_back(' ');
             dtree.addLength(1); // comment this line if we don't want to count spaces
         }
-    }
-
-    void decodeEntities(std::string& value) {
-        std::size_t pos = value.find('&');
-        if (pos == std::string::npos) return;
-        entities::decode_html_entities_utf8(&(value[pos]), &(value[pos]));
-        if (value.rfind('\0') != std::string::npos)
-            value.erase(value.find('\0'));
     }
 
     int processHTML(const std::string& html, const std::string& charset, std::string& plaintext, bool extractStandoff, std::string& deferred, const util::umap_tag_filters& tagFilters){
@@ -95,7 +90,7 @@ namespace warc2text {
                         value = util::toUTF8(sc.get_value(), charset);
                     else
                         value = sc.get_value();
-                    decodeEntities(value);
+                    entities::decodeEntities(value);
                     plaintext.append(value);
                     dtree.addLength(value.size());
                     break;

@@ -254,8 +254,9 @@ namespace markup {
         }
         buf[i+1]=0;
         char out[32];
-        if (entity)
-            entity = entities::simple_parse_entity(&buf[0], &out[0]);
+        // if (entity)
+        //     entity = entities::simple_parse_entity(&buf[0], &out[0]);
+        entity = false;
         if (!entity) {
             for ( i = 0; i < strlen(buf) - 1; ++i)
                 append_value(buf[i]);
