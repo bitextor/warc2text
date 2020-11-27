@@ -120,6 +120,7 @@ namespace warc2text {
     void DeferredTree::appendStandoff(std::string& deferred) const {
         if (!this->deferred) return;
         for (unsigned int l = 0; l < tag_stack.size(); ++l) {
+            deferred.push_back('/');
             deferred.append(tag_stack.at(l).tag);
             unsigned int i = counts.at(l).at(tag_stack.at(l).tag);
             if (i > 1) {
@@ -127,9 +128,8 @@ namespace warc2text {
                 deferred.append(std::to_string(i));
                 deferred.push_back(']');
             }
-            deferred.push_back('/');
         }
-        if(!deferred.empty()) deferred.back() = ':';
+        deferred.push_back(':');
         deferred.append(std::to_string(getCurrentOffset())); // start position
         deferred.push_back('-');
         deferred.append(std::to_string(getCurrentOffset() + getCurrentLength())); // length of segment
