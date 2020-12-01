@@ -81,15 +81,19 @@ namespace warc2text {
             }
             // TODO: decide what to do with other cases?
 
-            if (record.getPlainText().empty())
+            if (record.getPlainText().empty()) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": empty";
                 continue;
+            }
 
             ++textRecords;
             textBytes += record.getPlainText().size();
 
             reliable = record.detectLanguage();
-            if (!reliable)
+            if (!reliable) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": language not detected";
                 continue;
+            }
 
             ++langRecords;
             langBytes += record.getPlainText().size();

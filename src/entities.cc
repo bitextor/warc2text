@@ -66,8 +66,10 @@ namespace entities {
 
         } while(pos != std::string::npos);
         delete tail;
-        // in case there are repeated spaces encoded as html entities:
-        value.erase(std::remove(value.begin(), value.end(), ' '), value.end());
+
+        if (value.find_first_not_of(' ') == std::string::npos)
+            value = "";
+
     }
 
     // &npsp; &thinsp; etc are treated as normal spaces
@@ -113,7 +115,7 @@ namespace entities {
         { "num", "#" },
         { "dollar", "$" },
         { "percnt", "%" },
-        { "amp", "" },
+        { "amp", "&" },
         { "AMP", "" },
         { "apos", "\'" },
         { "lpar", "(" },
