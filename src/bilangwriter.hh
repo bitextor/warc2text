@@ -35,7 +35,6 @@ namespace warc2text {
             std::unordered_map<std::string, GzipWriter> mime_files;
             std::unordered_map<std::string, GzipWriter> text_files;
             std::unordered_map<std::string, GzipWriter> html_files;
-            std::unordered_map<std::string, GzipWriter> deferred_files;
             std::unordered_set<std::string> output_files;
 
         public:
@@ -45,7 +44,6 @@ namespace warc2text {
                 mime_files(),
                 text_files(),
                 html_files(),
-                deferred_files(),
                 output_files({}) // url and text are mandatory regardless
             {};
 
@@ -55,7 +53,6 @@ namespace warc2text {
                 mime_files(),
                 text_files(),
                 html_files(),
-                deferred_files(),
                 output_files(output_files)
             {};
 

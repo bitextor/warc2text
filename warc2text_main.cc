@@ -26,7 +26,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
     desc.add_options()
         ("help,h", po::bool_switch(), "Show this help message")
         ("output,o", po::value(&out.output)->default_value("."), "Output folder")
-        ("files,f", po::value(&out.files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html,deferred'")
+        ("files,f", po::value(&out.files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level");
@@ -43,7 +43,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " -o <output_folder>               Output folder, required\n"
                 " -f <output_files>                List of output files separated by commas\n"
                 "                                  Default (mandatory): \"url,text\"\n"
-                "                                  Optional values: \"mime,deferred,html\"\n"
+                "                                  Optional values: \"mime,html\"\n"
                 " --tag-filters <filters_files>    File containing filters\n"
                 "                                  Format: \"html_tag <tab> tag_attr <tab> value\"\n"
                 " -v                               Verbose output (print trace)\n\n";

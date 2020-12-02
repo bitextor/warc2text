@@ -25,7 +25,6 @@ add_library(warc2text_lib
     warcreader.cc
     record.cc
     html.cc
-    deferred.cc
     lang.cc
     util.cc
     bilangwriter.cc

@@ -32,7 +32,7 @@ namespace warc2text {
         const std::string& getCharset() const;
 
         int cleanPayload();
-        int cleanPayload(bool extractStandoff, const util::umap_tag_filters& tagFilters);
+        int cleanPayload(const util::umap_tag_filters& tagFilters);
         bool detectLanguage();
 
     private:
@@ -40,7 +40,6 @@ namespace warc2text {
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;
         std::string plaintext;
-        std::string deferred;
         std::string language;
 
         // these are present in the headers, but it's convenient to have them apart also

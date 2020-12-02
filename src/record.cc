@@ -103,10 +103,10 @@ namespace warc2text {
 
     int Record::cleanPayload(){
         util::umap_tag_filters tagFilters;
-        return cleanPayload(false, tagFilters);
+        return cleanPayload(tagFilters);
     }
 
-    int Record::cleanPayload(bool extractStandoff, const util::umap_tag_filters& tagFilters){
+    int Record::cleanPayload(const util::umap_tag_filters& tagFilters){
         // detect charset
         std::string detected_charset;
         bool detection_result = util::detectCharset(payload, detected_charset, charset);
@@ -116,7 +116,7 @@ namespace warc2text {
         else return util::UNKNOWN_ENCODING_ERROR;
 
         // remove HTML tags:
-        int retval = processHTML(payload, charset, plaintext, extractStandoff, deferred, tagFilters);
+        int retval = processHTML(payload, charset, plaintext, tagFilters);
 
         return retval;
     }
@@ -154,10 +154,6 @@ namespace warc2text {
 
     const std::string& Record::getPlainText() const {
         return plaintext;
-    }
-
-    const std::string& Record::getDeferred() const {
-        return deferred;
     }
 
     const std::string& Record::getLanguage() const {

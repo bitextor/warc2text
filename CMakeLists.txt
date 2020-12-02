@@ -55,15 +55,6 @@ target_link_libraries(warc2text
     ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so
 )
 
-add_executable(wagnerfischer wagnerfischer.cpp)
-add_executable(lcs lcs.cpp)
-add_executable(naive naive.cpp)
-target_link_libraries(naive
-        warc2text_lib
-        ${Boost_LIBRARIES}
-        )
-
-
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_command(TARGET warc2text
             POST_BUILD COMMAND

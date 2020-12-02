@@ -39,7 +39,6 @@ namespace warc2text {
 
         std::string content;
         bool done = false;
-        bool extractStandoff = output_files.count("deferred");
         bool reliable;
 
         while (!done) {
@@ -65,7 +64,7 @@ namespace warc2text {
             ++totalRecords;
             totalBytes += record.getPayload().size();
 
-            int clean_retval = record.cleanPayload(extractStandoff, tagFilters);
+            int clean_retval = record.cleanPayload(tagFilters);
             if (clean_retval == util::FILTERED_DOCUMENT_ERROR) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to tag filters";
                 continue;

@@ -2,7 +2,6 @@
 #include <unordered_set>
 #include "util.hh"
 #include "html.hh"
-#include "deferred.hh"
 #include "xh_scanner.hh"
 #include "entities.hh"
 
@@ -24,27 +23,21 @@ namespace warc2text {
         return true;
     }
 
-    void addNewLine(std::string& plaintext, DeferredTree& dtree) {
-        //if (std::isspace(plaintext.back())) {
-        //    plaintext.back() = '\n';
-        //    if (dtree.getCurrentLength() > 0)
-        //        dtree.addLength(-1);
-        //} else if (!plaintext.empty()) {
-        //    plaintext.push_back('\n');
-        //}
-        // don't remove trailing space because browsers don't do that apparently
-        if (!plaintext.empty() and plaintext.back() != '\n')
+    void addNewLine(std::string& plaintext) {
+        if (std::isspace(plaintext.back())) {
+            plaintext.back() = '\n';
+        } else if (!plaintext.empty()) {
             plaintext.push_back('\n');
-    }
-
-    void addSpace(std::string& plaintext, DeferredTree& dtree) {
-        if (!plaintext.empty() && !std::isspace(plaintext.back())) {
-            plaintext.push_back(' ');
-            dtree.addLength(1); // comment this line if we don't want to count spaces
         }
     }
 
-    int processHTML(const std::string& html, const std::string& charset, std::string& plaintext, bool extractStandoff, std::string& deferred, const util::umap_tag_filters& tagFilters){
+    void addSpace(std::string& plaintext) {
+        if (!plaintext.empty() && !std::isspace(plaintext.back())) {
+            plaintext.push_back(' ');
+        }
+    }
+
+    int processHTML(const std::string& html, const std::string& charset, std::string& plaintext, const util::umap_tag_filters& tagFilters){
         plaintext = "";
         markup::instream si(html.c_str());
         markup::scanner sc(si);
@@ -52,8 +45,6 @@ namespace warc2text {
         int t = markup::scanner::TT_SPACE; // just start somewhere that isn't ERROR or EOF
         int retval = util::SUCCESS;
         std::string tag;
-
-        DeferredTree dtree(extractStandoff);
 
         bool needToConvert = !(charset == "utf8" or charset == "utf-8" or charset == "ascii");
         std::string value;
@@ -69,33 +60,19 @@ namespace warc2text {
                 case markup::scanner::TT_TAG_END:
                     // sc.get_tag_name() only changes value after a new tag is found
                     tag = util::toLowerCopy(sc.get_tag_name());
-                    dtree.appendAndOffset(deferred);
-                    if (html::isBlockTag(tag)) {
-                        // found block tag: previous block has ended
-                        addNewLine(plaintext, dtree);
-                        dtree.endStandoffSegment(deferred);
-                    } else {
-                        dtree.continueStandoffSegment(deferred);
-                    }
-                    if (t == markup::scanner::TT_TAG_START)
-                        dtree.insertTag(tag);
-                    else if (t == markup::scanner::TT_TAG_END)
-                        dtree.endTag(tag);
+                    // found block tag: previous block has ended
+                    if (html::isBlockTag(tag)) addNewLine(plaintext);
                     break;
                 case markup::scanner::TT_WORD:
-                    // if the tag is in noText list, don't save the text or the standoff
-                    if (html::isNoTextTag(tag))
-                        break;
-                    if (needToConvert)
-                        value = util::toUTF8(sc.get_value(), charset);
-                    else
-                        value = sc.get_value();
+                    // if the tag is in noText list, don't save the text
+                    if (html::isNoTextTag(tag)) break;
+                    if (needToConvert) value = util::toUTF8(sc.get_value(), charset);
+                    else value = sc.get_value();
                     entities::decodeEntities(value);
                     plaintext.append(value);
-                    dtree.addLength(value.size());
                     break;
                 case markup::scanner::TT_SPACE:
-                    addSpace(plaintext, dtree);
+                    addSpace(plaintext);
                     break;
                 case markup::scanner::TT_ATTR:
                     if (!filter(tag, sc.get_attr_name(), sc.get_value(), tagFilters))
@@ -105,7 +82,6 @@ namespace warc2text {
                     break;
             }
         }
-        while (deferred.back() == '+' or deferred.back() == ';') deferred.pop_back();
         if (plaintext.back() != '\n') plaintext.push_back('\n');
         return retval;
     }
