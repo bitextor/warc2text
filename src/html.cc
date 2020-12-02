@@ -3,7 +3,6 @@
 #include "util.hh"
 #include "html.hh"
 #include "xh_scanner.hh"
-#include "entities.hh"
 
 namespace warc2text {
 
@@ -37,7 +36,7 @@ namespace warc2text {
         }
     }
 
-    int processHTML(const std::string& html, const std::string& charset, std::string& plaintext, const util::umap_tag_filters& tagFilters){
+    int processHTML(const std::string& html, std::string& plaintext, const util::umap_tag_filters& tagFilters){
         plaintext = "";
         markup::instream si(html.c_str());
         markup::scanner sc(si);
@@ -45,9 +44,6 @@ namespace warc2text {
         int t = markup::scanner::TT_SPACE; // just start somewhere that isn't ERROR or EOF
         int retval = util::SUCCESS;
         std::string tag;
-
-        bool needToConvert = !(charset == "utf8" or charset == "utf-8" or charset == "ascii");
-        std::string value;
 
         while (t != markup::scanner::TT_EOF and t != markup::scanner::TT_ERROR) {
             t = sc.get_token();
@@ -66,10 +62,7 @@ namespace warc2text {
                 case markup::scanner::TT_WORD:
                     // if the tag is in noText list, don't save the text
                     if (html::isNoTextTag(tag)) break;
-                    if (needToConvert) value = util::toUTF8(sc.get_value(), charset);
-                    else value = sc.get_value();
-                    entities::decodeEntities(value);
-                    plaintext.append(value);
+                    plaintext.append(sc.get_value());
                     break;
                 case markup::scanner::TT_SPACE:
                     addSpace(plaintext);

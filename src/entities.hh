@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 namespace entities {
-    void decodeEntities(std::string& value);
+    void decodeEntities(const std::string& source, std::string& target);
     std::string get_dec_entity(unsigned long cp);
 
     extern std::unordered_map<std::string, std::string> named_entities;

@@ -4,7 +4,7 @@
 #include <string>
 
 namespace warc2text {
-    int processHTML(const std::string& html, const std::string& charset, std::string& text, const util::umap_tag_filters& tagFilters);
+    int processHTML(const std::string& html, std::string& text, const util::umap_tag_filters& tagFilters);
 }
 
 #endif

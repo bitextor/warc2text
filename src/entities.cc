@@ -11,65 +11,88 @@
 #define UNICODE_MAX 0x10FFFFul
 
 namespace entities {
-    void decodeEntities(std::string& value) {
-        std::size_t pos = 0;
+
+    // pos is the index of '&'
+    // return value is the index of ';', or the intex of the first invalid character
+    // return value will be std::string::npos if the entity ends without ';' at the end
+    std::size_t findEntityEnd(const std::string& source, std::size_t pos) {
+        bool end = false;
+        bool numeric = false;
+        bool hex = false;
+        ++pos;
+        if (pos >= source.size()) return std::string::npos;
+        if (source[pos] == '#') {
+            numeric = true;
+            ++pos;
+        }
+        if (pos >= source.size()) return std::string::npos;
+        if (source[pos] == 'x' or source[pos] == 'X') {
+            hex = true;
+            ++pos;
+        }
+        // actual entity:
+        bool digit = false;
+        bool xdigit = false;
+        bool alpha = false;
+        for (; !end and pos < source.size(); ++pos) {
+            if (source[pos] == ';') return pos;
+            digit = std::isdigit(source[pos]);
+            alpha = std::isalpha(source[pos]);
+            xdigit = std::isxdigit(source[pos]);
+            // decimal entities must only have digits
+            if (numeric and not hex and alpha) return pos;
+            // hex entities must only have xdigits
+            if (hex and not xdigit) return pos;
+            // entities may only contains digits and alpha chars
+            if (not alpha and not digit) return pos;
+        }
+        return std::string::npos;
+    }
+
+    void decodeEntities(const std::string& source, std::string& target) {
+        std::size_t pos = source.find('&');
         std::size_t end_pos = 0;
-        std::size_t i = 0;
         std::size_t len = 0;
         std::size_t* tail = new std::size_t;
         std::size_t entity_code = 0;
-        bool hex = false;
-        bool numeric = false;
-        bool end = false;
+        bool hex;
+
+        target.clear();
+        target.reserve(source.size());
         std::unordered_map<std::string, std::string>::const_iterator it;
-        do {
-            end = numeric = hex = false;
-            pos = value.find('&', end_pos);
-            if (pos == std::string::npos) break;
-            i = pos + 1;
-            if (i >= value.size()) break;
-            if (value[i] == '#') {
-                ++i;
-                numeric = true;
+        while (pos != std::string::npos) {
+            target.append(source, end_pos, pos-end_pos); // append everthing before '&'
+            end_pos = findEntityEnd(source, pos); // find where the entity ends
+            if (end_pos == std::string::npos) {
+                // entity has no proper ending, append the rest of the string and quit
+                target.append(source, pos);
+                break;
             }
-            if (i >= value.size()) break;
-            if (value[i] == 'x' or value[i] == 'X') {
-                ++i;
-                hex = true;
-            }
-            for (; !end and i < value.size(); ++i) {
-                if (std::isdigit(value[i])) {
-                    if (!numeric) break;
-                } else if (std::isalpha(value[i])) {
-                    if (numeric) break;
-                } else if (value[i] == ';') {
-                    end = true;
-                    end_pos = i;
-                } else break; // characters that are not alpha, digits or ';' are not allowed inside entities
-            }
-            if (!end) {
-                end_pos = i;
-                continue;
-            }
-
-            if (numeric) { // hex or dec
+            else if (source[end_pos] != ';') {
+                // invalid char found: '&' didn't start a proper entity
+                // append the the consumed chars
+                target.append(source, pos, end_pos-pos);
+            } else if (source[pos+1] == '#') { // proper numeric entity
+                hex = ((pos+2 < end_pos) and (source[pos+2] == 'x' or source[pos+2] == 'X'));
                 len = end_pos - pos - (hex ? 3 : 2);
-                entity_code = std::stoul(value.substr(pos+(hex ? 3 : 2), len), tail, hex ? 16 : 10);
+                pos = pos + (hex ? 3 : 2);
+                entity_code = std::stoul(source.substr(pos, len), tail, hex ? 16 : 10);
                 if (*tail == len and entity_code <= UNICODE_MAX)
-                    value.replace(pos, end_pos-pos+1, get_dec_entity(entity_code));
+                    target.append(get_dec_entity(entity_code));
+                ++end_pos;
             }
-            else { //named
-                it = named_entities.find(value.substr(pos+1, end_pos-pos-1));
-                if (it == named_entities.cend()) continue;
-                value.replace(pos, end_pos-pos+1, it->second);
+            else { // proper named entity
+                it = named_entities.find(source.substr(pos+1, end_pos-pos-1));
+                if (it != named_entities.cend())
+                    target.append(it->second);
+                ++end_pos;
             }
-
-        } while(pos != std::string::npos);
+            // find where the next entity starts
+            pos = source.find('&', end_pos); 
+        }
+        // append the rest of the string
+        target.append(source, end_pos, pos-end_pos);
         delete tail;
-
-        if (value.find_first_not_of(' ') == std::string::npos)
-            value = "";
-
     }
 
     // &npsp; &thinsp; etc are treated as normal spaces

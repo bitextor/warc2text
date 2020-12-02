@@ -5,6 +5,8 @@
 #include "record.hh"
 #include "lang.hh"
 #include "html.hh"
+#include "util.hh"
+#include "entities.hh"
 #include <boost/log/trivial.hpp>
 
 namespace warc2text {
@@ -109,6 +111,7 @@ namespace warc2text {
     int Record::cleanPayload(const util::umap_tag_filters& tagFilters){
         // detect charset
         std::string detected_charset;
+        std::string extracted;
         bool detection_result = util::detectCharset(payload, detected_charset, charset);
 
         if (detection_result) charset = detected_charset;
@@ -116,7 +119,16 @@ namespace warc2text {
         else return util::UNKNOWN_ENCODING_ERROR;
 
         // remove HTML tags:
-        int retval = processHTML(payload, charset, plaintext, tagFilters);
+        int retval = processHTML(payload, extracted, tagFilters);
+
+        // convert to utf8 if needed:
+        bool needToConvert = !(charset == "utf8" or charset == "utf-8" or charset == "ascii");
+        if (needToConvert) {
+            extracted = util::toUTF8(extracted, charset);
+        }
+
+        // decode HTML entities:
+        entities::decodeEntities(extracted, plaintext);
 
         return retval;
     }
