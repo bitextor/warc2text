@@ -88,7 +88,7 @@ namespace entities {
                 ++end_pos;
             }
             // find where the next entity starts
-            pos = source.find('&', end_pos); 
+            pos = source.find('&', end_pos);
         }
         // append the rest of the string
         target.append(source, end_pos, pos-end_pos);

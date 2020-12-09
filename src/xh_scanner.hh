@@ -84,7 +84,9 @@ namespace markup {
 
         token_type scan_cdata();
 
-        token_type scan_script();
+        token_type scan_special();
+
+        token_type scan_style();
 
         token_type scan_pi();
 
@@ -111,13 +113,13 @@ namespace markup {
     private: /* data */
 
         char value[MAX_TOKEN_SIZE]{};
-        int value_length;
+        unsigned int value_length;
 
         char tag_name[MAX_NAME_SIZE]{};
-        int tag_name_length;
+        unsigned int tag_name_length;
 
         char attr_name[MAX_NAME_SIZE]{};
-        int attr_name_length;
+        unsigned int attr_name_length;
 
         instream &input;
         char input_char;

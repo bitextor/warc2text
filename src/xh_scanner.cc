@@ -74,8 +74,17 @@ namespace markup {
             if (equal(tag_name, "script", 6)){
                 // script is special because we want to parse the attributes,
                 // but not the content
-                c_scan = &scanner::scan_script;
-                return scan_script();
+                c_scan = &scanner::scan_special;
+                return scan_special();
+            }
+            else if (equal(tag_name, "style", 5)) {
+                // same with style
+                c_scan = &scanner::scan_special;
+                return scan_special();
+            } else if (equal(tag_name, "noscript", 7)) {
+                // same with noscript
+                c_scan = &scanner::scan_special;
+                return scan_special();
             }
             c_scan = &scanner::scan_body;
             return scan_body();
@@ -316,7 +325,7 @@ namespace markup {
         return TT_DATA;
     }
 
-    scanner::token_type scanner::scan_script() {
+    scanner::token_type scanner::scan_special() {
         if (got_tail) {
             c_scan = &scanner::scan_body;
             got_tail = false;
@@ -326,20 +335,31 @@ namespace markup {
             char c = get_char();
             if (c == 0)
                 return TT_EOF;
+
+            // in case MAX_TOKEN_SIZE limit breaks up the end tag
+            if (c == '<' && value_length + tag_name_length + 3 >= MAX_TOKEN_SIZE) {
+                push_back(c);
+                break;
+            }
+
             value[value_length] = c;
 
-            if (value_length >= 8
-                && value[value_length] == '>'
-                && value[value_length - 1] == 't'
-                && value[value_length - 2] == 'p'
-                && value[value_length - 3] == 'i'
-                && value[value_length - 4] == 'r'
-                && value[value_length - 5] == 'c'
-                && value[value_length - 6] == 's'
-                && value[value_length - 7] == '/'
-                && value[value_length - 8] == '<' ) {
+            if (c == '>' && value_length >= tag_name_length + 2) {
+                int i = tag_name_length - 1;
+                do {
+                    if (value[value_length + i - tag_name_length] != tag_name[i])
+                        break;
+                    --i;
+                } while (i > 0);
+                if (i > 0)
+                    continue;
+                if (value[value_length - tag_name_length - 1] != '/')
+                    continue;
+                if (value[value_length - tag_name_length - 2] != '<')
+                    continue;
+
                 got_tail = true;
-                value_length -= 8;
+                value_length = value_length - tag_name_length - 2;
                 break;
             }
         }
