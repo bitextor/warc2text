@@ -54,15 +54,16 @@ namespace html {
         "param", "source", "track", "wbr"} );
 
     // block html elements
+    // br is technically inline, but for the purposes of text extraction is should be treated as block
     const std::unordered_set<std::string> blockTags ( {"address", "article", "aside",
-        "blockquote", "body", "details", "dialog", "dd", "div", "dl", "dt",
+        "blockquote", "body", "br", "details", "dialog", "dd", "div", "dl", "dt",
         "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4",
         "h5", "h6", "head", "header", "hgroup", "html", "hr", "li", "main", "nav",
         "ol", "p", "pre", "section", "table", "td", "th", "title", "tr", "ul"} );
 
     // inline html elements
     const std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio",
-        "b", "bdi", "bdo", "big", "br", "button", "canvas", "cite", "code", "data",
+        "b", "bdi", "bdo", "big", "button", "canvas", "cite", "code", "data",
         "datalist", "del", "dfn", "em", "embed", "i", "iframe", "img", "input",
         "ins", "kdb", "label", "map", "mark", "meter", "noscript", "object",
         "output", "picture", "progress", "q", "ruby", "s", "samp", "script",
