@@ -16,7 +16,7 @@ namespace warc2text {
             return true;
         std::string lc_value = util::toLowerCopy(value);
         for (const std::string& filter : attr_it->second){
-            if (lc_value.find(filter) != std::string::npos)
+            if (strstr(value, filter.c_str()) != NULL)
                 return false;
         }
         return true;
