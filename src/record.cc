@@ -104,11 +104,11 @@ namespace warc2text {
     }
 
     int Record::cleanPayload(){
-        util::umap_tag_filters tagFilters;
+        util::umap_tag_filters_regex tagFilters;
         return cleanPayload(tagFilters);
     }
 
-    int Record::cleanPayload(const util::umap_tag_filters& tagFilters){
+    int Record::cleanPayload(const util::umap_tag_filters_regex& tagFilters){
         // detect charset
         std::string detected_charset;
         std::string extracted;

@@ -17,7 +17,7 @@ namespace warc2text {
         tagFilters(),
         output_files(output_files) {
             if (!tagFiltersFile.empty())
-                util::readTagFilters(tagFiltersFile, tagFilters);
+                util::readTagFiltersRegex(tagFiltersFile, tagFilters);
         }
 
     // true if url is good

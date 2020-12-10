@@ -18,7 +18,7 @@ namespace warc2text {
             unsigned int totalBytes;
             unsigned int textBytes;
             unsigned int langBytes;
-            util::umap_tag_filters tagFilters;
+            util::umap_tag_filters_regex tagFilters;
             std::unordered_set<std::string> output_files;
             static const std::unordered_set<std::string> textContentTypes;
             static const std::unordered_set<std::string> removeExtensions;

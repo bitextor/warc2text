@@ -1,5 +1,6 @@
 #include <cstring>
 #include <unordered_set>
+#include <regex>
 #include "util.hh"
 #include "html.hh"
 #include "xh_scanner.hh"
@@ -7,16 +8,17 @@
 namespace warc2text {
 
     // true if doc is ok
-    bool filter(const std::string& lc_tag, const char* attr, const char* value, const util::umap_tag_filters& tagFilters) {
-        util::umap_tag_filters::const_iterator tag_it = tagFilters.find(lc_tag);
+    bool filter(const std::string& lc_tag, const char* attr, const char* value, const util::umap_tag_filters_regex& tagFilters) {
+        util::umap_tag_filters_regex::const_iterator tag_it = tagFilters.find(lc_tag);
         if (tag_it == tagFilters.cend())
             return true;
-        util::umap_attr_filters::const_iterator attr_it = tag_it->second.find(util::toLowerCopy(attr));
+        util::umap_attr_filters_regex::const_iterator attr_it = tag_it->second.find(util::toLowerCopy(attr));
         if (attr_it == tag_it->second.cend())
             return true;
-        std::string lc_value = util::toLowerCopy(value);
-        for (const std::string& filter : attr_it->second){
-            if (lc_value.find(filter) != std::string::npos)
+        for (const std::regex& filter : attr_it->second){
+            // if (value.find(filter) != std::string::npos)
+            // if (strstr(value, filter.c_str()) != NULL)
+            if (std::regex_search(value, filter))
                 return false;
         }
         return true;
@@ -36,7 +38,7 @@ namespace warc2text {
         }
     }
 
-    int processHTML(const std::string& html, std::string& plaintext, const util::umap_tag_filters& tagFilters){
+    int processHTML(const std::string& html, std::string& plaintext, const util::umap_tag_filters_regex& tagFilters){
         plaintext = "";
         markup::instream si(html.c_str());
         markup::scanner sc(si);
