@@ -80,8 +80,6 @@ namespace warc2text {
         }
 
         payload = std::string(content, payload_start, std::string::npos);
-        util::trim(payload);
-
         util::trim(payload); //remove \r\n\r\n at the end
     }
 

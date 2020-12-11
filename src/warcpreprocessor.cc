@@ -53,13 +53,16 @@ namespace warc2text {
             if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
 
-            BOOST_LOG_TRIVIAL(trace) << "Processing HTML document " << record.getURL() << "\n";
+            if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
+                continue;
 
             if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end())
                 continue;
 
             if (!URLfilter(record.getURL()))
                 continue;
+
+            BOOST_LOG_TRIVIAL(trace) << "Processing HTML document " << record.getURL() << "\n";
 
             ++totalRecords;
             totalBytes += record.getPayload().size();
