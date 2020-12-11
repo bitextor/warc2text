@@ -81,10 +81,6 @@ namespace markup {
                 // same with style
                 c_scan = &scanner::scan_special;
                 return scan_special();
-            } else if (equal(tag_name, "noscript", 7)) {
-                // same with noscript
-                c_scan = &scanner::scan_special;
-                return scan_special();
             }
             c_scan = &scanner::scan_body;
             return scan_body();

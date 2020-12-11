@@ -95,9 +95,9 @@ namespace util {
             if (fields.size() < 3)
                 break;
             umap_attr_filters& attrs = filters[fields.at(0)];
-            std::unordered_set<std::string>& values = attrs[fields.at(1)];
+            std::vector<std::string>& values = attrs[fields.at(1)];
             for (unsigned int i = 2; i < fields.size(); ++i)
-                values.insert(fields.at(i));
+                values.emplace_back(fields.at(i));
         }
         f.close();
     }

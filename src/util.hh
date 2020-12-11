@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace util {
     void toLower(std::string& s);
@@ -38,7 +39,7 @@ namespace util {
         return uset.find(value) != uset.end();
     }
 
-    typedef std::unordered_map<std::string, std::unordered_set<std::string>> umap_attr_filters;
+    typedef std::unordered_map<std::string, std::vector<std::string>> umap_attr_filters;
     typedef std::unordered_map<std::string, umap_attr_filters> umap_tag_filters;
 
     void readTagFilters(const std::string& filename, umap_tag_filters& filters);

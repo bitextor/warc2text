@@ -14,7 +14,6 @@ namespace warc2text {
         util::umap_attr_filters::const_iterator attr_it = tag_it->second.find(util::toLowerCopy(attr));
         if (attr_it == tag_it->second.cend())
             return true;
-        std::string lc_value = util::toLowerCopy(value);
         for (const std::string& filter : attr_it->second){
             if (strstr(value, filter.c_str()) != NULL)
                 return false;
