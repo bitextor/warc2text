@@ -1,5 +1,4 @@
 #include "util.hh"
-#include <iostream>
 #include <fstream>
 #include <algorithm>
 #include <vector>
@@ -7,11 +6,16 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/locale.hpp>
 #include <uchardet/uchardet.h>
+#include "preprocess/base64.hh"
 
 namespace util {
     void toLower(std::string& s){
         boost::algorithm::to_lower(s);
+    }
+    std::string toLowerCopy(const std::string& s){
+        return boost::algorithm::to_lower_copy(s);
     }
 
     void trim(std::string& s){
@@ -41,23 +45,44 @@ namespace util {
         }
     }
 
-    bool detectCharset(const std::string& text, std::string& charset){
+    bool detectCharset(const std::string& text, std::string& charset, const std::string& original_charset){
         uchardet_t handle = uchardet_new();
         int chardet_result = uchardet_handle_data(handle, text.c_str(), text.size());
         uchardet_data_end(handle);
         bool success = (chardet_result == 0);
+        // trust the detected more than the specified charset
         if (success){
             charset = uchardet_get_charset(handle);
             toLower(charset);
+        } else {
+            // if detection fails, go with the original one
+            charset = toLowerCopy(original_charset);
         }
         uchardet_delete(handle);
-        return (success && !charset.empty());
+        if (charset.empty()) return false;
+
+        // check that boost can work with the detected charset
+        try {
+            boost::locale::conv::to_utf<char>("", charset);
+        } catch (const boost::locale::conv::invalid_charset_error& e) {
+            return false;
+        }
+        return true;
+    }
+
+    std::string toUTF8(const std::string& text, const std::string& charset) {
+        return boost::locale::conv::to_utf<char>(text, charset);
+    }
+    std::string toUTF8(const char* text, const std::string& charset) {
+        return boost::locale::conv::to_utf<char>(text, charset);
     }
 
     void encodeBase64(const std::string& original, std::string& base64){
-        int pad = (3 - original.size() % 3) % 3;
-        base64 = std::string(base64_text(original.begin()), base64_text(original.end()));
-        base64.append(pad, '=');
+        preprocess::base64_encode(original, base64);
+    }
+
+    void decodeBase64(const std::string& base64, std::string& output){
+        preprocess::base64_decode(base64, output);
     }
 
     void readTagFilters(const std::string& filename, umap_tag_filters& filters) {
@@ -70,10 +95,11 @@ namespace util {
             if (fields.size() < 3)
                 break;
             umap_attr_filters& attrs = filters[fields.at(0)];
-            std::unordered_set<std::string>& values = attrs[fields.at(1)];
+            std::vector<std::string>& values = attrs[fields.at(1)];
             for (unsigned int i = 2; i < fields.size(); ++i)
-                values.insert(fields.at(i));
+                values.emplace_back(fields.at(i));
         }
         f.close();
     }
+
 }

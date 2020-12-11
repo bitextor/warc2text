@@ -1,6 +1,7 @@
 #include <cctype>
 #include <cstring>
 #include "xh_scanner.hh"
+#include "entities.hh"
 
 namespace markup {
 
@@ -34,14 +35,16 @@ namespace markup {
 
         if (c == 0) return TT_EOF;
         else if (c == '<') return scan_tag();
-        // else if (c == '&')
+        // else if (c == '&') {
         //     c = scan_entity();
+        //     ws = is_whitespace(c);
+        // }
         else
             ws = is_whitespace(c);
 
         while (true) {
             append_value(c);
-            c = input.get_char();
+            c = get_char();
             if (c == 0) {
                 push_back(c);
                 break;
@@ -71,8 +74,13 @@ namespace markup {
             if (equal(tag_name, "script", 6)){
                 // script is special because we want to parse the attributes,
                 // but not the content
-                c_scan = &scanner::scan_script;
-                return scan_script();
+                c_scan = &scanner::scan_special;
+                return scan_special();
+            }
+            else if (equal(tag_name, "style", 5)) {
+                // same with style
+                c_scan = &scanner::scan_special;
+                return scan_special();
             }
             c_scan = &scanner::scan_body;
             return scan_body();
@@ -231,13 +239,17 @@ namespace markup {
     // caller consumed '&'
     char scanner::scan_entity() {
         char buf[32];
-        int i = 0;
+        buf[0] = '&';
+        unsigned int i = 1;
         char t;
+        bool entity = true;
         for (; i < 31; ++i) {
             t = get_char();
             if (t == 0) return TT_EOF;
-            if (!isalnum(t)) {
+            if (t != ';' && !(i == 1 && t == '#') && !isalnum(t)) {
                 push_back(t);
+                buf[i] = 0;
+                entity = false;
                 break; // appears a erroneous entity token.
                 // but we try to use it.
             }
@@ -245,23 +257,25 @@ namespace markup {
             if (t == ';')
                 break;
         }
-        buf[i] = 0;
-        if (i == 2) {
-            if (equal(buf, "gt", 2)) return '>';
-            if (equal(buf, "lt", 2)) return '<';
-        } else if (i == 3 && equal(buf, "amp", 3))
-            return '&';
-        else if (i == 4) {
-            if (equal(buf, "apos", 4)) return '\'';
-            if (equal(buf, "quot", 4)) return '\"';
+        buf[i+1]=0;
+        char out[32];
+        // if (entity)
+        //     entity = entities::simple_parse_entity(&buf[0], &out[0]);
+        entity = false;
+        if (!entity) {
+            for ( i = 0; i < strlen(buf) - 1; ++i)
+                append_value(buf[i]);
+            // last character will be appended by the caller
+            t = buf[strlen(buf)-1];
         }
-        //t = resolve_entity(buf, i);
-        //if (t) return t;
-        // no luck ...
-        append_value('&');
-        for (int n = 0; n < i; ++n)
-            append_value(buf[n]);
-        return ';';
+        else {
+            for( i = 0; i < strlen(out) - 1; ++i){
+                append_value(out[i]);
+            }
+            // last character will be appended by the caller
+            t = out[strlen(out)-1];
+        }
+        return t;
     }
 
     bool scanner::is_whitespace(char c) {
@@ -307,7 +321,7 @@ namespace markup {
         return TT_DATA;
     }
 
-    scanner::token_type scanner::scan_script() {
+    scanner::token_type scanner::scan_special() {
         if (got_tail) {
             c_scan = &scanner::scan_body;
             got_tail = false;
@@ -317,20 +331,31 @@ namespace markup {
             char c = get_char();
             if (c == 0)
                 return TT_EOF;
+
+            // in case MAX_TOKEN_SIZE limit breaks up the end tag
+            if (c == '<' && value_length + tag_name_length + 3 >= MAX_TOKEN_SIZE) {
+                push_back(c);
+                break;
+            }
+
             value[value_length] = c;
 
-            if (value_length >= 8
-                && value[value_length] == '>'
-                && value[value_length - 1] == 't'
-                && value[value_length - 2] == 'p'
-                && value[value_length - 3] == 'i'
-                && value[value_length - 4] == 'r'
-                && value[value_length - 5] == 'c'
-                && value[value_length - 6] == 's'
-                && value[value_length - 7] == '/'
-                && value[value_length - 8] == '<' ) {
+            if (c == '>' && value_length >= tag_name_length + 2) {
+                int i = tag_name_length - 1;
+                do {
+                    if (value[value_length + i - tag_name_length] != tag_name[i])
+                        break;
+                    --i;
+                } while (i > 0);
+                if (i > 0)
+                    continue;
+                if (value[value_length - tag_name_length - 1] != '/')
+                    continue;
+                if (value[value_length - tag_name_length - 2] != '<')
+                    continue;
+
                 got_tail = true;
-                value_length -= 8;
+                value_length = value_length - tag_name_length - 2;
                 break;
             }
         }

@@ -13,6 +13,7 @@ find_path(uchardet_INCLUDE_DIR uchardet/uchardet.h
 
 find_package(ZLIB REQUIRED)
 find_package( Boost 1.71 COMPONENTS locale iostreams filesystem log REQUIRED )
+
 include_directories(
     ${ZLIB_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
@@ -28,10 +29,12 @@ add_library(warc2text_lib
     util.cc
     bilangwriter.cc
     xh_scanner.cc
-    entities.c
+    entities.cc
 )
 
 target_link_libraries(warc2text_lib
+    base64
+    preprocess_util
     ${Boost_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${uchardet_LIBRARIES}

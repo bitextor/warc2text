@@ -18,11 +18,14 @@ namespace warc2text {
             unsigned int totalBytes;
             unsigned int textBytes;
             unsigned int langBytes;
-            static const std::unordered_set<std::string> textContentTypes;
             util::umap_tag_filters tagFilters;
+            std::unordered_set<std::string> output_files;
+            static const std::unordered_set<std::string> textContentTypes;
+            static const std::unordered_set<std::string> removeExtensions;
+            static bool URLfilter(const std::string& url);
 
         public:
-            explicit WARCPreprocessor(const std::string& outputFolder, const std::string& tagFiltersFile = "");
+            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string& tagFiltersFile = "");
             void process(const std::string &filename);
             void printStatistics() const;
     };
