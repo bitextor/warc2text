@@ -11,7 +11,7 @@ find_path(uchardet_INCLUDE_DIR uchardet/uchardet.h
     PATHS ${UCHARDET_PATH}/include
 )
 
-find_package(ZLIB REQUIRED)
+find_package(ZLIB 1.2.11 REQUIRED)
 find_package( Boost 1.71 COMPONENTS locale iostreams filesystem log REQUIRED )
 
 include_directories(
