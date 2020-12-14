@@ -16,8 +16,6 @@ namespace warc2text {
         if (attr_it == tag_it->second.cend())
             return true;
         for (const std::regex& filter : attr_it->second){
-            // if (value.find(filter) != std::string::npos)
-            // if (strstr(value, filter.c_str()) != NULL)
             if (std::regex_search(value, filter))
                 return false;
         }

@@ -31,7 +31,7 @@ namespace markup {
             TT_SPACE,
 
             TT_DATA,        // content of followings:
-            // (also content of TT_TAG_START and TT_TAG_END, if the tag is 'script')
+            // (also content of TT_TAG_START and TT_TAG_END, if the tag is 'script' or 'style')
 
             TT_COMMENT_START, TT_COMMENT_END, // after "<!--" and "-->"
             TT_CDATA_START, TT_CDATA_END,     // after "<![CDATA[" and "]]>"
