@@ -8,12 +8,14 @@
 #include "util.hh"
 #include "entities.hh"
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <zip.h>
 
 namespace warc2text {
     std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
         std::string line;
         std::size_t header_end = content.find("\r\n\r\n", last_pos);
-        std::size_t pos = 0;
+        std::size_t pos;
         if (header_end == std::string::npos) return std::string::npos;
         pos = content.find(':', last_pos);
         while (pos < header_end){
@@ -56,6 +58,9 @@ namespace warc2text {
         if (header.count("warc-target-uri") == 1)
             url = header["warc-target-uri"];
 
+        if (!url.empty() && url[0] == '<' && url[url.size()-1] == '>')
+            url = url.substr(1, url.size()-2);
+
         if (header.count("content-type") == 1)
             WARCcontentType = header["content-type"];
 
@@ -80,7 +85,117 @@ namespace warc2text {
         }
 
         payload = std::string(content, payload_start, std::string::npos);
+
         util::trim(payload); //remove \r\n\r\n at the end
+
+
+        std::string content_type;
+        if (HTTPheader.count("content-type") == 1)
+            content_type = HTTPheader["content-type"];
+        else
+            content_type = "";
+        std::tie(content_type, bdf_zip) = isPayloadZip(content_type, url);
+
+        if (bdf_zip)
+            payload = readZipPayload(content_type, payload);
+    }
+
+    std::map<std::string, std::regex> Record::zip_types = {
+            {"application/vnd.oasis.opendocument.text",                                   std::regex("^content\\.xml$")},
+            {"application/vnd.oasis.opendocument.spreadsheet",                            std::regex("^content\\.xml$")},
+            {"application/vnd.oasis.opendocument.presentation",                           std::regex("^content\\.xml$")},
+            {"application/vnd.openxmlformats-officedocument.wordprocessingml.document",   std::regex("^word/document\\.xml$")},
+            {"application/vnd.openxmlformats-officedocument.presentationml.presentation", std::regex("^ppt/slides/slide.*$")},
+            {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",         std::regex("^xl/sharedStrings\\.xml$")},
+            {"application/epub+zip",                                                      std::regex("^.*ml$")}
+    };
+
+    std::pair<std::string, bool> Record::isPayloadZip(std::string content_type, const std::string& uri){
+
+        if (boost::algorithm::ends_with(uri, ".odt")) {
+            return std::make_pair("application/vnd.oasis.opendocument.text", true);
+        }
+        if (boost::algorithm::ends_with(uri, ".ods")) {
+            return std::make_pair("application/vnd.oasis.opendocument.spreadsheet", true);
+        }
+        if (boost::algorithm::ends_with(uri, ".odp")) {
+            return std::make_pair("application/vnd.oasis.opendocument.presentation", true);
+        }
+        if (boost::algorithm::ends_with(uri, ".docx")) {
+            return std::make_pair("application/vnd.openxmlformats-officedocument.wordprocessingml.document", true);
+        }
+        if (boost::algorithm::ends_with(uri, ".pptx")) {
+            return std::make_pair("application/vnd.openxmlformats-officedocument.presentationml.presentation", true);
+        }
+        if (boost::algorithm::ends_with(uri, ".xslx")) {
+            return std::make_pair("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", true);
+        }
+        if (boost::algorithm::ends_with(uri, ".epub")) {
+            return std::make_pair("application/epub+zip", true);
+        }
+
+        if (zip_types.count(content_type)){
+            return std::make_pair(content_type, true);
+        }
+
+        return std::make_pair(content_type, false);
+
+    }
+
+    std::string Record::readZipPayload(const std::string& content_type, const std::string& payload){
+        //return "<html><body>I am testing the zip logic before implementing it</body></html>";  // This is a foo code
+        std::string unzipped_payload;
+        zip_source_t *src;
+        int zip_flags = 0;
+        zip_error_t *error = nullptr;
+        zip_t *za;
+
+        if ((src = zip_source_buffer_create((void * )payload.c_str(), payload.size(), zip_flags, error)) == NULL){
+            fprintf(stderr, "can't create source: %s\n", zip_error_strerror(error));
+            zip_error_fini(error);
+            return "";
+        }
+
+        if ((za = zip_open_from_source(src, 0, error)) == NULL) {
+            fprintf(stderr, "can't open zip from source: %s\n", zip_error_strerror(error));
+            zip_source_free(src);
+            zip_error_fini(error);
+            return "";
+        }
+
+        zip_error_fini(error);
+
+        zip_source_keep(src);
+
+
+        zip_int64_t num_entries = zip_get_num_entries(za, 0);
+
+        for (zip_uint64_t i = 0; i < (zip_uint64_t)num_entries; i++) {
+            const char *name = zip_get_name(za, i, 0);
+
+            if (std::regex_match(name,zip_types[content_type])){
+                struct zip_stat st{};
+                zip_stat_init(&st);
+                zip_stat(za, name, 0, &st);
+
+                char *contents = new char[st.size];
+
+                zip_file* f = zip_fopen(za, name, 0);
+                zip_fread(f, contents, st.size);
+                zip_fclose(f);
+
+                unzipped_payload += contents;
+            }
+        }
+
+
+
+        if (zip_close(za) < 0) {
+            fprintf(stderr, "can't close zip archive: %s\n", zip_strerror(za));
+            return "";
+        }
+
+        return unzipped_payload;
     }
 
     void Record::cleanContentType(const std::string& HTTPcontentType) {
@@ -189,5 +304,10 @@ namespace warc2text {
     const std::string& Record::getCharset() const {
         return charset;
     }
+
+    const bool &Record::isBroaderDocumentFormat() const {
+        return bdf_zip;
+    }
+
 
 } // warc2text

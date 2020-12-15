@@ -1,7 +1,6 @@
 #include <cctype>
 #include <cstring>
 #include "xh_scanner.hh"
-#include "entities.hh"
 
 namespace markup {
 

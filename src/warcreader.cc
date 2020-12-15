@@ -1,5 +1,4 @@
 #include "warcreader.hh"
-#include "record.hh"
 #include <cassert>
 
 namespace warc2text {

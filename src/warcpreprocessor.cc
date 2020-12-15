@@ -3,7 +3,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
-    const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml"};
+    const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml", "text/vnd.wap.wml", "application/atom+xml", "application/opensearchdescription+xml", "application/rss+xml", "application/xhtml+xml"};
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
     WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& tagFiltersFile) :
@@ -50,13 +50,13 @@ namespace warc2text {
             if (record.getPayload().empty())
                 continue;
 
-            if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getWARCcontentType().find("application/http") == std::string::npos)
+            if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || (record.getWARCcontentType().find("application/http") == std::string::npos && !record.isBroaderDocumentFormat()))
                 continue;
 
             if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
                 continue;
 
-            if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end())
+            if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end() && !record.isBroaderDocumentFormat())
                 continue;
 
             if (!URLfilter(record.getURL()))
