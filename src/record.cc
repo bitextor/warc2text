@@ -141,7 +141,8 @@ namespace warc2text {
         int len;
         int sum;
         zip_error_t *error = nullptr;
-        char *buf = new char[100];
+        bool ziperror = false;
+        char buf[100];
         zip_t *za;
 
         if ((src = zip_source_buffer_create((void * )payload.c_str(), payload.size(), zip_flags, error)) == nullptr){
@@ -172,7 +173,7 @@ namespace warc2text {
                 while (sum != st.size) {
                     len = zip_fread(f, buf, 100);
                     if (len < 0) {
-                        return "";
+                        ziperror = true;
                     }
                     char subbuf[len+1];
                     memcpy( subbuf, &buf[0], len );
@@ -185,10 +186,12 @@ namespace warc2text {
             }
         }
 
-        if (zip_close(za) < 0) {
-            fprintf(stderr, "can't close zip archive: %s\n", zip_strerror(za));
+        if (zip_close(za) < 0 || ziperror) {
+            zip_source_free(src);
             return "";
         }
+
+        zip_source_free(src);
 
         return unzipped_payload;
     }
