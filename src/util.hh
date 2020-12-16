@@ -47,6 +47,8 @@ namespace util {
 
     void readTagFilters(const std::string& filename, umap_tag_filters& filters);
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters);
+
+    bool createDirectories(const std::string& path);
 }
 
 namespace html {
