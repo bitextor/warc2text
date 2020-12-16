@@ -20,7 +20,6 @@ namespace warc2text {
             unsigned int langBytes;
             util::umap_tag_filters tagFilters;
             std::unordered_set<std::string> output_files;
-            static const std::unordered_set<std::string> textContentTypes;
             static const std::unordered_set<std::string> removeExtensions;
             static bool URLfilter(const std::string& url);
 

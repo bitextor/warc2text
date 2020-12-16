@@ -3,7 +3,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
-    const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml", "text/vnd.wap.wml", "application/atom+xml", "application/opensearchdescription+xml", "application/rss+xml", "application/xhtml+xml"};
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
     WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& tagFiltersFile) :
@@ -50,13 +49,10 @@ namespace warc2text {
             if (record.getPayload().empty())
                 continue;
 
-            if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || (record.getWARCcontentType().find("application/http") == std::string::npos && !record.isBroaderDocumentFormat()))
+            if ((record.getRecordType() != "response" && record.getRecordType() != "resource"))
                 continue;
 
             if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
-                continue;
-
-            if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end() && !record.isBroaderDocumentFormat())
                 continue;
 
             if (!URLfilter(record.getURL()))
@@ -79,6 +75,10 @@ namespace warc2text {
                 continue;
             } else if (clean_retval == util::UTF8_CONVERSION_ERROR) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": utf8 conversion error";
+                continue;
+            }
+            else if (clean_retval == util::NOT_VALID_RECORD) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": WARC or HTTP header content type not valid";
                 continue;
             }
             // TODO: decide what to do with other cases?

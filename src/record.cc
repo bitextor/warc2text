@@ -12,6 +12,8 @@
 #include <zip.h>
 
 namespace warc2text {
+    const std::unordered_set<std::string> Record::textContentTypes = {"text/plain", "text/html", "application/xml", "text/vnd.wap.wml", "application/atom+xml", "application/opensearchdescription+xml", "application/rss+xml", "application/xhtml+xml"};
+
     std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
         std::string line;
         std::size_t header_end = content.find("\r\n\r\n", last_pos);
@@ -88,16 +90,6 @@ namespace warc2text {
 
         util::trim(payload); //remove \r\n\r\n at the end
 
-
-        std::string content_type;
-        if (HTTPheader.count("content-type") == 1)
-            content_type = HTTPheader["content-type"];
-        else
-            content_type = "";
-        std::tie(content_type, bdf_zip) = isPayloadZip(content_type, url);
-
-        if (bdf_zip)
-            payload = readZipPayload(content_type, payload);
     }
 
     std::map<std::string, std::regex> Record::zip_types = {
@@ -143,7 +135,6 @@ namespace warc2text {
     }
 
     std::string Record::readZipPayload(const std::string& content_type, const std::string& payload){
-        //return "<html><body>I am testing the zip logic before implementing it</body></html>";  // This is a foo code
         std::string unzipped_payload;
         zip_source_t *src;
         int zip_flags = 0;
@@ -151,19 +142,13 @@ namespace warc2text {
         zip_t *za;
 
         if ((src = zip_source_buffer_create((void * )payload.c_str(), payload.size(), zip_flags, error)) == NULL){
-            fprintf(stderr, "can't create source: %s\n", zip_error_strerror(error));
-            zip_error_fini(error);
             return "";
         }
 
         if ((za = zip_open_from_source(src, 0, error)) == NULL) {
-            fprintf(stderr, "can't open zip from source: %s\n", zip_error_strerror(error));
             zip_source_free(src);
-            zip_error_fini(error);
             return "";
         }
-
-        zip_error_fini(error);
 
         zip_source_keep(src);
 
@@ -187,8 +172,6 @@ namespace warc2text {
                 unzipped_payload += contents;
             }
         }
-
-
 
         if (zip_close(za) < 0) {
             fprintf(stderr, "can't close zip archive: %s\n", zip_strerror(za));
@@ -222,6 +205,19 @@ namespace warc2text {
     }
 
     int Record::cleanPayload(const util::umap_tag_filters& tagFilters){
+        if(WARCcontentType.find("application/http") == std::string::npos && !bdf_zip && textContentTypes.find(getHTTPcontentType()) == textContentTypes.end())
+            return util::NOT_VALID_RECORD;
+
+        std::string content_type;
+        if (HTTPheader.count("content-type") == 1)
+            content_type = HTTPheader["content-type"];
+        else
+            content_type = "";
+        std::tie(content_type, bdf_zip) = isPayloadZip(content_type, url);
+
+        if (bdf_zip)
+            payload = readZipPayload(content_type, payload);
+
         // detect charset
         std::string detected_charset;
         std::string extracted;

@@ -55,6 +55,8 @@ namespace warc2text {
         bool bdf_zip{};
         static std::map<std::string, std::regex> zip_types;
 
+        static const std::unordered_set<std::string> textContentTypes;
+
         void cleanContentType(const std::string& HTTPcontentType);
     };
 

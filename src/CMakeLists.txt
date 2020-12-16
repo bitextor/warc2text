@@ -35,6 +35,7 @@ add_library(warc2text_lib
 target_link_libraries(warc2text_lib
     base64
     preprocess_util
+    zip
     ${Boost_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${uchardet_LIBRARIES}
