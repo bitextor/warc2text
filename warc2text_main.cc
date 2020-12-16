@@ -15,6 +15,7 @@ using namespace warc2text;
 struct Options {
     std::vector<std::string> warcs;
     std::string files;
+    std::string pdf_warc_filename;
     bool verbose{};
     std::string output;
     std::string tag_filters_filename;
@@ -29,6 +30,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("files,f", po::value(&out.files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
+        ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level");
 
     po::positional_options_description pd;
@@ -46,6 +48,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "                                  Optional values: \"mime,html\"\n"
                 " --tag-filters <filters_files>    File containing filters\n"
                 "                                  Format: \"html_tag <tab> tag_attr <tab> value\"\n"
+                " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
     }
@@ -70,7 +73,7 @@ int main(int argc, char *argv[]) {
     std::unordered_set<std::string> output_files(files_list.begin(), files_list.end());
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(options.output, output_files, options.tag_filters_filename);
+    WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }

@@ -3,11 +3,6 @@
 #include <cassert>
 
 namespace warc2text{
-    bool createDirectories(const std::string& path){
-        if (!boost::filesystem::exists(path))
-            return boost::filesystem::create_directories(path);
-        else return false; // throw exception??
-    }
 
     GzipWriter::GzipWriter() {
         dest = NULL;
@@ -21,8 +16,11 @@ namespace warc2text{
     }
 
     GzipWriter::~GzipWriter() {
-        this->compress("", 0, Z_FINISH);
-        deflateEnd(&s);
+        if (dest) {
+            this->compress("", 0, Z_FINISH);
+            deflateEnd(&s);
+            std::fclose(dest);
+        }
         delete[] buf;
     }
 
@@ -77,7 +75,7 @@ namespace warc2text{
         if (!url->is_open()) {
             // if one file does not exist, the rest shouldn't either
             std::string path = folder + "/" + *lang;
-            createDirectories(path);
+            util::createDirectories(path);
             url->open(path + "/url.gz");
             text->open(path + "/text.gz");
             if (mime != NULL) mime->open(path + "/mime.gz");
