@@ -1,4 +1,5 @@
 #include "warcpreprocessor.hh"
+#include "util/compress.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -6,7 +7,7 @@ namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml"};
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& tagFiltersFile) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string pdf_warc_filename, const std::string& tagFiltersFile) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -15,7 +16,7 @@ namespace warc2text {
         textBytes(0),
         langBytes(0),
         tagFilters(),
-        output_files(output_files) {
+        pdf_warc_filename(pdf_warc_filename) {
             if (!tagFiltersFile.empty())
                 util::readTagFilters(tagFiltersFile, tagFilters);
         }
@@ -41,6 +42,10 @@ namespace warc2text {
         bool done = false;
         bool reliable;
 
+        bool pdfpass = !pdf_warc_filename.empty();
+        std::string compressed;
+        FILE* pdf_warc = NULL;
+
         while (!done) {
             done = !reader.getRecord(content);
             if (done)
@@ -53,10 +58,21 @@ namespace warc2text {
             if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
 
-            if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
+            if (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf") {
+                // found a PDF file, write record to disk and continue
+                if (pdfpass and not pdf_warc)
+                    pdf_warc = std::fopen(pdf_warc_filename.c_str(), "wb");
+                if (pdfpass) {
+                    util::GZCompress(content, compressed);
+                    std::fwrite((void*) compressed.c_str(), 1, compressed.size(), pdf_warc);
+                }
                 continue;
+            }
 
             if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end())
+                continue;
+
+            if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
                 continue;
 
             if (!URLfilter(record.getURL()))
@@ -102,6 +118,7 @@ namespace warc2text {
 
             writer.write(record);
         }
+        if (pdf_warc) std::fclose(pdf_warc);
     }
 
     void WARCPreprocessor::printStatistics() const{
