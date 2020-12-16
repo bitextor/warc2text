@@ -9,6 +9,18 @@
 #include <unordered_set>
 
 namespace warc2text {
+    class WARCWriter {
+        private:
+            FILE* warc;
+            std::string filename;
+        public:
+            WARCWriter();
+            void open(const std::string& warc_filename);
+            void close();
+            bool is_open();
+            void writeRecord(const std::string& content);
+    };
+
     class WARCPreprocessor {
         private:
             BilangWriter writer;

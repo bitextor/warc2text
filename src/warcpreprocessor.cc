@@ -43,8 +43,7 @@ namespace warc2text {
         bool reliable;
 
         bool pdfpass = !pdf_warc_filename.empty();
-        std::string compressed;
-        FILE* pdf_warc = NULL;
+        WARCWriter pdf_warc_writer;
 
         while (!done) {
             done = !reader.getRecord(content);
@@ -60,12 +59,8 @@ namespace warc2text {
 
             if (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf") {
                 // found a PDF file, write record to disk and continue
-                if (pdfpass and not pdf_warc)
-                    pdf_warc = std::fopen(pdf_warc_filename.c_str(), "wb");
-                if (pdfpass) {
-                    util::GZCompress(content, compressed);
-                    std::fwrite((void*) compressed.c_str(), 1, compressed.size(), pdf_warc);
-                }
+                if (pdfpass and not pdf_warc_writer.is_open()) pdf_warc_writer.open(pdf_warc_filename);
+                if (pdfpass) pdf_warc_writer.writeRecord(content);
                 continue;
             }
 
@@ -118,7 +113,7 @@ namespace warc2text {
 
             writer.write(record);
         }
-        if (pdf_warc) std::fclose(pdf_warc);
+        pdf_warc_writer.close();
     }
 
     void WARCPreprocessor::printStatistics() const{
@@ -129,6 +124,34 @@ namespace warc2text {
         BOOST_LOG_TRIVIAL(info) << "total bytes: " << totalBytes;
         BOOST_LOG_TRIVIAL(info) << "text bytes: " << textBytes;
         BOOST_LOG_TRIVIAL(info) << "lang bytes: " << langBytes;
+    }
+
+    WARCWriter::WARCWriter() {
+        warc = NULL;
+    }
+
+    void WARCWriter::open(const std::string& warc_filename) {
+        filename = warc_filename;
+        if (not boost::algorithm::ends_with(filename, ".warc.gz"))
+            filename += ".warc.gz";
+        std::string folder = filename.substr(0, filename.find_last_of('/'));
+        util::createDirectories(folder);
+        warc = std::fopen(filename.c_str(), "wb");
+    }
+
+    bool WARCWriter::is_open() {
+        return warc != NULL;
+    }
+
+    void WARCWriter::close() {
+        if (warc) std::fclose(warc);
+    }
+
+    void WARCWriter::writeRecord(const std::string& content) {
+        if (!warc) return;
+        std::string compressed;
+        util::GZCompress(content, compressed);
+        std::fwrite((void*) compressed.c_str(), 1, compressed.size(), warc);
     }
 
 }

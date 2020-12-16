@@ -3,12 +3,10 @@
 
 #include <unordered_map>
 #include <unordered_set>
-#include <boost/filesystem.hpp>
 #include "record.hh"
 #include "zlib.h"
 
 namespace warc2text {
-    bool createDirectories(const std::string& path);
 
     class GzipWriter {
         private:
