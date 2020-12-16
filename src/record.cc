@@ -138,14 +138,17 @@ namespace warc2text {
         std::string unzipped_payload;
         zip_source_t *src;
         int zip_flags = 0;
+        int len;
+        int sum;
         zip_error_t *error = nullptr;
+        char *buf = new char[100];
         zip_t *za;
 
-        if ((src = zip_source_buffer_create((void * )payload.c_str(), payload.size(), zip_flags, error)) == NULL){
+        if ((src = zip_source_buffer_create((void * )payload.c_str(), payload.size(), zip_flags, error)) == nullptr){
             return "";
         }
 
-        if ((za = zip_open_from_source(src, 0, error)) == NULL) {
+        if ((za = zip_open_from_source(src, 0, error)) == nullptr) {
             zip_source_free(src);
             return "";
         }
@@ -161,15 +164,24 @@ namespace warc2text {
             if (std::regex_match(name,zip_types[content_type])){
                 struct zip_stat st{};
                 zip_stat_init(&st);
-                zip_stat(za, name, 0, &st);
+                zip_stat_index(za, i, 0, &st);
 
-                char *contents = new char[st.size];
 
-                zip_file* f = zip_fopen(za, name, 0);
-                zip_fread(f, contents, st.size);
+                zip_file* f = zip_fopen_index(za, i, 0);
+                sum = 0;
+                while (sum != st.size) {
+                    len = zip_fread(f, buf, 100);
+                    if (len < 0) {
+                        return "";
+                    }
+                    char subbuf[len+1];
+                    memcpy( subbuf, &buf[0], len );
+                    subbuf[len] = '\0';
+                    unzipped_payload += subbuf;
+                    sum += len;
+                }
                 zip_fclose(f);
 
-                unzipped_payload += contents;
             }
         }
 
