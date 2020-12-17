@@ -30,7 +30,7 @@ namespace markup {
 
         value_length = 0;
 
-        bool ws = false;
+        bool ws;
 
         if (c == 0) return TT_EOF;
         else if (c == '<') return scan_tag();
@@ -234,49 +234,6 @@ namespace markup {
         return input.get_char();
     }
 
-
-    // caller consumed '&'
-    char scanner::scan_entity() {
-        char buf[32];
-        buf[0] = '&';
-        unsigned int i = 1;
-        char t;
-        bool entity = true;
-        for (; i < 31; ++i) {
-            t = get_char();
-            if (t == 0) return TT_EOF;
-            if (t != ';' && !(i == 1 && t == '#') && !isalnum(t)) {
-                push_back(t);
-                buf[i] = 0;
-                entity = false;
-                break; // appears a erroneous entity token.
-                // but we try to use it.
-            }
-            buf[i] = char(t);
-            if (t == ';')
-                break;
-        }
-        buf[i+1]=0;
-        char out[32];
-        // if (entity)
-        //     entity = entities::simple_parse_entity(&buf[0], &out[0]);
-        entity = false;
-        if (!entity) {
-            for ( i = 0; i < strlen(buf) - 1; ++i)
-                append_value(buf[i]);
-            // last character will be appended by the caller
-            t = buf[strlen(buf)-1];
-        }
-        else {
-            for( i = 0; i < strlen(out) - 1; ++i){
-                append_value(out[i]);
-            }
-            // last character will be appended by the caller
-            t = out[strlen(out)-1];
-        }
-        return t;
-    }
-
     bool scanner::is_whitespace(char c) {
         return c <= ' '
                && (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f');
@@ -340,7 +297,7 @@ namespace markup {
             value[value_length] = c;
 
             if (c == '>' && value_length >= tag_name_length + 2) {
-                int i = tag_name_length - 1;
+                unsigned int i = tag_name_length - 1;
                 do {
                     if (value[value_length + i - tag_name_length] != tag_name[i])
                         break;

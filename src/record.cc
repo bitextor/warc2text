@@ -170,7 +170,7 @@ namespace warc2text {
 
                 zip_file* f = zip_fopen_index(za, i, 0);
                 sum = 0;
-                while (sum != st.size) {
+                while (sum != int(st.size)) {
                     len = zip_fread(f, buf, 100);
                     if (len < 0) {
                         ziperror = true;

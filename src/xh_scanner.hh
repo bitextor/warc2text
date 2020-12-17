@@ -66,9 +66,6 @@ namespace markup {
         // get tag name
         const char *get_tag_name();
 
-        // should be overrided to resolve entities, e.g. &nbsp;
-        //virtual char resolve_entity(const char *buf, int buf_size) { return 0; }
-
     private: /* methods */
 
         typedef token_type (scanner::*scan)();
@@ -86,8 +83,6 @@ namespace markup {
 
         token_type scan_special();
 
-        token_type scan_style();
-
         token_type scan_pi();
 
         token_type scan_tag();
@@ -99,8 +94,6 @@ namespace markup {
         void push_back(char c);
 
         char get_char();
-
-        char scan_entity();
 
         static bool is_whitespace(char c);
 

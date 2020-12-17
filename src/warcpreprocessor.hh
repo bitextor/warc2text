@@ -36,7 +36,7 @@ namespace warc2text {
             std::string pdf_warc_filename;
 
         public:
-            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string pdf_warc_filename = "", const std::string& tagFiltersFile = "");
+            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, std::string  pdf_warc_filename = "", const std::string& tagFiltersFile = "");
             void process(const std::string &filename);
             void printStatistics() const;
     };

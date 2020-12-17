@@ -11,7 +11,7 @@ namespace warc2text {
     class GzipWriter {
         private:
             FILE* dest;
-            z_stream s;
+            z_stream s{};
             unsigned char* buf;
             std::size_t compressed;
             void compress(const char* in, std::size_t size, int flush);

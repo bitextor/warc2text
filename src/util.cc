@@ -33,7 +33,7 @@ namespace util {
         result = "";
         auto first = original.begin();
         auto last = std::find(original.begin(), original.end(), '\n');
-        std::string line = "";
+        std::string line;
         while (first < original.end()) {
             line = std::string(first, last);
             boost::trim_all(line);
