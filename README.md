@@ -19,7 +19,7 @@ apt-get install uchardet libuchardet-dev libzip-dev
 ```
 On Mac:
 ```
-brew install uchardet libizip
+brew install uchardet libzip
 ```
 
 ## Compile
