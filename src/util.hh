@@ -44,6 +44,8 @@ namespace util {
     typedef std::unordered_map<std::string, umap_attr_filters> umap_tag_filters;
 
     void readTagFilters(const std::string& filename, umap_tag_filters& filters);
+
+    bool createDirectories(const std::string& path);
 }
 
 namespace html {

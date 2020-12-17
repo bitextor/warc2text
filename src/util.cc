@@ -2,6 +2,7 @@
 #include <fstream>
 #include <algorithm>
 #include <vector>
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -100,6 +101,12 @@ namespace util {
                 values.emplace_back(fields.at(i));
         }
         f.close();
+    }
+
+    bool createDirectories(const std::string& path){
+        if (!boost::filesystem::exists(path))
+            return boost::filesystem::create_directories(path);
+        else return false; // throw exception??
     }
 
 }

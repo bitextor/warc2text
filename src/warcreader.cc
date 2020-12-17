@@ -1,4 +1,5 @@
 #include "warcreader.hh"
+#include <boost/log/trivial.hpp>
 #include <cassert>
 
 namespace warc2text {
@@ -64,9 +65,14 @@ namespace warc2text {
             file = std::freopen(nullptr, "rb", stdin); // make sure stdin is open in binary mode
         else file = std::fopen(filename.c_str(), "r");
         if (!file) {
-            std::perror("File opening failed");
-            exit(1);
+            // std::perror("File opening failed");
+            // exit(1);
+            BOOST_LOG_TRIVIAL(warning) << "WARC " << filename << ": file opening failed, skipping this WARC";
         }
+    }
+
+    void WARCReader::closeFile() {
+        if (file) std::fclose(file);
     }
 
     std::size_t WARCReader::readChunk(){

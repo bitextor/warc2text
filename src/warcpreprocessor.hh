@@ -9,6 +9,18 @@
 #include <unordered_set>
 
 namespace warc2text {
+    class WARCWriter {
+        private:
+            FILE* warc;
+            std::string filename;
+        public:
+            WARCWriter();
+            void open(const std::string& warc_filename);
+            void close();
+            bool is_open();
+            void writeRecord(const std::string& content);
+    };
+
     class WARCPreprocessor {
         private:
             BilangWriter writer;
@@ -19,12 +31,12 @@ namespace warc2text {
             unsigned int textBytes;
             unsigned int langBytes;
             util::umap_tag_filters tagFilters;
-            std::unordered_set<std::string> output_files;
             static const std::unordered_set<std::string> removeExtensions;
             static bool URLfilter(const std::string& url);
+            std::string pdf_warc_filename;
 
         public:
-            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string& tagFiltersFile = "");
+            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string pdf_warc_filename = "", const std::string& tagFiltersFile = "");
             void process(const std::string &filename);
             void printStatistics() const;
     };
