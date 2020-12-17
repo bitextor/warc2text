@@ -5,7 +5,6 @@
 #include "entities.hh"
 
 #include <string>
-#include <cstring>
 #include <algorithm>
 
 #define UNICODE_MAX 0x10FFFFul
@@ -16,7 +15,6 @@ namespace entities {
     // return value is the index of ';', or the intex of the first invalid character
     // return value will be std::string::npos if the entity ends without ';' at the end
     std::size_t findEntityEnd(const std::string& source, std::size_t pos) {
-        bool end = false;
         bool numeric = false;
         bool hex = false;
         ++pos;
@@ -31,10 +29,10 @@ namespace entities {
             ++pos;
         }
         // actual entity:
-        bool digit = false;
-        bool xdigit = false;
-        bool alpha = false;
-        for (; !end and pos < source.size(); ++pos) {
+        bool digit;
+        bool xdigit;
+        bool alpha;
+        for (; pos < source.size(); ++pos) {
             if (source[pos] == ';') return pos;
             digit = std::isdigit(source[pos]);
             alpha = std::isalpha(source[pos]);
@@ -52,9 +50,9 @@ namespace entities {
     void decodeEntities(const std::string& source, std::string& target) {
         std::size_t pos = source.find('&');
         std::size_t end_pos = 0;
-        std::size_t len = 0;
-        std::size_t* tail = new std::size_t;
-        std::size_t entity_code = 0;
+        std::size_t len;
+        auto* tail = new std::size_t;
+        std::size_t entity_code;
         bool hex;
 
         target.clear();

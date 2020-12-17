@@ -2,12 +2,12 @@
 #include "util/compress.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <utility>
 
 namespace warc2text {
-    const std::unordered_set<std::string> WARCPreprocessor::textContentTypes = {"text/plain", "text/html", "application/xml"};
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string pdf_warc_filename, const std::string& tagFiltersFile) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, std::string  pdf_warc_filename, const std::string& tagFiltersFile) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -16,7 +16,7 @@ namespace warc2text {
         textBytes(0),
         langBytes(0),
         tagFilters(),
-        pdf_warc_filename(pdf_warc_filename) {
+        pdf_warc_filename(std::move(pdf_warc_filename)) {
             if (!tagFiltersFile.empty())
                 util::readTagFilters(tagFiltersFile, tagFilters);
         }
@@ -54,7 +54,7 @@ namespace warc2text {
             if (record.getPayload().empty())
                 continue;
 
-            if ((record.getRecordType() != "response" && record.getRecordType() != "resource") || record.getWARCcontentType().find("application/http") == std::string::npos)
+            if ((record.getRecordType() != "response" && record.getRecordType() != "resource"))
                 continue;
 
             if (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf") {
@@ -63,9 +63,6 @@ namespace warc2text {
                 if (pdfpass) pdf_warc_writer.writeRecord(content);
                 continue;
             }
-
-            if (textContentTypes.find(record.getHTTPcontentType()) == textContentTypes.end())
-                continue;
 
             if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
                 continue;
@@ -90,6 +87,10 @@ namespace warc2text {
                 continue;
             } else if (clean_retval == util::UTF8_CONVERSION_ERROR) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": utf8 conversion error";
+                continue;
+            }
+            else if (clean_retval == util::NOT_VALID_RECORD) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": WARC or HTTP header content type not valid";
                 continue;
             }
             // TODO: decide what to do with other cases?
@@ -127,7 +128,7 @@ namespace warc2text {
     }
 
     WARCWriter::WARCWriter() {
-        warc = NULL;
+        warc = nullptr;
     }
 
     void WARCWriter::open(const std::string& warc_filename) {
@@ -140,7 +141,7 @@ namespace warc2text {
     }
 
     bool WARCWriter::is_open() {
-        return warc != NULL;
+        return warc != nullptr;
     }
 
     void WARCWriter::close() {

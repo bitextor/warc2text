@@ -8,14 +8,14 @@ namespace warc2text {
 
     // true if doc is ok
     bool filter(const std::string& lc_tag, const char* attr, const char* value, const util::umap_tag_filters& tagFilters) {
-        util::umap_tag_filters::const_iterator tag_it = tagFilters.find(lc_tag);
+        auto tag_it = tagFilters.find(lc_tag);
         if (tag_it == tagFilters.cend())
             return true;
-        util::umap_attr_filters::const_iterator attr_it = tag_it->second.find(util::toLowerCopy(attr));
+        auto attr_it = tag_it->second.find(util::toLowerCopy(attr));
         if (attr_it == tag_it->second.cend())
             return true;
         for (const std::string& filter : attr_it->second){
-            if (strstr(value, filter.c_str()) != NULL)
+            if (strstr(value, filter.c_str()) != nullptr)
                 return false;
         }
         return true;
