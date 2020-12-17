@@ -9,7 +9,7 @@ git clone --recurse-submodules https://github.com/bitextor/warc2text.git
 Or:
 ```
 git clone https://github.com/bitextor/warc2text.git
-git submodules update --init
+git submodule update --init
 ```
 
 ## Install dependencies
