@@ -34,11 +34,15 @@ add_library(warc2text_lib
 
 
 if (APPLE)
-target_link_libraries(warc2text_lib
-        /usr/local/opt/libzip/lib/libzip.dylib)
+	target_link_libraries(warc2text_lib
+		/usr/local/opt/libzip/lib/libzip.dylib)
+elseif(LIBZIP_PATH)
+	target_link_libraries(warc2text_lib
+		${LIBZIP_PATH})
 else()
-target_link_libraries(warc2text_lib
-        zip)
+	target_link_libraries(warc2text_lib
+		zip)
+
 endif()
 
 target_link_libraries(warc2text_lib
