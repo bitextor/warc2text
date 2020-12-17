@@ -224,11 +224,7 @@ namespace warc2text {
             return util::NOT_VALID_RECORD;
 
         std::string content_type;
-        if (HTTPheader.count("content-type") == 1)
-            content_type = HTTPheader["content-type"];
-        else
-            content_type = "";
-        std::tie(content_type, bdf_zip) = isPayloadZip(content_type, url);
+        std::tie(content_type, bdf_zip) = isPayloadZip(cleanHTTPcontentType, url);
 
         if (bdf_zip)
             payload = readZipPayload(content_type, payload);
