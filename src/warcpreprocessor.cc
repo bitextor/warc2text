@@ -61,6 +61,7 @@ namespace warc2text {
                 if (pdfpass and not pdf_warc_writer.is_open()) pdf_warc_writer.open(pdf_warc_filename);
                 if (pdfpass) pdf_warc_writer.writeRecord(content);
                 continue;
+            }
 
             if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
                 continue;
