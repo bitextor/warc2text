@@ -54,7 +54,10 @@ namespace warc2text {
             if (record.getPayload().empty())
                 continue;
 
-            if ((record.getRecordType() != "response" && record.getRecordType() != "resource"))
+            if (record.getRecordType() != "response" && record.getRecordType() != "resource")
+                continue;
+
+            if (record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
 
             if (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf") {

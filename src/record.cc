@@ -220,8 +220,6 @@ namespace warc2text {
     }
 
     int Record::cleanPayload(const util::umap_tag_filters& tagFilters){
-        if (WARCcontentType.find("application/http") == std::string::npos && !bdf_zip)
-            return util::NOT_VALID_RECORD;
 
         std::string content_type;
         std::tie(content_type, bdf_zip) = isPayloadZip(cleanHTTPcontentType, url);
