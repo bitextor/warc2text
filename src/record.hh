@@ -8,6 +8,8 @@
 #include <string>
 #include <unordered_map>
 #include "util.hh"
+#include "regex"
+#include "map"
 
 namespace warc2text {
     class Record {
@@ -28,13 +30,16 @@ namespace warc2text {
         const std::string& getRecordType() const;
         const std::string& getWARCcontentType() const;
         const std::string& getHTTPcontentType() const;
+        const bool& isBroaderDocumentFormat() const;
+        static std::string readZipPayload(const std::string& content_type, const std::string& payload);
         const std::string& getCharset() const;
 
         int cleanPayload();
         int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
         bool detectLanguage();
+        static std::pair<std::string, bool> isPayloadZip(std::string content_type, const std::string& uri);
 
-    private:
+            private:
         std::unordered_map<std::string, std::string> header;
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;
@@ -47,6 +52,10 @@ namespace warc2text {
         std::string cleanHTTPcontentType;
         std::string charset;
         std::string url;
+        bool bdf_zip{};
+        static std::map<std::string, std::regex> zip_types;
+
+        static const std::unordered_set<std::string> textContentTypes;
 
         void cleanContentType(const std::string& HTTPcontentType);
     };

@@ -1,5 +1,4 @@
 #include "warcreader.hh"
-#include "record.hh"
 #include <boost/log/trivial.hpp>
 #include <cassert>
 

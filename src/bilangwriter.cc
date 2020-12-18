@@ -5,7 +5,7 @@
 namespace warc2text{
 
     GzipWriter::GzipWriter() {
-        dest = NULL;
+        dest = nullptr;
         compressed = 0;
         s.zalloc = nullptr;
         s.zfree = nullptr;
@@ -42,7 +42,7 @@ namespace warc2text{
             // TODO error handling
             // if (written != compressed || std::ferror(dest)) {
             // }
-        };
+        }
         assert(s.avail_in == 0);
     }
 
@@ -61,15 +61,15 @@ namespace warc2text{
 
 
     bool GzipWriter::is_open(){
-        return dest != NULL;
+        return dest != nullptr;
     }
 
     void BilangWriter::write(const Record& record) {
         const std::string* lang = &record.getLanguage();
         GzipWriter* url = &url_files[*lang];
         GzipWriter* text = &text_files[*lang];
-        GzipWriter* mime = NULL;
-        GzipWriter* html = NULL;
+        GzipWriter* mime = nullptr;
+        GzipWriter* html = nullptr;
         if (output_files.count("mime") == 1) mime = &(mime_files[*lang]);
         if (output_files.count("html") == 1) html = &(html_files[*lang]);
         if (!url->is_open()) {
@@ -78,8 +78,8 @@ namespace warc2text{
             util::createDirectories(path);
             url->open(path + "/url.gz");
             text->open(path + "/text.gz");
-            if (mime != NULL) mime->open(path + "/mime.gz");
-            if (html != NULL) html->open(path + "/html.gz");
+            if (mime != nullptr) mime->open(path + "/mime.gz");
+            if (html != nullptr) html->open(path + "/html.gz");
         }
 
         url->writeLine(record.getURL().data(), record.getURL().size());
@@ -87,9 +87,9 @@ namespace warc2text{
         util::encodeBase64(record.getPlainText(), base64text);
         text->writeLine(base64text.data(), base64text.size());
 
-        if (mime != NULL)
+        if (mime != nullptr)
             mime->writeLine(record.getHTTPcontentType().data(), record.getHTTPcontentType().size());
-        if (html != NULL) {
+        if (html != nullptr) {
             std::string base64html;
             util::encodeBase64(record.getPayload(), base64html);
             html->writeLine(base64html.data(), base64html.size());

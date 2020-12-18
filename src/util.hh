@@ -33,7 +33,8 @@ namespace util {
         HTML_PARSING_ERROR = 1,
         FILTERED_DOCUMENT_ERROR = 2,
         UNKNOWN_ENCODING_ERROR = 3,
-        UTF8_CONVERSION_ERROR = 4
+        UTF8_CONVERSION_ERROR = 4,
+        NOT_VALID_RECORD = 5
     };
 
     inline bool uset_contains(const std::unordered_set<std::string>& uset, const std::string& value) {

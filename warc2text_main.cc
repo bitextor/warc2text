@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <vector>
 #include <unordered_set>
 #include <boost/log/trivial.hpp>
@@ -39,7 +38,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
     if (argc == 1 || vm["help"].as<bool>()) {
-        std::cerr << "Usage: " << argv[0] << " -o <output_folder> [ -f <output_files> ] [ --tag-filters <filters_file> ] <warc_file>...\n"
+        std::cerr << "Usage: " << argv[0] << " -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ] [ --tag-filters <filters_file> ] <warc_file>...\n"
                 "\n"
                 "Options:\n"
                 " -o <output_folder>               Output folder, required\n"
