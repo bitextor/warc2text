@@ -92,7 +92,7 @@ namespace warc2text {
 
     }
 
-    std::map<std::string, std::regex> Record::zip_types = {
+    const std::unordered_map<std::string, std::regex> Record::zip_types = {
             {"application/vnd.oasis.opendocument.text",                                   std::regex("^content\\.xml$")},
             {"application/vnd.oasis.opendocument.spreadsheet",                            std::regex("^content\\.xml$")},
             {"application/vnd.oasis.opendocument.presentation",                           std::regex("^content\\.xml$")},
@@ -102,7 +102,7 @@ namespace warc2text {
             {"application/epub+zip",                                                      std::regex("^.*ml$")}
     };
 
-    std::pair<std::string, bool> Record::isPayloadZip(std::string content_type, const std::string& uri){
+    std::pair<std::string, bool> Record::isPayloadZip(const std::string& content_type, const std::string& uri){
 
         if (boost::algorithm::ends_with(uri, ".odt")) {
             return std::make_pair("application/vnd.oasis.opendocument.text", true);
@@ -156,13 +156,12 @@ namespace warc2text {
 
         zip_source_keep(src);
 
-
         zip_int64_t num_entries = zip_get_num_entries(za, 0);
 
         for (zip_uint64_t i = 0; i < (zip_uint64_t)num_entries; i++) {
             const char *name = zip_get_name(za, i, 0);
 
-            if (std::regex_match(name,zip_types[content_type])){
+            if (std::regex_match(name,zip_types.at(content_type))){
                 struct zip_stat st{};
                 zip_stat_init(&st);
                 zip_stat_index(za, i, 0, &st);
@@ -311,7 +310,7 @@ namespace warc2text {
         return charset;
     }
 
-    const bool &Record::isBroaderDocumentFormat() const {
+    bool Record::isBroaderDocumentFormat() const {
         return bdf_zip;
     }
 

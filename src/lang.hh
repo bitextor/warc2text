@@ -2,7 +2,6 @@
 #define WARC2TEXT_LANG_HH
 
 #include <string>
-#include <utility>
 #include <vector>
 #include "cld2/public/compact_lang_det.h"
 #include "cld2/public/encodings.h"
@@ -13,8 +12,8 @@ namespace warc2text {
         int percent;
         double score;
 
-        LanguageDetection(std::string lang, int percent, double score) :
-            languageCode(std::move(lang)),
+        LanguageDetection(const std::string& lang, int percent, double score) :
+            languageCode(lang),
             percent(percent),
             score(score)
         {}
@@ -23,7 +22,6 @@ namespace warc2text {
 
     // detect language of plain text, return top 3 languages
     bool detectLanguage(const std::string& text, std::vector<LanguageDetection>& results);
-
 
     // detect top language of plain text
     bool detectLanguage(const std::string& text, std::string& lang);

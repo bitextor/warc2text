@@ -2,12 +2,11 @@
 #include "util/compress.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <utility>
 
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, std::string  pdf_warc_filename, const std::string& tagFiltersFile) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -16,7 +15,7 @@ namespace warc2text {
         textBytes(0),
         langBytes(0),
         tagFilters(),
-        pdf_warc_filename(std::move(pdf_warc_filename)) {
+        pdf_warc_filename(pdf_warc_filename) {
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
         }
