@@ -16,6 +16,7 @@ struct Options {
     std::string files;
     std::string pdf_warc_filename;
     bool verbose{};
+    bool silent{};
     std::string output;
     std::string tag_filters_filename;
 };
@@ -30,7 +31,8 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
-        ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level");
+        ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
+        ("silent,s", po::bool_switch(&out.silent)->default_value(false));
 
     po::positional_options_description pd;
     pd.add("input", -1);
@@ -48,6 +50,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --tag-filters <filters_files>    File containing filters\n"
                 "                                  Format: \"html_tag <tab> tag_attr <tab> value\"\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
+                " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
     }
@@ -63,7 +66,9 @@ int main(int argc, char *argv[]) {
     // configure logging
     boost::log::add_console_log(std::cerr, boost::log::keywords::format = "[%TimeStamp%] [\%Severity%] %Message%");
     boost::log::add_common_attributes();
-    auto verbosity_level = (options.verbose) ? boost::log::trivial::trace : boost::log::trivial::info;
+    auto verbosity_level = options.verbose ? boost::log::trivial::trace :
+                           options.silent  ? boost::log::trivial::warning :
+                                             boost::log::trivial::info;
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= verbosity_level);
 
     // prepare list of output files
