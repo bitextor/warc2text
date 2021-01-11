@@ -103,6 +103,23 @@ namespace util {
         f.close();
     }
 
+    void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters) {
+        std::ifstream f(filename);
+        std::string line;
+        std::vector<std::string> fields;
+        while (std::getline(f, line)) {
+            fields.clear();
+            boost::algorithm::split(fields, line, [](char c){return c == '\t';});
+            if (fields.size() < 3)
+                break;
+            umap_attr_filters_regex& attrs = filters[fields.at(0)];
+            std::vector<std::regex>& values = attrs[fields.at(1)];
+            for (unsigned int i = 2; i < fields.size(); ++i)
+                values.emplace_back(fields.at(i), std::regex::optimize);
+        }
+        f.close();
+    }
+
     bool createDirectories(const std::string& path){
         if (!boost::filesystem::exists(path))
             return boost::filesystem::create_directories(path);

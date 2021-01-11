@@ -35,7 +35,7 @@ namespace warc2text {
         const std::string& getCharset() const;
 
         int cleanPayload();
-        int cleanPayload(const util::umap_tag_filters& tagFilters);
+        int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
         bool detectLanguage();
         static std::pair<std::string, bool> isPayloadZip(std::string content_type, const std::string& uri);
 

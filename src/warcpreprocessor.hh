@@ -30,7 +30,7 @@ namespace warc2text {
             unsigned int totalBytes;
             unsigned int textBytes;
             unsigned int langBytes;
-            util::umap_tag_filters tagFilters;
+            util::umap_tag_filters_regex tagFilters;
             static const std::unordered_set<std::string> removeExtensions;
             static bool URLfilter(const std::string& url);
             std::string pdf_warc_filename;

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <regex>
 
 namespace util {
     void toLower(std::string& s);
@@ -41,9 +42,12 @@ namespace util {
     }
 
     typedef std::unordered_map<std::string, std::vector<std::string>> umap_attr_filters;
+    typedef std::unordered_map<std::string, std::vector<std::regex>> umap_attr_filters_regex;
     typedef std::unordered_map<std::string, umap_attr_filters> umap_tag_filters;
+    typedef std::unordered_map<std::string, umap_attr_filters_regex> umap_tag_filters_regex;
 
     void readTagFilters(const std::string& filename, umap_tag_filters& filters);
+    void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters);
 
     bool createDirectories(const std::string& path);
 }

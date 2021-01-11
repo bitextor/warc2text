@@ -18,7 +18,7 @@ namespace warc2text {
         tagFilters(),
         pdf_warc_filename(std::move(pdf_warc_filename)) {
             if (!tagFiltersFile.empty())
-                util::readTagFilters(tagFiltersFile, tagFilters);
+                util::readTagFiltersRegex(tagFiltersFile, tagFilters);
         }
 
     // true if url is good

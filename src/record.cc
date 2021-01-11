@@ -215,11 +215,11 @@ namespace warc2text {
     }
 
     int Record::cleanPayload(){
-        util::umap_tag_filters tagFilters;
+        util::umap_tag_filters_regex tagFilters;
         return cleanPayload(tagFilters);
     }
 
-    int Record::cleanPayload(const util::umap_tag_filters& tagFilters){
+    int Record::cleanPayload(const util::umap_tag_filters_regex& tagFilters){
 
         std::string content_type;
         std::tie(content_type, bdf_zip) = isPayloadZip(cleanHTTPcontentType, url);
@@ -314,6 +314,5 @@ namespace warc2text {
     const bool &Record::isBroaderDocumentFormat() const {
         return bdf_zip;
     }
-
 
 } // warc2text
