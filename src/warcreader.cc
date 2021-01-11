@@ -4,6 +4,7 @@
 
 namespace warc2text {
     WARCReader::WARCReader(){
+        warc_filename = "";
         file = nullptr;
 
         buf = new uint8_t[BUFFER_SIZE];
@@ -49,7 +50,11 @@ namespace warc2text {
                 s.next_out = scratch;
                 s.avail_out = BUFFER_SIZE;
                 inflate_ret = inflate(&s, Z_NO_FLUSH);
-                assert(inflate_ret == Z_OK || inflate_ret == Z_STREAM_END);
+                if (inflate_ret != Z_OK && inflate_ret != Z_STREAM_END) {
+                    BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": error during decompressing";
+                    out.clear();
+                    return false;
+                }
                 out.append(scratch, scratch + (BUFFER_SIZE - s.avail_out));
             }
             if (inflate_ret == Z_STREAM_END) {
@@ -61,13 +66,12 @@ namespace warc2text {
     }
 
     void WARCReader::openFile(const std::string& filename){
+        warc_filename = filename;
         if (filename.empty() || filename == "-")
             file = std::freopen(nullptr, "rb", stdin); // make sure stdin is open in binary mode
         else file = std::fopen(filename.c_str(), "r");
         if (!file) {
-            // std::perror("File opening failed");
-            // exit(1);
-            BOOST_LOG_TRIVIAL(warning) << "WARC " << filename << ": file opening failed, skipping this WARC";
+            BOOST_LOG_TRIVIAL(error) << "WARC " << filename << ": file opening failed, skipping this WARC";
         }
     }
 
@@ -78,8 +82,8 @@ namespace warc2text {
     std::size_t WARCReader::readChunk(){
         std::size_t len = std::fread(buf, sizeof(uint8_t), BUFFER_SIZE, file);
         if (std::ferror(file) && !std::feof(file)) {
-            std::perror("Error during reading");
-            exit(1);
+            BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": error during reading";
+            return 0;
         }
         return len;
     }

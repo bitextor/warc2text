@@ -13,6 +13,7 @@ namespace warc2text {
             ~WARCReader();
         private:
             std::FILE* file;
+            std::string warc_filename;
             z_stream s{};
             static const std::size_t BUFFER_SIZE = 4096;
             uint8_t* buf;
