@@ -1,6 +1,7 @@
 #include <cstring>
 #include <unordered_set>
 #include <regex>
+#include <boost/log/trivial.hpp>
 #include "util.hh"
 #include "html.hh"
 #include "xh_scanner.hh"
@@ -15,9 +16,12 @@ namespace warc2text {
         util::umap_attr_filters_regex::const_iterator attr_it = tag_it->second.find(util::toLowerCopy(attr));
         if (attr_it == tag_it->second.cend())
             return true;
-        for (const std::regex& filter : attr_it->second){
-            if (std::regex_search(value, filter))
+        for (const util::umap_attr_regex& filter : attr_it->second){
+            std::cmatch match;
+            if (std::regex_search(value, match, filter.regex)) {
+                BOOST_LOG_TRIVIAL(debug) << "Tag filter " << tag_it->first << "[" << attr_it->first << " ~ " << filter.str << "] matched '" << match.str() << "' in value '" << value << "'";
                 return false;
+            }
         }
         return true;
     }
