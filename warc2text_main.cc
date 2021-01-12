@@ -16,8 +16,10 @@ struct Options {
     std::string files;
     std::string pdf_warc_filename;
     bool verbose{};
+    bool silent{};
     std::string output;
     std::string tag_filters_filename;
+    bool tag_filters_invert{};
 };
 
 void parseArgs(int argc, char *argv[], Options& out) {
@@ -29,8 +31,10 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("files,f", po::value(&out.files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
+        ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
-        ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level");
+        ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
+        ("silent,s", po::bool_switch(&out.silent)->default_value(false));
 
     po::positional_options_description pd;
     pd.add("input", -1);
@@ -47,7 +51,9 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "                                  Optional values: \"mime,html\"\n"
                 " --tag-filters <filters_files>    File containing filters\n"
                 "                                  Format: \"html_tag <tab> tag_attr <tab> value\"\n"
+                " --invert-tag-filters             Only output records that got filtered\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
+                " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
     }
@@ -63,7 +69,9 @@ int main(int argc, char *argv[]) {
     // configure logging
     boost::log::add_console_log(std::cerr, boost::log::keywords::format = "[%TimeStamp%] [\%Severity%] %Message%");
     boost::log::add_common_attributes();
-    auto verbosity_level = (options.verbose) ? boost::log::trivial::trace : boost::log::trivial::info;
+    auto verbosity_level = options.verbose ? boost::log::trivial::trace :
+                           options.silent  ? boost::log::trivial::warning :
+                                             boost::log::trivial::info;
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= verbosity_level);
 
     // prepare list of output files
@@ -72,7 +80,7 @@ int main(int argc, char *argv[]) {
     std::unordered_set<std::string> output_files(files_list.begin(), files_list.end());
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename);
+    WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename, options.tag_filters_invert);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }

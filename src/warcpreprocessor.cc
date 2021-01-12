@@ -6,7 +6,7 @@
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -15,7 +15,8 @@ namespace warc2text {
         textBytes(0),
         langBytes(0),
         tagFilters(),
-        pdf_warc_filename(pdf_warc_filename) {
+        pdf_warc_filename(pdf_warc_filename),
+        invert(invert) {
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
         }
@@ -78,7 +79,7 @@ namespace warc2text {
             totalBytes += record.getPayload().size();
 
             int clean_retval = record.cleanPayload(tagFilters);
-            if (clean_retval == util::FILTERED_DOCUMENT_ERROR) {
+            if ((clean_retval == util::FILTERED_DOCUMENT_ERROR) != invert) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to tag filters";
                 continue;
             } else if (clean_retval == util::HTML_PARSING_ERROR) {
