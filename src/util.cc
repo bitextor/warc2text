@@ -113,9 +113,12 @@ namespace util {
             if (fields.size() < 3)
                 break;
             umap_attr_filters_regex& attrs = filters[fields.at(0)];
-            std::vector<std::regex>& values = attrs[fields.at(1)];
+            std::vector<umap_attr_regex>& values = attrs[fields.at(1)];
             for (unsigned int i = 2; i < fields.size(); ++i)
-                values.emplace_back(fields.at(i), std::regex::optimize);
+                values.push_back({
+                    .regex{fields.at(i), std::regex::optimize},
+                    .str{fields.at(i)}
+                });
         }
         f.close();
     }
