@@ -35,7 +35,6 @@ namespace warc2text {
 
             static const std::unordered_set<std::string> removeExtensions;
             static bool URLfilter(const std::string& url);
-            std::string pdf_warc_filename;
             bool invert;
 
         public:
