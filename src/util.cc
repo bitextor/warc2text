@@ -1,4 +1,5 @@
 #include "util.hh"
+#include <cstring>
 #include <fstream>
 #include <algorithm>
 #include <vector>
@@ -87,12 +88,25 @@ namespace util {
         preprocess::base64_decode(base64, output);
     }
 
+    bool isEmpty(const std::string &str) {
+        for (size_t i = 0; i < str.size(); ++i)
+            if (!std::isspace(str[i]))
+                return false;
+        return true;
+    }
+
+    bool startsWith(const std::string &str, const std::string &prefix) {
+        return str.size() >= prefix.size()
+            && std::strncmp(str.c_str(), prefix.c_str(), prefix.size()) == 0;
+    }
 
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters) {
         std::ifstream f(filename);
         std::string line;
         std::vector<std::string> fields;
         for (size_t line_i=1; std::getline(f, line); ++line_i) {
+            if (isEmpty(line) || startsWith(line, "#"))
+                continue;
             fields.clear();
             boost::algorithm::split(fields, line, [](char c){return c == '\t';});    
             if (fields.size() < 3) {
