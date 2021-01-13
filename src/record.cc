@@ -209,7 +209,11 @@ namespace warc2text {
     }
 
     bool Record::detectLanguage(){
-        return warc2text::detectLanguage(plaintext, language);
+        // return warc2text::detectLanguage(plaintext, language);
+        std::vector<LanguageDetection> result;
+        bool reliable = warc2text::detectLanguage(plaintext, result);
+        if (reliable) language = result[0].languageCode;
+        return reliable;
     }
 
     const std::string& Record::getHeaderProperty(const std::string& property) const {
