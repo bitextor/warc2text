@@ -8,6 +8,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/locale.hpp>
+#include <boost/log/trivial.hpp>
 #include <uchardet/uchardet.h>
 #include "preprocess/base64.hh"
 
@@ -91,11 +92,13 @@ namespace util {
         std::ifstream f(filename);
         std::string line;
         std::vector<std::string> fields;
-        while (std::getline(f, line)) {
+        for (size_t line_i=1; std::getline(f, line); ++line_i) {
             fields.clear();
-            boost::algorithm::split(fields, line, [](char c){return c == '\t';});
-            if (fields.size() < 3)
-                break;
+            boost::algorithm::split(fields, line, [](char c){return c == '\t';});    
+            if (fields.size() < 3) {
+                BOOST_LOG_TRIVIAL(warning) << "Could not parse tag filter at line " << line_i << " of " << filename;
+                continue;
+            }
             umap_attr_filters_regex& attrs = filters[fields.at(0)];
             std::vector<umap_attr_regex>& values = attrs[fields.at(1)];
             for (unsigned int i = 2; i < fields.size(); ++i)
