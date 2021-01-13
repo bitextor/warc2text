@@ -18,9 +18,22 @@ namespace warc2text {
         CLD2::ExtDetectLanguageSummaryCheckUTF8(text.data(), text.size(), true, &NO_HINT, 0, &top3[0], &percents[0], &scores[0], &chunks, &text_bytes, &reliable, &valid_prefix_bytes);
 
         results.clear();
+
+        if (not reliable) return reliable;
+
         results.emplace_back(CLD2::LanguageCode(top3[0]), percents[0], scores[0]);
-        results.emplace_back(CLD2::LanguageCode(top3[1]), percents[1], scores[1]);
-        results.emplace_back(CLD2::LanguageCode(top3[2]), percents[2], scores[2]);
+        if (percents[1] > 0)
+            results.emplace_back(CLD2::LanguageCode(top3[1]), percents[1], scores[1]);
+        if (percents[2] > 0)
+            results.emplace_back(CLD2::LanguageCode(top3[2]), percents[2], scores[2]);
+
+        if (results.size() == 1) return reliable;
+
+        for (const CLD2::ResultChunk& chunk : chunks) {
+            int index = chunk.lang1 == static_cast<CLD2::Language>(top3[0]) ? 0 :
+                        chunk.lang1 == static_cast<CLD2::Language>(top3[1]) ? 1 : 2;
+            results[index].chunks.emplace_back(chunk.offset, chunk.bytes);
+        }
 
         return reliable;
     }

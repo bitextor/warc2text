@@ -113,8 +113,7 @@ namespace warc2text {
             } else if (clean_retval == util::UTF8_CONVERSION_ERROR) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": utf8 conversion error";
                 continue;
-            }
-            else if (clean_retval == util::NOT_VALID_RECORD) {
+            } else if (clean_retval == util::NOT_VALID_RECORD) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": WARC or HTTP header content type not valid";
                 continue;
             }

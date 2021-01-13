@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 #include "cld2/public/compact_lang_det.h"
 #include "cld2/public/encodings.h"
 
@@ -11,6 +12,7 @@ namespace warc2text {
         std::string languageCode;
         int percent;
         double score;
+        std::vector<std::pair<std::size_t, std::size_t>> chunks; // each element is <offset, length>
 
         LanguageDetection(const std::string& lang, int percent, double score) :
             languageCode(lang),

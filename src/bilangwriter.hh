@@ -22,6 +22,7 @@ namespace warc2text {
             void open(const std::string& filename);
             void write(const char* text, std::size_t size);
             void writeLine(const char* text, std::size_t size);
+            void writeLine(const std::string& text);
             bool is_open();
             static const std::size_t BUFFER_SIZE = 4096;
     };
@@ -34,6 +35,8 @@ namespace warc2text {
             std::unordered_map<std::string, GzipWriter> text_files;
             std::unordered_map<std::string, GzipWriter> html_files;
             std::unordered_set<std::string> output_files;
+
+            void write(const std::string& lang, const std::string& b64text, const std::string& url, const std::string& mime, const std::string& b64html);
 
         public:
             explicit BilangWriter(const std::string& folder) :

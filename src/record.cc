@@ -3,7 +3,6 @@
 //
 
 #include "record.hh"
-#include "lang.hh"
 #include "html.hh"
 #include "util.hh"
 #include "entities.hh"
@@ -208,11 +207,34 @@ namespace warc2text {
         return retval;
     }
 
+    void Record::getTextByLanguageIndex(unsigned int index, std::string& out) const {
+        out.clear();
+        if (top3_langs.size() <= index) return;
+        for (const std::pair<std::size_t, std::size_t>& p : top3_langs[index].chunks) {
+            out.append(plaintext, p.first, p.second);
+        }
+    }
+
+    void Record::getLanguageByIndex(unsigned int index, std::string& out) const {
+        out.clear();
+        if (top3_langs.size() <= index) return;
+        out = top3_langs[index].languageCode;
+    }
+
+    bool Record::containsMultipleLanguages() const {
+        int n_langs = 0;
+        switch(top3_langs.size()) {
+            case 0: return false;
+            case 3: if (top3_langs[2].percent > 0) n_langs++;
+            case 2: if (top3_langs[1].percent > 0) n_langs++;
+            case 1: if (top3_langs[0].percent > 0) n_langs++;
+        }
+        return n_langs > 1;
+    }
+
     bool Record::detectLanguage(){
-        // return warc2text::detectLanguage(plaintext, language);
-        std::vector<LanguageDetection> result;
-        bool reliable = warc2text::detectLanguage(plaintext, result);
-        if (reliable) language = result[0].languageCode;
+        bool reliable = warc2text::detectLanguage(plaintext, top3_langs);
+        if (reliable) top_language = top3_langs[0].languageCode;
         return reliable;
     }
 
@@ -248,7 +270,7 @@ namespace warc2text {
     }
 
     const std::string& Record::getLanguage() const {
-        return language;
+        return top_language;
     }
 
     const std::string& Record::getURL() const {

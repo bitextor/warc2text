@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <regex>
 #include "util.hh"
+#include "lang.hh"
 
 namespace warc2text {
     class Record {
@@ -31,6 +32,10 @@ namespace warc2text {
         const std::string& getHTTPcontentType() const;
         const std::string& getCharset() const;
         bool isBroaderDocumentFormat() const;
+        bool containsMultipleLanguages() const;
+
+        void getTextByLanguageIndex(unsigned int index, std::string& out) const;
+        void getLanguageByIndex(unsigned int index, std::string& out) const;
 
         int cleanPayload();
         int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
@@ -39,12 +44,13 @@ namespace warc2text {
         static std::string readZipPayload(const std::string& content_type, const std::string& payload);
         static std::pair<std::string, bool> isPayloadZip(const std::string& content_type, const std::string& uri);
 
-            private:
+    private:
         std::unordered_map<std::string, std::string> header;
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;
         std::string plaintext;
-        std::string language;
+        std::string top_language;
+        std::vector<LanguageDetection> top3_langs;
 
         // these are present in the headers, but it's convenient to have them apart also
         std::string recordType;
