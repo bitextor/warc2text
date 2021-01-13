@@ -86,22 +86,6 @@ namespace util {
         preprocess::base64_decode(base64, output);
     }
 
-    void readTagFilters(const std::string& filename, umap_tag_filters& filters) {
-        std::ifstream f(filename);
-        std::string line;
-        std::vector<std::string> fields;
-        while (std::getline(f, line)) {
-            fields.clear();
-            boost::algorithm::split(fields, line, [](char c){return c == '\t';});
-            if (fields.size() < 3)
-                break;
-            umap_attr_filters& attrs = filters[fields.at(0)];
-            std::vector<std::string>& values = attrs[fields.at(1)];
-            for (unsigned int i = 2; i < fields.size(); ++i)
-                values.emplace_back(fields.at(i));
-        }
-        f.close();
-    }
 
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters) {
         std::ifstream f(filename);
