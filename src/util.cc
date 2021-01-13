@@ -116,7 +116,7 @@ namespace util {
             std::vector<umap_attr_regex>& values = attrs[fields.at(1)];
             for (unsigned int i = 2; i < fields.size(); ++i)
                 values.push_back({
-                    .regex{fields.at(i), std::regex::optimize},
+                    .regex{std::regex(fields.at(i), std::regex::optimize)},
                     .str{fields.at(i)}
                 });
         }
