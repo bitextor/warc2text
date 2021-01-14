@@ -210,6 +210,7 @@ namespace warc2text {
     void Record::getTextByLanguageIndex(unsigned int index, std::string& out) const {
         out.clear();
         if (top3_langs.size() <= index) return;
+        out.reserve(plaintext.size() * (top3_langs[index].percent+1));
         for (const std::pair<std::size_t, std::size_t>& p : top3_langs[index].chunks) {
             out.append(plaintext, p.first, p.second);
         }

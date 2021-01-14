@@ -30,8 +30,10 @@ namespace warc2text {
         if (results.size() == 1) return reliable;
 
         for (const CLD2::ResultChunk& chunk : chunks) {
-            int index = chunk.lang1 == static_cast<CLD2::Language>(top3[0]) ? 0 :
-                        chunk.lang1 == static_cast<CLD2::Language>(top3[1]) ? 1 : 2;
+            int index = static_cast<CLD2::Language>(chunk.lang1) == top3[0] ? 0 :
+                        static_cast<CLD2::Language>(chunk.lang1) == top3[1] ? 1 :
+                        static_cast<CLD2::Language>(chunk.lang1) == top3[2] ? 2 : 3;
+            if (index >= results.size()) continue;
             results[index].chunks.emplace_back(chunk.offset, chunk.bytes);
         }
 

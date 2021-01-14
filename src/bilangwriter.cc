@@ -104,9 +104,10 @@ namespace warc2text{
                 util::encodeBase64(record.getPayload(), base64html);
 
             for (unsigned int i = 0; i < 3; ++i) {
-                record.getTextByLanguageIndex(i, lang_text);
                 record.getLanguageByIndex(i, lang);
-                util::encodeBase64(record.getPlainText(), base64text);
+                if (lang.empty()) continue;
+                record.getTextByLanguageIndex(i, lang_text);
+                util::encodeBase64(lang_text, base64text);
                 this->write(lang, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
             }
         }
