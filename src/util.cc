@@ -1,4 +1,5 @@
 #include "util.hh"
+#include <cstring>
 #include <fstream>
 #include <algorithm>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/locale.hpp>
+#include <boost/log/trivial.hpp>
 #include <uchardet/uchardet.h>
 #include "preprocess/base64.hh"
 
@@ -86,32 +88,31 @@ namespace util {
         preprocess::base64_decode(base64, output);
     }
 
-    void readTagFilters(const std::string& filename, umap_tag_filters& filters) {
-        std::ifstream f(filename);
-        std::string line;
-        std::vector<std::string> fields;
-        while (std::getline(f, line)) {
-            fields.clear();
-            boost::algorithm::split(fields, line, [](char c){return c == '\t';});
-            if (fields.size() < 3)
-                break;
-            umap_attr_filters& attrs = filters[fields.at(0)];
-            std::vector<std::string>& values = attrs[fields.at(1)];
-            for (unsigned int i = 2; i < fields.size(); ++i)
-                values.emplace_back(fields.at(i));
-        }
-        f.close();
+    bool isEmpty(const std::string &str) {
+        for (size_t i = 0; i < str.size(); ++i)
+            if (!std::isspace(str[i]))
+                return false;
+        return true;
+    }
+
+    bool startsWith(const std::string &str, const std::string &prefix) {
+        return str.size() >= prefix.size()
+            && std::strncmp(str.c_str(), prefix.c_str(), prefix.size()) == 0;
     }
 
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters) {
         std::ifstream f(filename);
         std::string line;
         std::vector<std::string> fields;
-        while (std::getline(f, line)) {
+        for (size_t line_i=1; std::getline(f, line); ++line_i) {
+            if (isEmpty(line) || startsWith(line, "#"))
+                continue;
             fields.clear();
-            boost::algorithm::split(fields, line, [](char c){return c == '\t';});
-            if (fields.size() < 3)
-                break;
+            boost::algorithm::split(fields, line, [](char c){return c == '\t';});    
+            if (fields.size() < 3) {
+                BOOST_LOG_TRIVIAL(warning) << "Could not parse tag filter at line " << line_i << " of " << filename;
+                continue;
+            }
             umap_attr_filters_regex& attrs = filters[fields.at(0)];
             std::vector<umap_attr_regex>& values = attrs[fields.at(1)];
             for (unsigned int i = 2; i < fields.size(); ++i)
