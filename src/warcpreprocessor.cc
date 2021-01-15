@@ -67,8 +67,12 @@ namespace warc2text {
                 continue;
             }
 
-            if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
-                continue;
+            try {
+                if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
+                    continue;
+            }
+            catch (std::out_of_range& e) { continue; }
+            catch (std::invalid_argument& e) { continue; }
 
             if (!URLfilter(record.getURL()))
                 continue;
@@ -78,7 +82,13 @@ namespace warc2text {
             ++totalRecords;
             totalBytes += record.getPayload().size();
 
-            int clean_retval = record.cleanPayload(tagFilters);
+            int clean_retval;
+            try{
+                clean_retval = record.cleanPayload(tagFilters);
+            }
+            catch (std::out_of_range& e) { continue; }
+            catch (std::invalid_argument& e) { continue; }
+
             if ((clean_retval == util::FILTERED_DOCUMENT_ERROR) != invert) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to tag filters";
                 continue;

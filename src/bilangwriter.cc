@@ -31,14 +31,15 @@ namespace warc2text{
         s.avail_out = 0;
         s.next_out = buf;
         int ret = Z_OK;
-        std::size_t written = 0;
+        //std::size_t written;
         while (s.avail_out == 0) {
             s.avail_out = BUFFER_SIZE;
             s.next_out = buf;
             ret = deflate(&s, flush);
             assert(ret == Z_OK || ret == Z_STREAM_END); // Z_STREAM_END only happens if flush == Z_FINISH
             compressed = BUFFER_SIZE - s.avail_out;
-            written = std::fwrite(buf, 1, compressed, dest);
+            //written = std::fwrite(buf, 1, compressed, dest);
+            std::fwrite(buf, 1, compressed, dest);
             // TODO error handling
             // if (written != compressed || std::ferror(dest)) {
             // }
