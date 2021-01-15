@@ -57,7 +57,8 @@ namespace warc2text {
                 output_files(output_files)
             {};
 
-            void write(const Record& record);
+            void write(const Record& record, bool multilang = false);
+
     };
 
 

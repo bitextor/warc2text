@@ -233,9 +233,11 @@ namespace warc2text {
         return n_langs > 1;
     }
 
-    bool Record::detectLanguage(){
+    bool Record::detectLanguage(bool multilang){
+        if (not multilang) return warc2text::detectLanguage(plaintext, top_lang);
+
         bool reliable = warc2text::detectLanguage(plaintext, top3_langs);
-        if (reliable) top_language = top3_langs[0].languageCode;
+        if (reliable) top_lang = top3_langs[0].languageCode;
         return reliable;
     }
 
@@ -271,7 +273,7 @@ namespace warc2text {
     }
 
     const std::string& Record::getLanguage() const {
-        return top_language;
+        return top_lang;
     }
 
     const std::string& Record::getURL() const {

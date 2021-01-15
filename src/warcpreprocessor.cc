@@ -7,7 +7,7 @@
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert, bool multilang) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -17,7 +17,8 @@ namespace warc2text {
         langBytes(0),
         tagFilters(),
         pdf_warc_filename(pdf_warc_filename),
-        invert(invert) {
+        invert(invert),
+        multilang(multilang) {
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
         }
@@ -117,7 +118,6 @@ namespace warc2text {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": WARC or HTTP header content type not valid";
                 continue;
             }
-            // TODO: decide what to do with other cases?
 
             if (record.getPlainText().empty()) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": empty";
@@ -127,7 +127,7 @@ namespace warc2text {
             ++textRecords;
             textBytes += record.getPlainText().size();
 
-            reliable = record.detectLanguage();
+            reliable = record.detectLanguage(multilang);
             if (!reliable) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": language not detected";
                 continue;
@@ -136,7 +136,7 @@ namespace warc2text {
             ++langRecords;
             langBytes += record.getPlainText().size();
 
-            writer.write(record);
+            writer.write(record, multilang);
         }
         pdf_warc_writer.close();
     }

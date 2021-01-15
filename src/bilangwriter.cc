@@ -92,17 +92,16 @@ namespace warc2text{
         if (gzhtml != nullptr) gzhtml->writeLine(b64html);
     }
 
-
-    void BilangWriter::write(const Record& record) {
-        if (record.containsMultipleLanguages()) {
-            std::string lang;
-            std::string base64text;
-            std::string lang_text;
-            std::string base64html;
+    void BilangWriter::write(const Record& record, bool multilang) {
+        std::string base64text;
+        std::string base64html;
+        if (multilang) {
 
             if (output_files.count("html") == 1)
                 util::encodeBase64(record.getPayload(), base64html);
 
+            std::string lang;
+            std::string lang_text;
             for (unsigned int i = 0; i < 3; ++i) {
                 record.getLanguageByIndex(i, lang);
                 if (lang.empty()) continue;
@@ -110,16 +109,13 @@ namespace warc2text{
                 util::encodeBase64(lang_text, base64text);
                 this->write(lang, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
             }
-        }
-        else {
-            std::string lang = record.getLanguage();
-            std::string base64text;
+        } else {
             util::encodeBase64(record.getPlainText(), base64text);
-            std::string base64html;
             if (output_files.count("html") == 1)
                 util::encodeBase64(record.getPayload(), base64html);
-            this->write(lang, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
+            this->write(record.getLanguage(), base64text, record.getURL(), record.getHTTPcontentType(), base64html);
         }
     }
+
 }
 

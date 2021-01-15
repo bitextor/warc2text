@@ -39,7 +39,7 @@ namespace warc2text {
 
         int cleanPayload();
         int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
-        bool detectLanguage();
+        bool detectLanguage(bool multilang);
 
         static std::string readZipPayload(const std::string& content_type, const std::string& payload);
         static std::pair<std::string, bool> isPayloadZip(const std::string& content_type, const std::string& uri);
@@ -49,7 +49,7 @@ namespace warc2text {
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;
         std::string plaintext;
-        std::string top_language;
+        std::string top_lang;
         std::vector<LanguageDetection> top3_langs;
 
         // these are present in the headers, but it's convenient to have them apart also

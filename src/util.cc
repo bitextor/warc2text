@@ -97,7 +97,7 @@ namespace util {
             if (boost::algorithm::all(line, boost::algorithm::is_space()) || boost::algorithm::starts_with(line, "#"))
                 continue;
             fields.clear();
-            boost::algorithm::split(fields, line, [](char c){return c == '\t';});    
+            boost::algorithm::split(fields, line, [](char c){return c == '\t';});
             if (fields.size() < 3) {
                 BOOST_LOG_TRIVIAL(warning) << "Could not parse tag filter at line " << line_i << " of " << filename;
                 continue;

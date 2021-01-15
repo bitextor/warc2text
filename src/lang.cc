@@ -22,12 +22,10 @@ namespace warc2text {
         if (not reliable) return reliable;
 
         results.emplace_back(CLD2::LanguageCode(top3[0]), percents[0], scores[0]);
-        if (percents[1] > 0)
+        if (top3[1] != CLD2::UNKNOWN_LANGUAGE and percents[1] > 0)
             results.emplace_back(CLD2::LanguageCode(top3[1]), percents[1], scores[1]);
-        if (percents[2] > 0)
+        if (top3[2] != CLD2::UNKNOWN_LANGUAGE and percents[2] > 0)
             results.emplace_back(CLD2::LanguageCode(top3[2]), percents[2], scores[2]);
-
-        if (results.size() == 1) return reliable;
 
         for (const CLD2::ResultChunk& chunk : chunks) {
             int index = static_cast<CLD2::Language>(chunk.lang1) == top3[0] ? 0 :
