@@ -64,8 +64,12 @@ namespace warc2text {
                 // found a PDF file, write record to disk and continue
                 if (pdfpass) {
                     // Work-around for https://github.com/bitextor/warc2text/issues/16 for ParaCrawl
-                    // we do not really have a use case for massive PDFs at this moment.
+                    // we do not really have a use case for massive PDFs at this moment. Skip em.
                     if (content.size() >= static_cast<std::size_t>(std::numeric_limits<uInt>::max()))
+                        continue;
+                    
+                    // Work-around for std::string -> StringPiece conversion issue related to above.
+                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<decltype(StringPiece().size())>::max()))
                         continue;
 
                     if (!pdf_warc_writer.is_open())
