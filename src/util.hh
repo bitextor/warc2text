@@ -45,7 +45,7 @@ namespace util {
         std::regex regex;
         std::string str;
     } umap_attr_regex;
-    
+
     typedef std::unordered_map<std::string, std::vector<umap_attr_regex>> umap_attr_filters_regex;
     typedef std::unordered_map<std::string, umap_attr_filters_regex> umap_tag_filters_regex;
 
