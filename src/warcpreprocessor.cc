@@ -67,12 +67,8 @@ namespace warc2text {
                 continue;
             }
 
-            try {
-                if (std::stoul(record.getHeaderProperty("Content-Length")) > 5242880)
-                    continue;
-            }
-            catch (std::out_of_range& e) { continue; }
-            catch (std::invalid_argument& e) { continue; }
+            if (record.getPayload().size() > 5242880)
+                continue;
 
             if (!URLfilter(record.getURL()))
                 continue;
