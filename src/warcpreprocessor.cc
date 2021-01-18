@@ -62,12 +62,21 @@ namespace warc2text {
 
             if (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf") {
                 // found a PDF file, write record to disk and continue
-                if (pdfpass and not pdf_warc_writer.is_open()) pdf_warc_writer.open(pdf_warc_filename);
-                if (pdfpass) pdf_warc_writer.writeRecord(content);
+                if (pdfpass) {
+                    // Work-around for https://github.com/bitextor/warc2text/issues/16 for ParaCrawl
+                    // we do not really have a use case for massive PDFs at this moment.
+                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<uInt>::max()))
+                        continue;
+
+                    if (!pdf_warc_writer.is_open())
+                        pdf_warc_writer.open(pdf_warc_filename);
+                
+                    pdf_warc_writer.writeRecord(content);
+                }
                 continue;
             }
 
-            if (record.getPayload().size() > 5242880)
+            if (record.getPayload().size() > 5242880) // 5MB
                 continue;
 
             if (!URLfilter(record.getURL()))
