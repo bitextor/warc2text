@@ -1,5 +1,5 @@
 #include "zipreader.hh"
-#include <cassert>
+#include <boost/crc.hpp>
 
 namespace util {
 
@@ -45,12 +45,23 @@ size_t ZipEntry::size() const {
 }
 
 std::string ZipEntry::read(std::string &&buffer) const {
-    buffer.resize(size());
+    // Remove any lingering error state from previous reads
+    zip_error_clear(archive_.get());
+
+    // Get stats for size and checksum
+    zip_stat_t st;
+    zip_stat_init(&st);
+    zip_stat_index(archive_.get(), index_, 0, &st);
     
+    // Open pointer to file inside zip
     std::unique_ptr<zip_file_t, decltype(&zip_fclose)> fh(zip_fopen_index(archive_.get(), index_, 0), &zip_fclose);
     if (!fh)
         throw ZipReadError(zip_get_error(archive_.get()));
 
+    // Make room for uncompressed data
+    buffer.resize(st.size);
+    
+    // Read uncompressed data (in a loop in case it can't be done in one read?)
     for (size_t read = 0; read < buffer.size();) {
         auto len = zip_fread(fh.get(), &buffer[0] + read, buffer.size() - read);
 
@@ -59,7 +70,16 @@ std::string ZipEntry::read(std::string &&buffer) const {
 
         read += len;
     }
-    
+
+    // Loop condition already makes sure we read exactly buffer.size() bytes
+    // buffer.resize(read);
+
+    // Check CRC checksum
+    boost::crc_32_type crc;
+    crc.process_bytes(buffer.data(), buffer.size());
+    if (crc.checksum() != st.crc)
+        throw ZipReadError("bad CRC");
+
     return std::move(buffer);
 }
 

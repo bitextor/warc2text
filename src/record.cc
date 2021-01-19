@@ -139,10 +139,16 @@ namespace warc2text {
         
         util::ZipReader zip(payload);
 
-        for (auto file : zip)
-            if (std::regex_match(file.name(), zip_types.at(content_type)))
-                unzipped_payload += file.read();
-
+        for (auto file : zip) {
+            if (std::regex_match(file.name(), zip_types.at(content_type))) {
+                try {
+                    unzipped_payload += file.read();
+                } catch (util::ZipReadError &e) {
+                    BOOST_LOG_TRIVIAL(error) << "Could not read file " << file.name() << " from zip archive: " << e.what();
+                }
+            }
+        }
+        
         return unzipped_payload;
     }
 
