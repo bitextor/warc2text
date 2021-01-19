@@ -6,15 +6,14 @@ namespace util {
 ZipReader::ZipReader(const std::string &payload)
 : src_(nullptr, &zip_source_free), archive_() {
     zip_error_t error{};
-    src_.reset(zip_source_buffer_create(const_cast<void*>(static_cast<const void*>(payload.data())), payload.size(), 0, &error));
 
+    src_.reset(zip_source_buffer_create(const_cast<void*>(static_cast<const void*>(payload.data())), payload.size(), 0, &error));
     if (!src_)
         throw ZipReadError(&error);
 
     zip_source_keep(src_.get());
 
     archive_.reset(zip_open_from_source(src_.get(), 0, &error), zip_discard);
-
     if (!archive_)
         throw ZipReadError(&error);
 }

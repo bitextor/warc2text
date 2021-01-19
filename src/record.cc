@@ -10,7 +10,6 @@
 #include "zipreader.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <iostream>
 
 namespace warc2text {
     const std::unordered_set<std::string> Record::textContentTypes = {"text/plain", "text/html", "application/xml", "text/vnd.wap.wml", "application/atom+xml", "application/opensearchdescription+xml", "application/rss+xml", "application/xhtml+xml"};
