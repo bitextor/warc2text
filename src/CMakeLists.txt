@@ -30,6 +30,7 @@ add_library(warc2text_lib
     bilangwriter.cc
     xh_scanner.cc
     entities.cc
+    zipreader.cc
 )
 
 

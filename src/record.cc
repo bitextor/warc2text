@@ -7,9 +7,10 @@
 #include "html.hh"
 #include "util.hh"
 #include "entities.hh"
+#include "zipreader.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <zip.h>
+#include <iostream>
 
 namespace warc2text {
     const std::unordered_set<std::string> Record::textContentTypes = {"text/plain", "text/html", "application/xml", "text/vnd.wap.wml", "application/atom+xml", "application/opensearchdescription+xml", "application/rss+xml", "application/xhtml+xml"};
@@ -136,61 +137,12 @@ namespace warc2text {
 
     std::string Record::readZipPayload(const std::string& content_type, const std::string& payload){
         std::string unzipped_payload;
-        zip_source_t *src;
-        int zip_flags = 0;
-        int len;
-        int sum;
-        zip_error_t *error = nullptr;
-        bool ziperror = false;
-        char buf[100];
-        zip_t *za;
+        
+        util::ZipReader zip(payload);
 
-        if ((src = zip_source_buffer_create((void * )payload.c_str(), payload.size(), zip_flags, error)) == nullptr){
-            return "";
-        }
-
-        if ((za = zip_open_from_source(src, 0, error)) == nullptr) {
-            zip_source_free(src);
-            return "";
-        }
-
-        zip_source_keep(src);
-
-        zip_int64_t num_entries = zip_get_num_entries(za, 0);
-
-        for (zip_uint64_t i = 0; i < (zip_uint64_t)num_entries; i++) {
-            const char *name = zip_get_name(za, i, 0);
-
-            if (std::regex_match(name,zip_types.at(content_type))){
-                struct zip_stat st{};
-                zip_stat_init(&st);
-                zip_stat_index(za, i, 0, &st);
-
-
-                zip_file* f = zip_fopen_index(za, i, 0);
-                sum = 0;
-                while (sum != int(st.size)) {
-                    len = zip_fread(f, buf, 100);
-                    if (len < 0) {
-                        ziperror = true;
-                    }
-                    char subbuf[len+1];
-                    memcpy( subbuf, &buf[0], len );
-                    subbuf[len] = '\0';
-                    unzipped_payload += subbuf;
-                    sum += len;
-                }
-                zip_fclose(f);
-
-            }
-        }
-
-        if (zip_close(za) < 0 || ziperror) {
-            zip_source_free(src);
-            return "";
-        }
-
-        zip_source_free(src);
+        for (auto file : zip)
+            if (std::regex_match(file.name(), zip_types.at(content_type)))
+                unzipped_payload += file.read();
 
         return unzipped_payload;
     }
