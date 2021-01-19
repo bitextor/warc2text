@@ -69,7 +69,7 @@ namespace warc2text {
                         continue;
                     
                     // Work-around for std::string -> StringPiece conversion issue related to above.
-                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<decltype(StringPiece().size())>::max()))
+                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<decltype(util::StringPiece().size())>::max()))
                         continue;
 
                     if (!pdf_warc_writer.is_open())
