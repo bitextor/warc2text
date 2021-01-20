@@ -65,13 +65,11 @@ namespace warc2text {
                 if (pdfpass) {
                     // Work-around for https://github.com/bitextor/warc2text/issues/16 for ParaCrawl
                     // we do not really have a use case for massive PDFs at this moment. Skip em.
-                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<uInt>::max()))
+                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<uInt>::max())) {
+                        BOOST_LOG_TRIVIAL(info) << "PDF too large to compress with util::BZCompress";
                         continue;
+                    }
                     
-                    // Work-around for std::string -> StringPiece conversion issue related to above.
-                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<decltype(util::StringPiece().size())>::max()))
-                        continue;
-
                     if (!pdf_warc_writer.is_open())
                         pdf_warc_writer.open(pdf_warc_filename);
                 
