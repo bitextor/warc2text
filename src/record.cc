@@ -144,7 +144,7 @@ namespace warc2text {
                 try {
                     unzipped_payload += file.read();
                 } catch (util::ZipReadError &e) {
-                    BOOST_LOG_TRIVIAL(error) << "Could not read file " << file.name() << " from zip archive: " << e.what();
+                    BOOST_LOG_TRIVIAL(trace) << "Could not read file " << file.name() << " from zip archive: " << e.what();
                 }
             }
         }
