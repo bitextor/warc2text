@@ -61,7 +61,12 @@ namespace html {
     // html elements that are self-closing (no content)
     const std::unordered_set<std::string> voidTags ( {"!doctype", "area", "base", "br",
         "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta",
-        "param", "source", "track", "wbr"} );
+        "param", "source", "track", "wbr",
+        // ODP tags
+        "text:s", // represents a space
+        // MS Word tags
+        "w:s"
+    } );
 
     // block html elements
     // br is technically inline, but for the purposes of text extraction is should be treated as block
@@ -69,7 +74,14 @@ namespace html {
         "blockquote", "body", "br", "details", "dialog", "dd", "div", "dl", "dt",
         "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4",
         "h5", "h6", "head", "header", "hgroup", "html", "hr", "li", "main", "nav",
-        "ol", "p", "pre", "section", "table", "td", "th", "title", "tr", "ul"} );
+        "ol", "p", "pre", "section", "table", "td", "th", "title", "tr", "ul",
+        // ODT tags
+        "text:p",
+        // MS Word tags
+        "w:p",
+        // MS Powerpoint
+        "a:p"
+    } );
 
     // inline html elements
     const std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio",
@@ -78,7 +90,12 @@ namespace html {
         "ins", "kdb", "label", "map", "mark", "meter", "noscript", "object",
         "output", "picture", "progress", "q", "ruby", "s", "samp", "script",
         "select", "slot", "small", "span", "strong", "sub", "sup", "svg", "template",
-        "textarea", "time", "u", "tt", "var", "video", "wbr" });
+        "textarea", "time", "u", "tt", "var", "video", "wbr",
+        // ODT tags
+        "text:span",
+        // MS Word tags
+        "w:t", "w:r"
+    });
 
     inline bool isBlockTag(const std::string& tag) { return util::uset_contains(blockTags, tag); }
     inline bool isInlineTag(const std::string& tag) { return util::uset_contains(inlineTags, tag); }
