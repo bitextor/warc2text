@@ -42,7 +42,7 @@ namespace warc2text {
 
         std::string content;
         bool done = false;
-        bool reliable;
+        int n_langs = 0;
 
         bool pdfpass = !pdf_warc_filename.empty();
         WARCWriter pdf_warc_writer;
@@ -127,14 +127,19 @@ namespace warc2text {
             ++textRecords;
             textBytes += record.getPlainText().size();
 
-            reliable = record.detectLanguage(multilang);
-            if (!reliable) {
+            n_langs = record.detectLanguage(multilang);
+            if (n_langs == 1) {
+                langBytes += record.getPlainText().size();
+            } else if (n_langs > 1) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": multiple (" << n_langs << ") languages detected";
+                for (auto it : record.getTextByLangs())
+                    langBytes += it.second.size();
+            } else {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": language not detected";
                 continue;
             }
 
-            ++langRecords;
-            langBytes += record.getPlainText().size();
+            langRecords += n_langs;
 
             writer.write(record, multilang);
         }

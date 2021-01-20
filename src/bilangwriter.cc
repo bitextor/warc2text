@@ -100,14 +100,10 @@ namespace warc2text{
             if (output_files.count("html") == 1)
                 util::encodeBase64(record.getPayload(), base64html);
 
-            std::string lang;
-            std::string lang_text;
-            for (unsigned int i = 0; i < 3; ++i) {
-                record.getLanguageByIndex(i, lang);
-                if (lang.empty()) continue;
-                record.getTextByLanguageIndex(i, lang_text);
-                util::encodeBase64(lang_text, base64text);
-                this->write(lang, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
+            for (auto it : record.getTextByLangs()) {
+                util::encodeBase64(it.second, base64text);
+                this->write(it.first, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
+
             }
         } else {
             util::encodeBase64(record.getPlainText(), base64text);

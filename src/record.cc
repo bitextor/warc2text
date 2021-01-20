@@ -207,38 +207,15 @@ namespace warc2text {
         return retval;
     }
 
-    void Record::getTextByLanguageIndex(unsigned int index, std::string& out) const {
-        out.clear();
-        if (top3_langs.size() <= index) return;
-        out.reserve(plaintext.size() * (top3_langs[index].percent+1));
-        for (const std::pair<std::size_t, std::size_t>& p : top3_langs[index].chunks) {
-            out.append(plaintext, p.first, p.second);
-        }
+    const std::unordered_map<std::string, std::string>& Record::getTextByLangs() const {
+        return text_by_langs;
     }
 
-    void Record::getLanguageByIndex(unsigned int index, std::string& out) const {
-        out.clear();
-        if (top3_langs.size() <= index) return;
-        out = top3_langs[index].languageCode;
-    }
+    int Record::detectLanguage(bool multilang){
+        if (not multilang) return warc2text::detectLanguage(plaintext, language);
 
-    bool Record::containsMultipleLanguages() const {
-        int n_langs = 0;
-        switch(top3_langs.size()) {
-            case 0: return false;
-            case 3: if (top3_langs[2].percent > 0) n_langs++;
-            case 2: if (top3_langs[1].percent > 0) n_langs++;
-            case 1: if (top3_langs[0].percent > 0) n_langs++;
-        }
-        return n_langs > 1;
-    }
-
-    bool Record::detectLanguage(bool multilang){
-        if (not multilang) return warc2text::detectLanguage(plaintext, top_lang);
-
-        bool reliable = warc2text::detectLanguage(plaintext, top3_langs);
-        if (reliable) top_lang = top3_langs[0].languageCode;
-        return reliable;
+        bool reliable = warc2text::detectLanguage(plaintext, text_by_langs);
+        return text_by_langs.size();
     }
 
     const std::string& Record::getHeaderProperty(const std::string& property) const {
@@ -273,7 +250,7 @@ namespace warc2text {
     }
 
     const std::string& Record::getLanguage() const {
-        return top_lang;
+        return language;
     }
 
     const std::string& Record::getURL() const {

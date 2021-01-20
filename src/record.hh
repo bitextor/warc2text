@@ -32,14 +32,12 @@ namespace warc2text {
         const std::string& getHTTPcontentType() const;
         const std::string& getCharset() const;
         bool isBroaderDocumentFormat() const;
-        bool containsMultipleLanguages() const;
 
-        void getTextByLanguageIndex(unsigned int index, std::string& out) const;
-        void getLanguageByIndex(unsigned int index, std::string& out) const;
+        const std::unordered_map<std::string, std::string>& getTextByLangs() const;
 
         int cleanPayload();
         int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
-        bool detectLanguage(bool multilang);
+        int detectLanguage(bool multilang);
 
         static std::string readZipPayload(const std::string& content_type, const std::string& payload);
         static std::pair<std::string, bool> isPayloadZip(const std::string& content_type, const std::string& uri);
@@ -49,8 +47,9 @@ namespace warc2text {
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;
         std::string plaintext;
-        std::string top_lang;
-        std::vector<LanguageDetection> top3_langs;
+        std::string language;
+
+        std::unordered_map<std::string, std::string> text_by_langs;
 
         // these are present in the headers, but it's convenient to have them apart also
         std::string recordType;
