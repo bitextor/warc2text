@@ -38,7 +38,7 @@ warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ] [
 * `--output`/`-o` output folder
 * `--files`/`-f` list of output files separated by commas (and without `.gz`); `text` and `url` are always written, while `mime` and `html` are optional
 * `--pdfpass` WARC file where PDF records will be stored
-* `--tag-filters` file containing filters that to eliminate some documents
+* `--tag-filters` file containing filters that are used to eliminate matching documents
 * `--invert-tag-filters` output only documents that match the filter
 * `--verbose`/`-v` print progress and filtering information
 * `--silent`/`-s` print only warnings and errors
