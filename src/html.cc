@@ -62,6 +62,8 @@ namespace warc2text {
                     tag = util::toLowerCopy(sc.get_tag_name());
                     // found block tag: previous block has ended
                     if (html::isBlockTag(tag)) addNewLine(plaintext);
+                    // found void tag, like <img> or <embed>
+                    if (html::isVoidTag(tag)) addSpace(plaintext);
                     break;
                 case markup::scanner::TT_WORD:
                     // if the tag is in noText list, don't save the text
