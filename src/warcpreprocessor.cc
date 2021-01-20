@@ -2,6 +2,7 @@
 #include "util/compress.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <util/zipreader.hh>
 
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
@@ -95,6 +96,10 @@ namespace warc2text {
             }
             catch (std::out_of_range& e) { continue; }
             catch (std::invalid_argument& e) { continue; }
+            catch (util::ZipReadError& e) { 
+                BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to invalid zip file: " << e.what();
+                continue;
+            }
 
             if ((clean_retval == util::FILTERED_DOCUMENT_ERROR) != invert) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to tag filters";
