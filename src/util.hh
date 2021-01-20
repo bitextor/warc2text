@@ -71,7 +71,9 @@ namespace html {
         "h5", "h6", "head", "header", "hgroup", "html", "hr", "li", "main", "nav",
         "ol", "p", "pre", "section", "table", "td", "th", "title", "tr", "ul",
         // ODT tags
-        "text:p"} );
+        "text:p",
+        // MS Word tags
+        "w:p"} );
 
     // inline html elements
     const std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio",
@@ -82,7 +84,9 @@ namespace html {
         "select", "slot", "small", "span", "strong", "sub", "sup", "svg", "template",
         "textarea", "time", "u", "tt", "var", "video", "wbr",
         // ODT tags
-        "text:span" });
+        "text:span",
+        // MS Word tags
+        "w:s", "w:t", "w:r"});
 
     inline bool isBlockTag(const std::string& tag) { return util::uset_contains(blockTags, tag); }
     inline bool isInlineTag(const std::string& tag) { return util::uset_contains(inlineTags, tag); }
