@@ -1,8 +1,8 @@
 #include "warcpreprocessor.hh"
+#include "zipreader.hh"
 #include "util/compress.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <util/zipreader.hh>
 
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
