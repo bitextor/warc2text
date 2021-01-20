@@ -61,7 +61,12 @@ namespace html {
     // html elements that are self-closing (no content)
     const std::unordered_set<std::string> voidTags ( {"!doctype", "area", "base", "br",
         "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta",
-        "param", "source", "track", "wbr"} );
+        "param", "source", "track", "wbr",
+        // ODP tags
+        "text:s", // represents a space
+        // MS Word tags
+        "w:s"
+    } );
 
     // block html elements
     // br is technically inline, but for the purposes of text extraction is should be treated as block
@@ -73,7 +78,10 @@ namespace html {
         // ODT tags
         "text:p",
         // MS Word tags
-        "w:p"} );
+        "w:p",
+        // MS Powerpoint
+        "a:p"
+    } );
 
     // inline html elements
     const std::unordered_set<std::string> inlineTags ( {"a", "abbr", "acronym", "audio",
@@ -86,7 +94,8 @@ namespace html {
         // ODT tags
         "text:span",
         // MS Word tags
-        "w:s", "w:t", "w:r"});
+        "w:t", "w:r"
+    });
 
     inline bool isBlockTag(const std::string& tag) { return util::uset_contains(blockTags, tag); }
     inline bool isInlineTag(const std::string& tag) { return util::uset_contains(inlineTags, tag); }
