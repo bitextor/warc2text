@@ -48,7 +48,7 @@ namespace warc2text {
 
         while (!done) {
             done = !reader.getRecord(content);
-            if (done)
+            if (done or content.empty())
                 continue;
 
             Record record(content);
@@ -67,7 +67,7 @@ namespace warc2text {
                     // Work-around for https://github.com/bitextor/warc2text/issues/16 for ParaCrawl
                     // we do not really have a use case for massive PDFs at this moment. Skip em.
                     if (content.size() >= static_cast<std::size_t>(std::numeric_limits<uInt>::max())) {
-                        BOOST_LOG_TRIVIAL(info) << "PDF too large to compress with util::BZCompress";
+                        BOOST_LOG_TRIVIAL(info) << "PDF too large to compress with util::GZCompress";
                         continue;
                     }
                     

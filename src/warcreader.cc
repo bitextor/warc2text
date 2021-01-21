@@ -30,10 +30,11 @@ namespace warc2text {
         closeFile();
     }
 
-    bool WARCReader::getRecord(std::string& out){
+    bool WARCReader::getRecord(std::string& out, std::size_t max_size){
         int inflate_ret = 0;
         out.clear();
         std::size_t len;
+        bool skip_record = false;
         while (inflate_ret != Z_STREAM_END) {
             if (s.avail_in == 0) {
                 len = readChunk();
@@ -55,7 +56,12 @@ namespace warc2text {
                     out.clear();
                     return false;
                 }
-                out.append(scratch, scratch + (BUFFER_SIZE - s.avail_out));
+                if (not skip_record) out.append(scratch, scratch + (BUFFER_SIZE - s.avail_out));
+                if (out.size() > max_size) {
+                    BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": skipping large record";
+                    out.clear();
+                    skip_record = true;
+                }
             }
             if (inflate_ret == Z_STREAM_END) {
                 assert(inflateReset(&s) == Z_OK);
