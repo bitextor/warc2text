@@ -34,6 +34,7 @@ namespace warc2text {
             top2 = &text_by_lang[CLD2::LanguageCode(langs[1])];
             top2->reserve(text.size() * (percents[1] + 1));
         }
+
         if (langs[2] != CLD2::UNKNOWN_LANGUAGE and percents[2] > 0) {
             top3 = &text_by_lang[CLD2::LanguageCode(langs[2])];
             top3->reserve(text.size() * (percents[2] + 1));
@@ -46,6 +47,15 @@ namespace warc2text {
             if (ref == nullptr) continue;
             ref->append(text, chunk.offset, chunk.bytes);
         }
+
+        // remove empty texts from text_by_lang
+        // apparently it is possible that the reported percentage is > 0, but the language does not appear in chunks
+        for (auto it = text_by_lang.cbegin(); it != text_by_lang.cend(); ){
+            if (it->second.size() == 0) text_by_lang.erase(it++);
+            else ++it;
+        }
+
+        // TODO: do something with the scores?
 
         return reliable;
     }

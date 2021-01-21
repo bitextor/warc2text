@@ -103,8 +103,8 @@ namespace warc2text{
             for (auto it : record.getTextByLangs()) {
                 util::encodeBase64(it.second, base64text);
                 this->write(it.first, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
-
             }
+
         } else {
             util::encodeBase64(record.getPlainText(), base64text);
             if (output_files.count("html") == 1)

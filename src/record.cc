@@ -214,7 +214,7 @@ namespace warc2text {
     int Record::detectLanguage(bool multilang){
         if (not multilang) return warc2text::detectLanguage(plaintext, language);
 
-        bool reliable = warc2text::detectLanguage(plaintext, text_by_langs);
+        warc2text::detectLanguage(plaintext, text_by_langs);
         return text_by_langs.size();
     }
 
