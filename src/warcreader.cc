@@ -58,7 +58,7 @@ namespace warc2text {
                 }
                 if (not skip_record) out.append(scratch, scratch + (BUFFER_SIZE - s.avail_out));
                 if (out.size() > max_size) {
-                    BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": skipping large record";
+                    BOOST_LOG_TRIVIAL(trace) << "WARC " << warc_filename << ": skipping large record";
                     out.clear();
                     skip_record = true;
                 }
