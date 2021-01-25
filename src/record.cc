@@ -102,41 +102,41 @@ namespace warc2text {
             {"application/epub+zip",                                                      std::regex("^.*ml$")}
     };
 
-    std::pair<std::string, bool> Record::isPayloadZip(const std::string& content_type, const std::string& uri){
+    std::string Record::isPayloadZip(const std::string& content_type, const std::string& uri){
 
         if (boost::algorithm::ends_with(uri, ".odt")) {
-            return std::make_pair("application/vnd.oasis.opendocument.text", true);
+            return "application/vnd.oasis.opendocument.text";
         }
         if (boost::algorithm::ends_with(uri, ".ods")) {
-            return std::make_pair("application/vnd.oasis.opendocument.spreadsheet", true);
+            return "application/vnd.oasis.opendocument.spreadsheet";
         }
         if (boost::algorithm::ends_with(uri, ".odp")) {
-            return std::make_pair("application/vnd.oasis.opendocument.presentation", true);
+            return "application/vnd.oasis.opendocument.presentation";
         }
         if (boost::algorithm::ends_with(uri, ".docx")) {
-            return std::make_pair("application/vnd.openxmlformats-officedocument.wordprocessingml.document", true);
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
         }
         if (boost::algorithm::ends_with(uri, ".pptx")) {
-            return std::make_pair("application/vnd.openxmlformats-officedocument.presentationml.presentation", true);
+            return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
         }
         if (boost::algorithm::ends_with(uri, ".xslx")) {
-            return std::make_pair("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", true);
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         }
         if (boost::algorithm::ends_with(uri, ".epub")) {
-            return std::make_pair("application/epub+zip", true);
+            return "application/epub+zip";
         }
 
         if (zip_types.count(content_type)){
-            return std::make_pair(content_type, true);
+            return content_type;
         }
 
-        return std::make_pair(content_type, false);
+        return "";
 
     }
 
     std::string Record::readZipPayload(const std::string& content_type, const std::string& payload){
         std::string unzipped_payload;
-        
+
         util::ZipReader zip(payload);
 
         for (auto file : zip) {
@@ -148,7 +148,7 @@ namespace warc2text {
                 }
             }
         }
-        
+
         return unzipped_payload;
     }
 
@@ -177,10 +177,17 @@ namespace warc2text {
 
     int Record::cleanPayload(const util::umap_tag_filters_regex& tagFilters){
 
+        // we know for sure that HTTP content type is incorrect if it present and not text
+        bool nonTextHTTPcontentType = not cleanHTTPcontentType.empty() and textContentTypes.find(cleanHTTPcontentType) == textContentTypes.end();
+
         std::string content_type;
-        std::tie(content_type, bdf_zip) = isPayloadZip(cleanHTTPcontentType, url);
-        if (textContentTypes.find(cleanHTTPcontentType) == textContentTypes.end() && !bdf_zip)
+        content_type = isPayloadZip(cleanHTTPcontentType, url);
+        bdf_zip = !content_type.empty();
+
+        // if it is not text content type nor zipped file, we cannot extract clean text from it
+        if (nonTextHTTPcontentType and not bdf_zip)
             return util::NOT_VALID_RECORD;
+
         if (bdf_zip)
             payload = readZipPayload(content_type, payload);
 
