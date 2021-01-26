@@ -36,6 +36,7 @@ namespace warc2text {
             bool multilang;
 
             static const std::unordered_set<std::string> removeExtensions;
+            static const std::unordered_set<std::string> textContentTypes;
             static bool URLfilter(const std::string& url);
 
         public:

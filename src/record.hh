@@ -40,7 +40,7 @@ namespace warc2text {
         int detectLanguage(bool multilang);
 
         static std::string readZipPayload(const std::string& content_type, const std::string& payload);
-        static std::pair<std::string, bool> isPayloadZip(const std::string& content_type, const std::string& uri);
+        static std::string isPayloadZip(const std::string& content_type, const std::string& uri);
 
     private:
         std::unordered_map<std::string, std::string> header;
