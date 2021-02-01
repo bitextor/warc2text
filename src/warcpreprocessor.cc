@@ -62,7 +62,9 @@ namespace warc2text {
             if (record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
 
-            if (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf") {
+            // if HTTP content type is 'text/html' or something similar, don't rely on URL extension to detect unprocessed PDFs
+            // PDFs that have gone through bitextor-warc2htmlwarc.py will have URL ending in .pdf but text HTTP content type
+            if (not record.isTextFormat() and (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf")) {
                 // found a PDF file, write record to disk and continue
                 if (pdfpass) {
                     // Work-around for https://github.com/bitextor/warc2text/issues/16 for ParaCrawl
