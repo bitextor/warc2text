@@ -32,6 +32,7 @@ namespace warc2text {
         const std::string& getHTTPcontentType() const;
         const std::string& getCharset() const;
         bool isBroaderDocumentFormat() const;
+        bool isTextFormat() const;
 
         const std::unordered_map<std::string, std::string>& getTextByLangs() const;
 
