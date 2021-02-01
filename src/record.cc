@@ -278,4 +278,8 @@ namespace warc2text {
         return bdf_zip;
     }
 
+    bool Record::isTextFormat() const {
+        return textContentTypes.find(cleanHTTPcontentType) != textContentTypes.end();
+    }
+
 } // warc2text

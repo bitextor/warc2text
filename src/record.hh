@@ -31,6 +31,7 @@ namespace warc2text {
         const std::string& getHTTPcontentType() const;
         const std::string& getCharset() const;
         bool isBroaderDocumentFormat() const;
+        bool isTextFormat() const;
 
         int cleanPayload();
         int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
