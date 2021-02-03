@@ -24,6 +24,7 @@ namespace warc2text {
         bool HTTPheaderExists(const std::string& property) const;
 
         const std::string& getPayload() const;
+        void setPayload(const std::string& p);
         const std::string& getPlainText() const;
         const std::string& getLanguage() const;
         const std::string& getURL() const;
@@ -33,6 +34,7 @@ namespace warc2text {
         const std::string& getCharset() const;
         bool isBroaderDocumentFormat() const;
         bool isTextFormat() const;
+        bool isPDF() const;
 
         const std::unordered_map<std::string, std::string>& getTextByLangs() const;
 

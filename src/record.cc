@@ -4,7 +4,6 @@
 
 #include "record.hh"
 #include "html.hh"
-#include "util.hh"
 #include "entities.hh"
 #include "zipreader.hh"
 #include <boost/log/trivial.hpp>
@@ -184,7 +183,7 @@ namespace warc2text {
         bdf_zip = !content_type.empty();
 
         // if it is not text content type nor zipped file, we cannot extract clean text from it
-        if (nonTextHTTPcontentType and not bdf_zip)
+        if (nonTextHTTPcontentType and not bdf_zip and not isPDF())
             return util::NOT_VALID_RECORD;
 
         if (bdf_zip)
@@ -252,6 +251,10 @@ namespace warc2text {
         return payload;
     }
 
+    void Record::setPayload(const std::string& p) {
+        payload = p;
+    }
+
     const std::string& Record::getPlainText() const {
         return plaintext;
     }
@@ -287,5 +290,10 @@ namespace warc2text {
     bool Record::isTextFormat() const {
         return textContentTypes.find(cleanHTTPcontentType) != textContentTypes.end();
     }
+
+    bool Record::isPDF() const {
+        return (not isTextFormat() and (boost::algorithm::ends_with(url, ".pdf") or cleanHTTPcontentType == "application/pdf"));
+    }
+
 
 } // warc2text

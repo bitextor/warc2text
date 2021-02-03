@@ -15,6 +15,7 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 find_package(Boost 1.71 COMPONENTS program_options log log_setup REQUIRED)
+find_package(JNI REQUIRED)
 
 # compile executable into bin/
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -26,6 +27,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 include_directories(
         ${PROJECT_SOURCE_DIR}
         ${Boost_INCLUDE_DIR}
+        ${JNI_INCLUDE_DIRS}
 )
 
 # process subdirectories
@@ -52,6 +54,7 @@ add_executable(warc2text warc2text_main.cc)
 target_link_libraries(warc2text
     warc2text_lib
     ${Boost_LIBRARIES}
+    ${JNI_LIBRARIES}
     ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so
 )
 

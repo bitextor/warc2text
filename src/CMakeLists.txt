@@ -31,8 +31,8 @@ add_library(warc2text_lib
     xh_scanner.cc
     entities.cc
     zipreader.cc
+    pdfextract.cc
 )
-
 
 if (APPLE)
 	target_link_libraries(warc2text_lib
@@ -53,4 +53,3 @@ target_link_libraries(warc2text_lib
     ${ZLIB_LIBRARIES}
     ${uchardet_LIBRARIES}
 )
-

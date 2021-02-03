@@ -4,6 +4,7 @@
 #include "record.hh"
 #include "warcreader.hh"
 #include "bilangwriter.hh"
+#include "pdfextract.hh"
 #include "util.hh"
 #include <string>
 #include <unordered_set>
@@ -34,6 +35,8 @@ namespace warc2text {
             std::string pdf_warc_filename;
             bool invert;
             bool multilang;
+
+            util::PDFextract extractor;
 
             static const std::unordered_set<std::string> removeExtensions;
             static bool URLfilter(const std::string& url);

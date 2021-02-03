@@ -1,5 +1,6 @@
 #include "warcpreprocessor.hh"
 #include "zipreader.hh"
+#include "pdfextract.hh"
 #include "util/compress.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -79,7 +80,11 @@ namespace warc2text {
                 
                     pdf_warc_writer.writeRecord(content);
                 }
-                continue;
+                // continue;
+            }
+            if (record.isPDF()) {
+                std::string html = extractor.extract(record.getPayload());
+                record.setPayload(html);
             }
 
             if (record.getPayload().size() > 5242880) // 5MB
