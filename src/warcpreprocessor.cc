@@ -22,6 +22,7 @@ namespace warc2text {
         multilang(multilang) {
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
+            util::PDFextract::startJavaVM("/home/elsa/pdf-extract/PDFExtract-2.0.jar");
         }
 
     // true if url is good
@@ -47,6 +48,7 @@ namespace warc2text {
 
         bool pdfpass = !pdf_warc_filename.empty();
         WARCWriter pdf_warc_writer;
+        util::PDFextract extractor;
 
         while (!done) {
             done = !reader.getRecord(content);
@@ -85,6 +87,7 @@ namespace warc2text {
             if (record.isPDF()) {
                 std::string html = extractor.extract(record.getPayload());
                 record.setPayload(html);
+                // continue;
             }
 
             if (record.getPayload().size() > 5242880) // 5MB
@@ -161,6 +164,10 @@ namespace warc2text {
         BOOST_LOG_TRIVIAL(info) << "total bytes: " << totalBytes;
         BOOST_LOG_TRIVIAL(info) << "text bytes: " << textBytes;
         BOOST_LOG_TRIVIAL(info) << "lang bytes: " << langBytes;
+    }
+
+    WARCPreprocessor::~WARCPreprocessor() {
+        util::PDFextract::destroyJavaVM();
     }
 
     WARCWriter::WARCWriter() {
