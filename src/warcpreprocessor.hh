@@ -9,6 +9,18 @@
 #include <unordered_set>
 
 namespace warc2text {
+    struct WARCPreprocOptions {
+        std::string output_folder;
+        std::unordered_set<std::string> files;
+        std::string pdf_warc_filename;
+        std::string tag_filters_file;
+        bool tag_filters_invert{};
+        bool multilang{};
+        std::string pdfextract_jar;
+        std::string pdfextract_config_file;
+        std::string pdfextract_log_file;
+    };
+
     class WARCWriter {
         private:
             FILE* warc;
@@ -34,12 +46,13 @@ namespace warc2text {
             std::string pdf_warc_filename;
             bool invert;
             bool multilang;
+            bool pdfextract;
 
             static const std::unordered_set<std::string> removeExtensions;
             static bool URLfilter(const std::string& url);
 
         public:
-            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string& pdf_warc_filename = "", const std::string& tagFiltersFile = "", bool invert = false, bool multilang = false);
+            explicit WARCPreprocessor(const WARCPreprocOptions& options);
             ~WARCPreprocessor();
             void process(const std::string &filename);
             void printStatistics() const;

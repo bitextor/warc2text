@@ -13,30 +13,28 @@ using namespace warc2text;
 
 struct Options {
     std::vector<std::string> warcs;
-    std::string files;
-    std::string pdf_warc_filename;
     bool verbose{};
     bool silent{};
-    std::string output;
-    std::string tag_filters_filename;
-    bool tag_filters_invert{};
-    bool multilang{};
 };
 
-void parseArgs(int argc, char *argv[], Options& out) {
+void parseArgs(int argc, char *argv[], Options& out, WARCPreprocOptions& warc_out) {
     namespace po = boost::program_options;
     po::options_description desc("Arguments");
+    std::string files;
     desc.add_options()
         ("help,h", po::bool_switch(), "Show this help message")
-        ("output,o", po::value(&out.output)->default_value("."), "Output folder")
-        ("files,f", po::value(&out.files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
+        ("output,o", po::value(&warc_out.output_folder)->default_value("."), "Output folder")
+        ("files,f", po::value(&files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
-        ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
-        ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
-        ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
+        ("tag-filters", po::value(&warc_out.tag_filters_file), "Plain text file containing tag filters")
+        ("invert-tag-filters", po::bool_switch(&warc_out.tag_filters_invert)->default_value(false), "Invert tag filter application")
+        ("pdfpass", po::value(&warc_out.pdf_warc_filename), "Write PDF records to WARC")
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
-        ("multilang", po::bool_switch(&out.multilang)->default_value(false), "Detect multiple languages in a single record");
+        ("multilang", po::bool_switch(&warc_out.multilang)->default_value(false), "Detect multiple languages in a single record")
+        ("pdfextract", po::value(&warc_out.pdfextract_jar)->default_value(""), "path to PDFExtract-2.0.jar")
+        ("pdf_config", po::value(&warc_out.pdfextract_config_file)->default_value(""), "path to PDFExtract.json")
+        ("pdf_log", po::value(&warc_out.pdfextract_log_file)->default_value(""), "write PDFExtract log to file");
 
     po::positional_options_description pd;
     pd.add("input", -1);
@@ -57,18 +55,27 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "                                  Format: \"html_tag <tab> tag_attr <tab> regexp\"\n"
                 " --invert-tag-filters             Only output records that got filtered\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
+                " --pdfextact <jar_file>          Path to PDFExtract-2.0.jar\n"
+                " --pdf_config <config_file>       Path to PDFExtract.json config file\n"
+                " --pdf_log <log_file>             Write PDFExtract log to this file\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
     }
     po::notify(vm);
+
+    // prepare list of output files
+    std::vector<std::string> files_list;
+    boost::algorithm::split(files_list, files, [](char c) {return c == ',';});
+    warc_out.files.insert(files_list.begin(), files_list.end());
 }
 
 
 int main(int argc, char *argv[]) {
     // parse arguments
     Options options;
-    parseArgs(argc,argv, options);
+    WARCPreprocOptions warc_options;
+    parseArgs(argc,argv, options, warc_options);
 
     // configure logging
     boost::log::add_console_log(std::cerr, boost::log::keywords::format = "[%TimeStamp%] [\%Severity%] %Message%");
@@ -78,13 +85,8 @@ int main(int argc, char *argv[]) {
                                              boost::log::trivial::info;
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= verbosity_level);
 
-    // prepare list of output files
-    std::vector<std::string> files_list;
-    boost::algorithm::split(files_list, options.files, [](char c) {return c == ',';});
-    std::unordered_set<std::string> output_files(files_list.begin(), files_list.end());
-
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename, options.tag_filters_invert, options.multilang);
+    WARCPreprocessor warcpproc(warc_options);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }

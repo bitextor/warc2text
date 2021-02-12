@@ -6,13 +6,6 @@
 
 namespace util {
 
-    struct PDFextractOptions {
-        std::string pdfextract_jar;
-        std::string config_file;
-        std::string log_file;
-        bool verbose{};
-    };
-
     class PDFextract {
         private:
             JNIEnv* env;
@@ -32,7 +25,7 @@ namespace util {
             static bool getJavaVM(JavaVM **vm);
 
         public:
-            PDFextract();
+            PDFextract(const std::string& config_file, const std::string& log_file, bool verbose);
             std::string extract(const std::string& original);
 
             ~PDFextract();

@@ -19,14 +19,14 @@ namespace util {
         JNIEnv* env;
         jint res = JNI_CreateJavaVM(&jvm, (void **)&env, &args);
         if (res != JNI_OK)
-            BOOST_LOG_TRIVIAL(error) << "error creating Java Virtual Machine";
+            BOOST_LOG_TRIVIAL(error) << "PDFextract: error creating Java Virtual Machine";
     }
 
     bool PDFextract::getJavaVM(JavaVM **vm) {
         jsize created;
         jint res = JNI_GetCreatedJavaVMs(vm, 1, &created);
         if (res != JNI_OK) {
-            BOOST_LOG_TRIVIAL(error) << "error getting Java Virtual Machine";
+            BOOST_LOG_TRIVIAL(error) << "PDFextract: error getting Java Virtual Machine";
             vm = nullptr;
             return false;
         }
@@ -35,22 +35,25 @@ namespace util {
 
     void PDFextract::destroyJavaVM() {
         JavaVM *vm;
-        getJavaVM(&vm);
-        if (vm == nullptr) return;
+        bool created = getJavaVM(&vm);
+        if (not created or vm == nullptr) return;
         vm->DestroyJavaVM();
     }
 
-    PDFextract::PDFextract() {
+    PDFextract::PDFextract(const std::string& config_file, const std::string& log_file, bool verbose) {
         JavaVM* jvm;
-        getJavaVM(&jvm);
-        jint res;
-        res = jvm->GetEnv((void **) &env, JNI_VERSION_1_2);
-        exceptionOccurred();
-        if (res != JNI_OK) {
-            BOOST_LOG_TRIVIAL(error) << "error getting JNI environment";
+        bool created = getJavaVM(&jvm);
+        if (not created or jvm == nullptr) {
+            env = nullptr;
             return;
         }
-        // exceptionOccurred();
+
+        jint res;
+        res = jvm->GetEnv((void **) &env, JNI_VERSION_1_2);
+        if (res != JNI_OK) {
+            BOOST_LOG_TRIVIAL(error) << "PDFextract: error getting JNI environment";
+            return;
+        }
 
         jclass pdfextract_class = env->FindClass("pdfextract/PDFExtract");
         exceptionOccurred();
@@ -59,11 +62,11 @@ namespace util {
         jmethodID pdfextract_constructor = env->GetMethodID(pdfextract_class, "<init>", "(Ljava/lang/String;ILjava/lang/String;JLjava/lang/String;Ljava/lang/String;)V");
 
 
-        jint verbose = 0;
-        jlong timeout = 0;
+        jint verbose_param = 0;
+        jlong timeout_param = 0;
         jstring empty_jstring = env->NewStringUTF("");
 
-        jobject temp_extractor = env->NewObject(pdfextract_class, pdfextract_constructor, empty_jstring, verbose, empty_jstring, timeout, empty_jstring, empty_jstring);
+        jobject temp_extractor = env->NewObject(pdfextract_class, pdfextract_constructor, empty_jstring, verbose_param, empty_jstring, timeout_param, empty_jstring, empty_jstring);
         extractor = env->NewGlobalRef(temp_extractor);
         env->DeleteLocalRef(temp_extractor);
 
@@ -85,6 +88,7 @@ namespace util {
 
     std::string PDFextract::extract(const std::string& original) {
         std::string html = "";
+        if (env == nullptr) return html;
         //
         env->PushLocalFrame(16);
         jstring jstring_original = env->NewStringUTF(original.c_str());

@@ -8,8 +8,8 @@
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert, bool multilang) :
-        writer(outputFolder, output_files),
+    WARCPreprocessor::WARCPreprocessor(const WARCPreprocOptions& options) :
+        writer(options.output_folder, options.files),
         totalRecords(0),
         textRecords(0),
         langRecords(0),
@@ -17,12 +17,14 @@ namespace warc2text {
         textBytes(0),
         langBytes(0),
         tagFilters(),
-        pdf_warc_filename(pdf_warc_filename),
-        invert(invert),
-        multilang(multilang) {
-            if (!tagFiltersFile.empty())
-                util::readTagFiltersRegex(tagFiltersFile, tagFilters);
-            util::PDFextract::startJavaVM("/home/elsa/pdf-extract/PDFExtract-2.0.jar");
+        pdf_warc_filename(options.pdf_warc_filename),
+        invert(options.tag_filters_invert),
+        multilang(options.multilang),
+        pdfextract(not options.pdfextract_jar.empty()) {
+            if (!options.tag_filters_file.empty())
+                util::readTagFiltersRegex(options.tag_filters_file, tagFilters);
+            if (!options.pdfextract_jar.empty())
+                util::PDFextract::startJavaVM(options.pdfextract_jar);
         }
 
     // true if url is good
@@ -48,7 +50,7 @@ namespace warc2text {
 
         bool pdfpass = !pdf_warc_filename.empty();
         WARCWriter pdf_warc_writer;
-        util::PDFextract extractor;
+        util::PDFextract extractor("", "", false);
 
         while (!done) {
             done = !reader.getRecord(content);
@@ -67,27 +69,25 @@ namespace warc2text {
 
             // if HTTP content type is 'text/html' or something similar, don't rely on URL extension to detect unprocessed PDFs
             // PDFs that have gone through bitextor-warc2htmlwarc.py will have URL ending in .pdf but text HTTP content type
-            if (not record.isTextFormat() and (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf")) {
+            if (record.isPDF() and pdfpass) {
                 // found a PDF file, write record to disk and continue
-                if (pdfpass) {
-                    // Work-around for https://github.com/bitextor/warc2text/issues/16 for ParaCrawl
-                    // we do not really have a use case for massive PDFs at this moment. Skip em.
-                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<uInt>::max())) {
-                        BOOST_LOG_TRIVIAL(info) << "PDF too large to compress with util::GZCompress";
-                        continue;
-                    }
-                    
+                // Work-around for https://github.com/bitextor/warc2text/issues/16 for ParaCrawl
+                // we do not really have a use case for massive PDFs at this moment. Skip em.
+                if (content.size() >= static_cast<std::size_t>(std::numeric_limits<uInt>::max())) {
+                    BOOST_LOG_TRIVIAL(info) << "PDF too large to compress with util::GZCompress";
+                } else {
                     if (!pdf_warc_writer.is_open())
                         pdf_warc_writer.open(pdf_warc_filename);
-                
+
                     pdf_warc_writer.writeRecord(content);
                 }
-                // continue;
             }
-            if (record.isPDF()) {
+            else if (record.isPDF() and pdfextract) {
                 std::string html = extractor.extract(record.getPayload());
                 record.setPayload(html);
-                // continue;
+            }
+            else if (record.isPDF()) {
+                continue;
             }
 
             if (record.getPayload().size() > 5242880) // 5MB
@@ -107,7 +107,7 @@ namespace warc2text {
             }
             catch (std::out_of_range& e) { continue; }
             catch (std::invalid_argument& e) { continue; }
-            catch (util::ZipReadError& e) { 
+            catch (util::ZipReadError& e) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to invalid zip file: " << e.what();
                 continue;
             }
