@@ -33,8 +33,8 @@ void parseArgs(int argc, char *argv[], Options& out, WARCPreprocOptions& warc_ou
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
         ("multilang", po::bool_switch(&warc_out.multilang)->default_value(false), "Detect multiple languages in a single record")
         ("pdfextract", po::value(&warc_out.pdfextract_jar)->default_value(""), "path to PDFExtract-2.0.jar")
-        ("pdf_config", po::value(&warc_out.pdfextract_config_file)->default_value(""), "path to PDFExtract.json")
-        ("pdf_log", po::value(&warc_out.pdfextract_log_file)->default_value(""), "write PDFExtract log to file");
+        ("pdf-config", po::value(&warc_out.pdfextract_config_file)->default_value(""), "path to PDFExtract.json")
+        ("pdf-log", po::value(&warc_out.pdfextract_log_file)->default_value(""), "write PDFExtract log to file");
 
     po::positional_options_description pd;
     pd.add("input", -1);

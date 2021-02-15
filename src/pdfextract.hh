@@ -24,13 +24,20 @@ namespace util {
             bool exceptionOccurred();
             static bool getJavaVM(JavaVM **vm);
 
+            static std::string config_file;
+            static std::string log_file;
+            static long timeout;
+            static bool verbose;
+
         public:
             PDFextract(const std::string& config_file, const std::string& log_file, bool verbose);
+            PDFextract();
             std::string extract(const std::string& original);
 
             ~PDFextract();
             static void destroyJavaVM();
             static void startJavaVM(const std::string& pdfextract_jar);
+            static void setConfig(const std::string& config, const std::string& log, long timeout, bool verbose);
 
     };
 }

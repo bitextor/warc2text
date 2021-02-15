@@ -2,6 +2,11 @@
 #include <boost/log/trivial.hpp>
 
 namespace util {
+    std::string PDFextract::config_file;
+    std::string PDFextract::log_file;
+    long PDFextract::timeout;
+    bool PDFextract::verbose;
+
     void PDFextract::startJavaVM(const std::string& pdfextract_jar) {
         std::string classpath = "-Djava.class.path=" + pdfextract_jar;
         std::string debug = "-Xcheck:jni";
@@ -40,7 +45,14 @@ namespace util {
         vm->DestroyJavaVM();
     }
 
-    PDFextract::PDFextract(const std::string& config_file, const std::string& log_file, bool verbose) {
+    void PDFextract::setConfig(const std::string& config, const std::string& log, long timeout, bool verbose) {
+        PDFextract::config_file = config;
+        PDFextract::log_file = log;
+        PDFextract::timeout = timeout;
+        PDFextract::verbose = verbose;
+    }
+
+    PDFextract::PDFextract() {
         JavaVM* jvm;
         bool created = getJavaVM(&jvm);
         if (not created or jvm == nullptr) {
@@ -65,8 +77,12 @@ namespace util {
         jint verbose_param = 0;
         jlong timeout_param = 0;
         jstring empty_jstring = env->NewStringUTF("");
+        jstring config_file_jstring = env->NewStringUTF(PDFextract::config_file.c_str());
+        jstring log_file_jstring = env->NewStringUTF(PDFextract::log_file.c_str());
 
-        jobject temp_extractor = env->NewObject(pdfextract_class, pdfextract_constructor, empty_jstring, verbose_param, empty_jstring, timeout_param, empty_jstring, empty_jstring);
+        jobject temp_extractor = env->NewObject(pdfextract_class, pdfextract_constructor, log_file_jstring, JNI_TRUE, config_file_jstring, timeout_param, empty_jstring, empty_jstring);
+        env->ReleaseStringUTFChars(log_file_jstring, NULL);
+        env->ReleaseStringUTFChars(config_file_jstring, NULL);
         extractor = env->NewGlobalRef(temp_extractor);
         env->DeleteLocalRef(temp_extractor);
 
@@ -87,28 +103,26 @@ namespace util {
     }
 
     std::string PDFextract::extract(const std::string& original) {
-        std::string html = "";
         if (env == nullptr) return html;
         //
         env->PushLocalFrame(16);
-        jstring jstring_original = env->NewStringUTF(original.c_str());
-        jobject bytes_array = env->CallObjectMethod(jstring_original, get_bytes_from_string);
-        if (exceptionOccurred()) {
-            env->ReleaseStringUTFChars(jstring_original, NULL);
-            env->PopLocalFrame(NULL);
-            return html;
-        }
-        env->ReleaseStringUTFChars(jstring_original, NULL);
 
+        // create byte[] with the PDF contents
+        const jbyte* data = (jbyte*) original.data();
+        jbyteArray bytes_array = env->NewByteArray(original.size());
+        env->SetByteArrayRegion(bytes_array, 0, original.size(), a);
 
-        //
+        // create ByteArrayInputStreamObject from the byte[] data
         jobject inputstream = env->NewObject(byte_array_input_stream, bais_constructor, bytes_array);
         if (exceptionOccurred()) {
+            env->ReleaseByteArrayElements(bytes_array, data, 0);
             env->PopLocalFrame(NULL);
             return html;
         }
+        env->ReleaseByteArrayElements(bytes_array, data, 0);
 
-        //
+        // call Extract method with inputStream
+        // result is ByteArrayOutputStream object
         jint keepbrtags = 0;
         jint getperm = 0; // getperm = 1 doesn't work (bug on Java side)
         jobject baos_result = env->CallObjectMethod(extractor, extract_method, inputstream, keepbrtags, getperm);
@@ -117,7 +131,7 @@ namespace util {
             return html;
         }
 
-        //
+        // convert ByteArrayOutputStream to java string
         jstring jstring_result = (jstring) env->CallObjectMethod(baos_result, get_string_from_baos);
         if (exceptionOccurred()) {
             env->ReleaseStringUTFChars(jstring_result, NULL);
@@ -125,6 +139,7 @@ namespace util {
             return html;
         }
 
+        // convert java string to c++ string
         html = env->GetStringUTFChars(jstring_result, NULL);
         env->ReleaseStringUTFChars(jstring_result, NULL);
         env->PopLocalFrame(NULL);

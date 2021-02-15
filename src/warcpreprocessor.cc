@@ -23,8 +23,10 @@ namespace warc2text {
         pdfextract(not options.pdfextract_jar.empty()) {
             if (!options.tag_filters_file.empty())
                 util::readTagFiltersRegex(options.tag_filters_file, tagFilters);
-            if (!options.pdfextract_jar.empty())
+            if (!options.pdfextract_jar.empty()) {
                 util::PDFextract::startJavaVM(options.pdfextract_jar);
+                util::PDFextract::setConfig(options.pdfextract_config_file, options.pdfextract_log_file, 0, false);
+            }
         }
 
     // true if url is good
@@ -50,7 +52,7 @@ namespace warc2text {
 
         bool pdfpass = !pdf_warc_filename.empty();
         WARCWriter pdf_warc_writer;
-        util::PDFextract extractor("", "", false);
+        util::PDFextract extractor;
 
         while (!done) {
             done = !reader.getRecord(content);
