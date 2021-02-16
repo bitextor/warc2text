@@ -103,6 +103,7 @@ namespace util {
     }
 
     std::string PDFextract::extract(const std::string& original) {
+        std::string html;
         if (env == nullptr) return html;
         //
         env->PushLocalFrame(16);
@@ -110,16 +111,16 @@ namespace util {
         // create byte[] with the PDF contents
         const jbyte* data = (jbyte*) original.data();
         jbyteArray bytes_array = env->NewByteArray(original.size());
-        env->SetByteArrayRegion(bytes_array, 0, original.size(), a);
+        env->SetByteArrayRegion(bytes_array, 0, original.size(), data);
 
         // create ByteArrayInputStreamObject from the byte[] data
         jobject inputstream = env->NewObject(byte_array_input_stream, bais_constructor, bytes_array);
         if (exceptionOccurred()) {
-            env->ReleaseByteArrayElements(bytes_array, data, 0);
+            env->ReleaseByteArrayElements(bytes_array, env->GetByteArrayElements(bytes_array, NULL), 0);
             env->PopLocalFrame(NULL);
             return html;
         }
-        env->ReleaseByteArrayElements(bytes_array, data, 0);
+        env->ReleaseByteArrayElements(bytes_array, env->GetByteArrayElements(bytes_array, NULL), 0);
 
         // call Extract method with inputStream
         // result is ByteArrayOutputStream object
