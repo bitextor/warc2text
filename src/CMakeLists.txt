@@ -2,7 +2,17 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(warc2text_src)
 
-find_package(JNI REQUIRED)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/include")
+	set(JNI_INCLUDE_DIRS "$ENV{JAVA_HOME}/include;$ENV{JAVA_HOME}/include/darwin")
+	if(EXISTS "$ENV{JAVA_HOME}/jre/lib/server/libjvm.dylib")
+		set(JNI_LIBRARIES "$ENV{JAVA_HOME}/jre/lib/server/libjvm.dylib")
+	else()
+		set(JNI_LIBRARIES "$ENV{JAVA_HOME}/lib/server/libjvm.dylib")
+	endif()
+else()
+	find_package(JNI REQUIRED)
+endif ()
 
 find_library(uchardet_LIBRARIES uchardet
     REQUIRED
