@@ -1,6 +1,5 @@
 #include "warcpreprocessor.hh"
 #include "zipreader.hh"
-#include "pdfextract.hh"
 #include "util/compress.hh"
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -26,6 +25,7 @@ namespace warc2text {
             if (!options.pdfextract_jar.empty()) {
                 util::PDFextract::startJavaVM(options.pdfextract_jar);
                 util::PDFextract::setConfig(options.pdfextract_config_file, options.pdfextract_log_file, 0, false);
+                extractor.init();
             }
         }
 
@@ -52,7 +52,6 @@ namespace warc2text {
 
         bool pdfpass = !pdf_warc_filename.empty();
         WARCWriter pdf_warc_writer;
-        util::PDFextract extractor;
 
         while (!done) {
             done = !reader.getRecord(content);

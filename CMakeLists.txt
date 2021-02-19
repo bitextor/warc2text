@@ -14,6 +14,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
+find_package(JNI REQUIRED)
 find_package(Boost 1.71 COMPONENTS program_options log log_setup REQUIRED)
 
 # compile executable into bin/
@@ -26,6 +27,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 include_directories(
         ${PROJECT_SOURCE_DIR}
         ${Boost_INCLUDE_DIR}
+        ${JNI_INCLUDE_DIRS}
 )
 
 # process subdirectories
@@ -53,6 +55,7 @@ target_link_libraries(warc2text
     warc2text_lib
     ${Boost_LIBRARIES}
     ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so
+    ${JNI_LIBRARIES}
 )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

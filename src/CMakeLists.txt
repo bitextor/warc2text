@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(warc2text_src)
 
-find_package(JNI REQUIRED)
 
 find_library(uchardet_LIBRARIES uchardet
     REQUIRED
@@ -20,7 +19,6 @@ include_directories(
     ${ZLIB_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
     ${uchardet_INCLUDE_DIR}
-    ${JNI_INCLUDE_DIRS}
 )
 
 add_library(warc2text_lib
@@ -55,5 +53,4 @@ target_link_libraries(warc2text_lib
     ${Boost_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${uchardet_LIBRARIES}
-    ${JNI_LIBRARIES}
 )

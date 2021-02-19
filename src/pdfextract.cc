@@ -52,7 +52,7 @@ namespace util {
         PDFextract::verbose = verbose;
     }
 
-    PDFextract::PDFextract() {
+    void PDFextract::init() {
         JavaVM* jvm;
         bool created = getJavaVM(&jvm);
         if (not created or jvm == nullptr) {

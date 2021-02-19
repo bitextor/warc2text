@@ -30,8 +30,7 @@ namespace util {
             static bool verbose;
 
         public:
-            PDFextract(const std::string& config_file, const std::string& log_file, bool verbose);
-            PDFextract();
+            void init();
             std::string extract(const std::string& original);
 
             ~PDFextract();
