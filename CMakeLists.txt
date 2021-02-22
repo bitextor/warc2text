@@ -14,8 +14,19 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-find_package(JNI REQUIRED)
 find_package(Boost 1.71 COMPONENTS program_options log log_setup REQUIRED)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/include")
+	set(JNI_INCLUDE_DIRS "$ENV{JAVA_HOME}/include;$ENV{JAVA_HOME}/include/darwin")
+	if(EXISTS "$ENV{JAVA_HOME}/jre/lib/server/libjvm.dylib")
+		set(JNI_LIBRARIES "$ENV{JAVA_HOME}/jre/lib/server/libjvm.dylib")
+	else()
+		set(JNI_LIBRARIES "$ENV{JAVA_HOME}/lib/server/libjvm.dylib")
+	endif()
+else()
+	find_package(JNI REQUIRED)
+endif ()
 
 # compile executable into bin/
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

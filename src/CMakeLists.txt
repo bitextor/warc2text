@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(warc2text_src)
 
-
 find_library(uchardet_LIBRARIES uchardet
     REQUIRED
     PATHS ${UCHARDET_PATH}/lib
