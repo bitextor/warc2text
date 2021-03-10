@@ -31,21 +31,30 @@ include_directories(
 # process subdirectories
 add_subdirectory(src)
 
-if (PREPROCESS_PATH)
-    add_subdirectory(${PREPROCESS_PATH})
-    target_include_directories(warc2text_lib PUBLIC ${PREPROCESS_PATH})
-else ()
-    add_subdirectory(${CMAKE_SOURCE_DIR}/preprocess)
-    target_include_directories(warc2text_lib PUBLIC ${CMAKE_SOURCE_DIR}/preprocess)
-endif ()
+# kpu/preprocess dependency:
+if (NOT PREPROCESS_PATH)
+    # if preprocess_path is not defined, use the one in warc2text folder
+    set(PREPROCESS_PATH "${PROJECT_SOURCE_DIR}/preprocess")
+endif()
+
+if (NOT SKIP_PREPROCESS_BUILD)
+    add_subdirectory(${PREPROCESS_PATH} ${PREPROCESS_PATH}/bin)
+endif()
+
+target_include_directories(warc2text_lib PUBLIC ${PREPROCESS_PATH})
+#
 
 # build libcld2.so
 if (NOT EXISTS "${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so")
     execute_process(
-            COMMAND bash -c "export CFLAGS='-Wno-narrowing -O3' && bash compile_libs.sh"
+            COMMAND bash -c "export CFLAGS='-Wno-narrowing -O3' && export CXX='${CMAKE_CXX_COMPILER}' && bash compile_libs.sh"
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/cld2/internal
     )
 endif ()
+if (NOT EXISTS "${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so")
+    message (FATAL_ERROR "cld2 compilation failed")
+endif()
+#
 
 # define executables
 add_executable(warc2text warc2text_main.cc)
@@ -61,3 +70,4 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
             ${CMAKE_INSTALL_NAME_TOOL} -change libcld2.so ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2.so
             $<TARGET_FILE:warc2text>)
 endif()
+#
