@@ -295,5 +295,4 @@ namespace warc2text {
         return (not isTextFormat() and (boost::algorithm::ends_with(url, ".pdf") or cleanHTTPcontentType == "application/pdf"));
     }
 
-
 } // warc2text
