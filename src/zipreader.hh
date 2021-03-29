@@ -31,7 +31,7 @@ public:
     friend bool operator==(const ZipEntry& a, const ZipEntry& b) {
         return a.archive_ == b.archive_ && a.index_ == b.index_;
     };
-    
+
     friend bool operator!=(const ZipEntry& a, const ZipEntry& b) {
         return a.archive_ != b.archive_ || a.index_ != b.index_;
     };
@@ -78,7 +78,7 @@ public:
     friend bool operator==(const ZipEntryIterator& a, const ZipEntryIterator& b) {
         return a.entry_ == b.entry_;
     };
-    
+
     friend bool operator!=(const ZipEntryIterator& a, const ZipEntryIterator& b) {
         return a.entry_ != b.entry_;
     };
@@ -86,14 +86,14 @@ public:
 
 /**
  * Class to iterate over files in an in-memory zip archive.
- * 
+ *
  * Example:
- * 
+ *
  *   ZipReader reader(buffer);
  *   for (auto file : reader)
  *     if (file.name() == "something.txt")
  *       std::cerr << file.read();
- * 
+ *
  */
 class ZipReader {
 private:
@@ -110,7 +110,7 @@ public:
     const_iterator begin() const {
         return ZipEntryIterator(archive_, 0);
     }
-    
+
     const_iterator end() const {
         return ZipEntryIterator(archive_, size());
     }

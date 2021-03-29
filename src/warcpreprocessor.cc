@@ -85,10 +85,10 @@ namespace warc2text {
                         BOOST_LOG_TRIVIAL(info) << "PDF too large to compress with util::GZCompress";
                         continue;
                     }
-                    
+
                     if (!pdf_warc_writer.is_open())
                         pdf_warc_writer.open(pdf_warc_filename);
-                
+
                     pdf_warc_writer.writeRecord(content);
                 }
                 continue;
@@ -111,7 +111,7 @@ namespace warc2text {
             }
             catch (std::out_of_range& e) { continue; }
             catch (std::invalid_argument& e) { continue; }
-            catch (util::ZipReadError& e) { 
+            catch (util::ZipReadError& e) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to invalid zip file: " << e.what();
                 continue;
             }

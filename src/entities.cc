@@ -12,7 +12,7 @@
 namespace entities {
 
     // pos is the index of '&'
-    // return value is the index of ';', or the intex of the first invalid character
+    // return value is the index of ';', or the index of the first invalid character
     // return value will be std::string::npos if the entity ends without ';' at the end
     std::size_t findEntityEnd(const std::string& source, std::size_t pos) {
         bool numeric = false;

@@ -52,7 +52,7 @@ std::string ZipEntry::read(std::string &&buffer) const {
     zip_stat_t st;
     zip_stat_init(&st);
     zip_stat_index(archive_.get(), index_, 0, &st);
-    
+
     // Open pointer to file inside zip
     std::unique_ptr<zip_file_t, decltype(&zip_fclose)> fh(zip_fopen_index(archive_.get(), index_, 0), &zip_fclose);
     if (!fh)
@@ -60,7 +60,7 @@ std::string ZipEntry::read(std::string &&buffer) const {
 
     // Make room for uncompressed data
     buffer.resize(st.size);
-    
+
     // Read uncompressed data (in a loop in case it can't be done in one read?)
     for (size_t read = 0; read < buffer.size();) {
         auto len = zip_fread(fh.get(), &buffer[0] + read, buffer.size() - read);
