@@ -105,9 +105,9 @@ namespace util {
             umap_attr_filters_regex& attrs = filters[fields.at(0)];
             std::vector<umap_attr_regex>& values = attrs[fields.at(1)];
             for (unsigned int i = 2; i < fields.size(); ++i)
-                values.emplace_back(umap_attr_regex{
-                    .regex{std::regex(fields.at(i), std::regex::optimize)},
-                    .str{fields.at(i)}
+                values.emplace_back((umap_attr_regex){
+                    std::regex(fields.at(i), std::regex::optimize),
+                    fields.at(i)
                 });
         }
         f.close();
