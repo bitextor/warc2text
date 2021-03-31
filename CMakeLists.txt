@@ -14,7 +14,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-find_package(Boost 1.71 COMPONENTS program_options log log_setup REQUIRED)
+find_package(Boost 1.71 COMPONENTS program_options log log_setup regex REQUIRED)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/include")

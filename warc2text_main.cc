@@ -55,7 +55,7 @@ void parseArgs(int argc, char *argv[], Options& out, WARCPreprocOptions& warc_ou
                 "                                  Format: \"html_tag <tab> tag_attr <tab> regexp\"\n"
                 " --invert-tag-filters             Only output records that got filtered\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
-                " --pdfextact <jar_file>          Path to PDFExtract-2.0.jar\n"
+                " --pdfextact <jar_file>           Path to PDFExtract-2.0.jar\n"
                 " --pdf_config <config_file>       Path to PDFExtract.json config file\n"
                 " --pdf_log <log_file>             Write PDFExtract log to this file\n"
                 " -s                               Only output errors\n"

@@ -68,21 +68,28 @@ namespace util {
         }
 
         jclass pdfextract_class = env->FindClass("pdfextract/PDFExtract");
-        exceptionOccurred();
 
         // complete constructor:
         jmethodID pdfextract_constructor = env->GetMethodID(pdfextract_class, "<init>", "(Ljava/lang/String;ILjava/lang/String;JLjava/lang/String;Ljava/lang/String;)V");
 
-
-        jint verbose_param = 0;
+        jint verbose_param = 1;
         jlong timeout_param = 0;
         jstring empty_jstring = env->NewStringUTF("");
         jstring config_file_jstring = env->NewStringUTF(PDFextract::config_file.c_str());
         jstring log_file_jstring = env->NewStringUTF(PDFextract::log_file.c_str());
 
-        jobject temp_extractor = env->NewObject(pdfextract_class, pdfextract_constructor, log_file_jstring, JNI_TRUE, config_file_jstring, timeout_param, empty_jstring, empty_jstring);
+        jobject temp_extractor = env->NewObject(pdfextract_class, pdfextract_constructor, log_file_jstring, verbose_param, config_file_jstring, timeout_param, empty_jstring, empty_jstring);
+        if (exceptionOccurred()) {
+            BOOST_LOG_TRIVIAL(error) << "PDFExtract: error constructing PDFExtract object";
+            this->extractor = NULL;
+            env->DeleteLocalRef(temp_extractor);
+            env->ReleaseStringUTFChars(log_file_jstring, NULL);
+            env->ReleaseStringUTFChars(config_file_jstring, NULL);
+            return;
+        }
         env->ReleaseStringUTFChars(log_file_jstring, NULL);
         env->ReleaseStringUTFChars(config_file_jstring, NULL);
+
         extractor = env->NewGlobalRef(temp_extractor);
         env->DeleteLocalRef(temp_extractor);
 
@@ -99,12 +106,15 @@ namespace util {
         byte_array_output_stream = env->FindClass("java/io/ByteArrayOutputStream");
         bais_constructor = env->GetMethodID(byte_array_input_stream, "<init>", "([B)V");
         get_string_from_baos = env->GetMethodID(byte_array_output_stream, "toString", "()Ljava/lang/String;");
-        exceptionOccurred();
+
+        if (exceptionOccurred())
+            // shouldn't happen
+            BOOST_LOG_TRIVIAL(error) << "PDFExtract: something went wrong";
     }
 
     std::string PDFextract::extract(const std::string& original) {
         std::string html;
-        if (env == nullptr) return html;
+        if (env == nullptr or extractor == nullptr) return html;
         //
         env->PushLocalFrame(16);
 
