@@ -60,41 +60,58 @@ namespace warc2text{
         this->compress("\n", 1, Z_NO_FLUSH);
     }
 
+    void GzipWriter::writeLine(const std::string& text) {
+        this->compress(text.c_str(), text.size(), Z_NO_FLUSH);
+        this->compress("\n", 1, Z_NO_FLUSH);
+    }
 
     bool GzipWriter::is_open(){
         return dest != nullptr;
     }
 
-    void BilangWriter::write(const Record& record) {
-        const std::string* lang = &record.getLanguage();
-        GzipWriter* url = &url_files[*lang];
-        GzipWriter* text = &text_files[*lang];
-        GzipWriter* mime = nullptr;
-        GzipWriter* html = nullptr;
-        if (output_files.count("mime") == 1) mime = &(mime_files[*lang]);
-        if (output_files.count("html") == 1) html = &(html_files[*lang]);
-        if (!url->is_open()) {
+    void BilangWriter::write(const std::string& lang, const std::string& b64text, const std::string& url, const std::string& mime, const std::string& b64html) {
+        GzipWriter* gzurl = &url_files[lang];
+        GzipWriter* gztext = &text_files[lang];
+        GzipWriter* gzmime = nullptr;
+        GzipWriter* gzhtml = nullptr;
+        if (output_files.count("mime") == 1) gzmime = &(mime_files[lang]);
+        if (output_files.count("html") == 1) gzhtml = &(html_files[lang]);
+        if (!gzurl->is_open()) {
             // if one file does not exist, the rest shouldn't either
-            std::string path = folder + "/" + *lang;
+            std::string path = folder + "/" + lang;
             util::createDirectories(path);
-            url->open(path + "/url.gz");
-            text->open(path + "/text.gz");
-            if (mime != nullptr) mime->open(path + "/mime.gz");
-            if (html != nullptr) html->open(path + "/html.gz");
+            gzurl->open(path + "/url.gz");
+            gztext->open(path + "/text.gz");
+            if (gzmime != nullptr) gzmime->open(path + "/mime.gz");
+            if (gzhtml != nullptr) gzhtml->open(path + "/html.gz");
         }
 
-        url->writeLine(record.getURL().data(), record.getURL().size());
-        std::string base64text;
-        util::encodeBase64(record.getPlainText(), base64text);
-        text->writeLine(base64text.data(), base64text.size());
+        gzurl->writeLine(url);
+        gztext->writeLine(b64text);
+        if (gzmime != nullptr) gzmime->writeLine(mime);
+        if (gzhtml != nullptr) gzhtml->writeLine(b64html);
+    }
 
-        if (mime != nullptr)
-            mime->writeLine(record.getHTTPcontentType().data(), record.getHTTPcontentType().size());
-        if (html != nullptr) {
-            std::string base64html;
-            util::encodeBase64(record.getPayload(), base64html);
-            html->writeLine(base64html.data(), base64html.size());
+    void BilangWriter::write(const Record& record, bool multilang) {
+        std::string base64text;
+        std::string base64html;
+        if (multilang) {
+
+            if (output_files.count("html") == 1)
+                util::encodeBase64(record.getPayload(), base64html);
+
+            for (const auto& it : record.getTextByLangs()) {
+                util::encodeBase64(it.second, base64text);
+                this->write(it.first, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
+            }
+
+        } else {
+            util::encodeBase64(record.getPlainText(), base64text);
+            if (output_files.count("html") == 1)
+                util::encodeBase64(record.getPayload(), base64html);
+            this->write(record.getLanguage(), base64text, record.getURL(), record.getHTTPcontentType(), base64html);
         }
     }
+
 }
 

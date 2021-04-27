@@ -3,7 +3,6 @@
 //
 
 #include "record.hh"
-#include "lang.hh"
 #include "html.hh"
 #include "util.hh"
 #include "entities.hh"
@@ -215,8 +214,15 @@ namespace warc2text {
         return retval;
     }
 
-    bool Record::detectLanguage(){
-        return warc2text::detectLanguage(plaintext, language);
+    const std::unordered_map<std::string, std::string>& Record::getTextByLangs() const {
+        return text_by_langs;
+    }
+
+    int Record::detectLanguage(bool multilang){
+        if (not multilang) return warc2text::detectLanguage(plaintext, language);
+
+        warc2text::detectLanguage(plaintext, text_by_langs);
+        return text_by_langs.size();
     }
 
     const std::string& Record::getHeaderProperty(const std::string& property) const {

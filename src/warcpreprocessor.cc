@@ -7,7 +7,7 @@
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert, bool multilang) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -17,7 +17,8 @@ namespace warc2text {
         langBytes(0),
         tagFilters(),
         pdf_warc_filename(pdf_warc_filename),
-        invert(invert) {
+        invert(invert),
+        multilang(multilang) {
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
         }
@@ -41,7 +42,7 @@ namespace warc2text {
 
         std::string content;
         bool done = false;
-        bool reliable;
+        int n_langs = 0;
 
         bool pdfpass = !pdf_warc_filename.empty();
         WARCWriter pdf_warc_writer;
@@ -115,12 +116,10 @@ namespace warc2text {
             } else if (clean_retval == util::UTF8_CONVERSION_ERROR) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": utf8 conversion error";
                 continue;
-            }
-            else if (clean_retval == util::NOT_VALID_RECORD) {
+            } else if (clean_retval == util::NOT_VALID_RECORD) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": WARC or HTTP header content type not valid";
                 continue;
             }
-            // TODO: decide what to do with other cases?
 
             if (record.getPlainText().empty()) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": empty";
@@ -130,16 +129,21 @@ namespace warc2text {
             ++textRecords;
             textBytes += record.getPlainText().size();
 
-            reliable = record.detectLanguage();
-            if (!reliable) {
+            n_langs = record.detectLanguage(multilang);
+            if (n_langs == 1) {
+                langBytes += record.getPlainText().size();
+            } else if (n_langs > 1) {
+                BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": multiple (" << n_langs << ") languages detected";
+                for (auto it : record.getTextByLangs())
+                    langBytes += it.second.size();
+            } else {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": language not detected";
                 continue;
             }
 
-            ++langRecords;
-            langBytes += record.getPlainText().size();
+            langRecords += n_langs;
 
-            writer.write(record);
+            writer.write(record, multilang);
         }
         pdf_warc_writer.close();
     }
