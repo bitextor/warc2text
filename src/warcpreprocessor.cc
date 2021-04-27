@@ -7,7 +7,7 @@
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert, bool multilang) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert, const std::string& urlFiltersFile, bool multilang) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -16,22 +16,34 @@ namespace warc2text {
         textBytes(0),
         langBytes(0),
         tagFilters(),
+        urlFilters(),
         pdf_warc_filename(pdf_warc_filename),
         invert(invert),
         multilang(multilang) {
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
+
+            if (!urlFiltersFile.empty())
+                util::readUrlFiltersRegex(urlFiltersFile, urlFilters);
         }
 
     // true if url is good
     bool WARCPreprocessor::URLfilter(const std::string& url) {
         if (boost::algorithm::ends_with(url, "robots.txt"))
             return false;
+
         for (const std::string& ext : removeExtensions)
             if (boost::algorithm::ends_with(url, ext))
                 return false;
-        // if (url.find("google.translate") != std::string::npos)
-        //     return false;
+
+        for (auto &&filter : urlFilters) {
+            std::smatch match;
+            if (std::regex_search(url, match, filter.regex)) {
+                BOOST_LOG_TRIVIAL(debug) << "Url filter " << filter.str << " matched '" << match.str() << "' in value '" << url << "'";
+                return false;
+            }
+        }
+        
         return true;
     }
 

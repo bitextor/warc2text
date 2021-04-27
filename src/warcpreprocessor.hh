@@ -31,15 +31,16 @@ namespace warc2text {
             unsigned int textBytes;
             unsigned int langBytes;
             util::umap_tag_filters_regex tagFilters;
+            std::vector<util::umap_attr_regex> urlFilters;
             std::string pdf_warc_filename;
             bool invert;
             bool multilang;
 
             static const std::unordered_set<std::string> removeExtensions;
-            static bool URLfilter(const std::string& url);
+            bool URLfilter(const std::string& url);
 
         public:
-            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string& pdf_warc_filename = "", const std::string& tagFiltersFile = "", bool invert = false, bool multilang = false);
+            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string& pdf_warc_filename = "", const std::string& tagFiltersFile = "", bool invert = false, const std::string& urlFiltersFile = "", bool multilang = false);
             void process(const std::string &filename);
             void printStatistics() const;
     };

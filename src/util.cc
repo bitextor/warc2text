@@ -113,6 +113,25 @@ namespace util {
         f.close();
     }
 
+    void readUrlFiltersRegex(const std::string &filename, std::vector<umap_attr_regex>& filters) {
+        std::ifstream f(filename);
+        std::string line;
+        for (size_t line_i=1; std::getline(f, line); ++line_i) {
+            if (boost::algorithm::all(line, boost::algorithm::is_space()) || boost::algorithm::starts_with(line, "#"))
+                continue;
+            try {
+                filters.emplace_back((umap_attr_regex) {
+                    std::regex(line, std::regex::optimize),
+                    line
+                });
+            } catch (const std::regex_error& e) {
+                BOOST_LOG_TRIVIAL(warning) << "Coul not parse url filter at " << filename << ":" << line_i << ": " << e.what();
+                continue;
+            }
+        }
+        f.close();
+    }
+
     bool createDirectories(const std::string& path){
         if (!boost::filesystem::exists(path))
             return boost::filesystem::create_directories(path);
