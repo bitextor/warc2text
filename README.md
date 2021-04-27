@@ -40,12 +40,15 @@ warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ] [
 * `--pdfpass` WARC file where PDF records will be stored
 * `--tag-filters` file containing filters that are used to eliminate matching documents
 * `--invert-tag-filters` output only documents that match the filter
+* `--url-filters` file containing regular expressions that match urls of documents to eliminate
 * `--verbose`/`-v` print progress and filtering information
 * `--silent`/`-s` print only warnings and errors
 
-  Filter format is the following: `tag <tab> attribute <tab> regexp`
+  Tag Filter format is the following: `tag <tab> attribute <tab> regexp`
   
   For example, `meta <tab> name <tab> translation-stats` will remove documents that contain `<meta name="translation-stats" ... >`
+
+  URL Filter format is a single regular expression per line.
 
   Lines beginning with `#` and empty lines are ignored. Any invalid filter will raise a warning message, but will not prevent other filters from being read.
 

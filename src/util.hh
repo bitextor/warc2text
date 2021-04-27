@@ -51,6 +51,8 @@ namespace util {
 
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters);
 
+    void readUrlFiltersRegex(const std::string &filename, std::vector<umap_attr_regex>& filters);
+
     bool createDirectories(const std::string& path);
 }
 
