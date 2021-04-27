@@ -35,12 +35,13 @@ namespace warc2text {
             std::string pdf_warc_filename;
             bool invert;
             bool multilang;
+            bool encodeURLs;
 
             static const std::unordered_set<std::string> removeExtensions;
             bool URLfilter(const std::string& url);
 
         public:
-            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string& pdf_warc_filename = "", const std::string& tagFiltersFile = "", bool invert = false, const std::string& urlFiltersFile = "", bool multilang = false);
+            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {}, const std::string& pdf_warc_filename = "", const std::string& tagFiltersFile = "", bool invert = false, const std::string& urlFiltersFile = "", bool multilang = false, bool encodeURLs = false);
             void process(const std::string &filename);
             void printStatistics() const;
     };

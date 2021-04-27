@@ -138,4 +138,28 @@ namespace util {
         else return false; // throw exception??
     }
 
+    std::string encodeURLs(const std::string& in) {
+        std::ostringstream out;
+        out << std::hex;
+
+        for (char c : in){
+            // allowed characters
+            if (std::isalnum(c) or c == '-' or c == '.' or c == '~') {
+                out << c;
+            }
+
+            // characters with a reserved purpose
+            // should be percent-encoded when used as data within a URI, but how do we tell?
+            else if (reserved_chars_url.find(c) != std::string::npos){
+                out << c;
+            }
+
+            // characters that should always be escaped
+            else {
+                out << "%" << int(c);
+            }
+        }
+        return out.str();
+    }
+
 }
