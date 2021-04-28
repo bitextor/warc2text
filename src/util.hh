@@ -28,6 +28,9 @@ namespace util {
 
     void decodeBase64(const std::string& base64, std::string& output);
 
+    const std::string reserved_chars_url("!#$&'()*+,/:;=?[]");
+    std::string encodeURLs(const std::string& url);
+
     enum ErrorCode : int {
         SUCCESS = 0,
         HTML_PARSING_ERROR = 1,
@@ -51,12 +54,18 @@ namespace util {
 
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters);
 
+    void readUrlFiltersRegex(const std::string &filename, std::vector<umap_attr_regex>& filters);
+
     bool createDirectories(const std::string& path);
 }
 
 namespace html {
     // do not extract text from the content of these elements
-    const std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""} );
+    const std::unordered_set<std::string> noText ( {"script", "noscript", "style", ""
+        // PDFExtract
+        "method", "message", "suggestion", "canassemply", "cancopy", "canmodified",
+        "canprint", "canprintdegraded", "canfillinform", "canscreenreader"
+    } );
 
     // html elements that are self-closing (no content)
     const std::unordered_set<std::string> voidTags ( {"!doctype", "area", "base", "br",

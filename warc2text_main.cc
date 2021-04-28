@@ -56,8 +56,8 @@ void parseArgs(int argc, char *argv[], Options& out, WARCPreprocOptions& warc_ou
                 " --invert-tag-filters             Only output records that got filtered\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
                 " --pdfextact <jar_file>           Path to PDFExtract-2.0.jar\n"
-                " --pdf_config <config_file>       Path to PDFExtract.json config file\n"
-                " --pdf_log <log_file>             Write PDFExtract log to this file\n"
+                " --pdf-config <config_file>       Path to PDFExtract.json config file\n"
+                " --pdf-log <log_file>             Write PDFExtract log to this file\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
