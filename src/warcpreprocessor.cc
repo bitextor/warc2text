@@ -40,7 +40,7 @@ namespace warc2text {
         for (auto &&filter : urlFilters) {
             std::smatch match;
             if (std::regex_search(url, match, filter.regex)) {
-                BOOST_LOG_TRIVIAL(debug) << "Url filter " << filter.str << " matched '" << match.str() << "' in value '" << url << "'";
+                BOOST_LOG_TRIVIAL(info) << "Url filter " << filter.str << " matched '" << match.str() << "' in value '" << url << "'";
                 return false;
             }
         }
