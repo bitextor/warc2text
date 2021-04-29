@@ -7,7 +7,7 @@
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert, const std::string& urlFiltersFile, bool multilang) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert, const std::string& urlFiltersFile, bool multilang, bool encodeURLs) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -19,7 +19,8 @@ namespace warc2text {
         urlFilters(),
         pdf_warc_filename(pdf_warc_filename),
         invert(invert),
-        multilang(multilang) {
+        multilang(multilang),
+        encodeURLs(encodeURLs) {
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
 
@@ -85,10 +86,10 @@ namespace warc2text {
                         BOOST_LOG_TRIVIAL(info) << "PDF too large to compress with util::GZCompress";
                         continue;
                     }
-                    
+
                     if (!pdf_warc_writer.is_open())
                         pdf_warc_writer.open(pdf_warc_filename);
-                
+
                     pdf_warc_writer.writeRecord(content);
                 }
                 continue;
@@ -99,6 +100,9 @@ namespace warc2text {
 
             if (!URLfilter(record.getURL()))
                 continue;
+
+            if (encodeURLs)
+                record.encodeURL();
 
             BOOST_LOG_TRIVIAL(trace) << "Processing HTML document " << record.getURL() << "\n";
 
@@ -111,7 +115,7 @@ namespace warc2text {
             }
             catch (std::out_of_range& e) { continue; }
             catch (std::invalid_argument& e) { continue; }
-            catch (util::ZipReadError& e) { 
+            catch (util::ZipReadError& e) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to invalid zip file: " << e.what();
                 continue;
             }

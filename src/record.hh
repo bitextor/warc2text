@@ -43,6 +43,8 @@ namespace warc2text {
         static std::string readZipPayload(const std::string& content_type, const std::string& payload);
         static std::string isPayloadZip(const std::string& content_type, const std::string& uri);
 
+        void encodeURL();
+
     private:
         std::unordered_map<std::string, std::string> header;
         std::unordered_map<std::string, std::string> HTTPheader;

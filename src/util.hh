@@ -28,6 +28,9 @@ namespace util {
 
     void decodeBase64(const std::string& base64, std::string& output);
 
+    const std::string reserved_chars_url("!#$&'()*+,/:;=?[]");
+    std::string encodeURLs(const std::string& url);
+
     enum ErrorCode : int {
         SUCCESS = 0,
         HTML_PARSING_ERROR = 1,

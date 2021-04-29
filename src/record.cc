@@ -288,4 +288,8 @@ namespace warc2text {
         return textContentTypes.find(cleanHTTPcontentType) != textContentTypes.end();
     }
 
+    void Record::encodeURL() {
+        url = util::encodeURLs(url);
+    }
+
 } // warc2text
