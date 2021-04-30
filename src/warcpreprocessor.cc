@@ -16,7 +16,6 @@ namespace warc2text {
         textBytes(0),
         langBytes(0),
         tagFilters(),
-        urlFilters(),
         pdf_warc_filename(pdf_warc_filename),
         invert(invert),
         multilang(multilang),
@@ -25,7 +24,7 @@ namespace warc2text {
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
 
             if (!urlFiltersFile.empty())
-                util::readUrlFiltersRegex(urlFiltersFile, urlFilters);
+                util::readUrlFiltersRegex(urlFiltersFile, urlFilter);
         }
 
     // true if url is good
@@ -37,12 +36,9 @@ namespace warc2text {
             if (boost::algorithm::ends_with(url, ext))
                 return false;
 
-        for (auto &&filter : urlFilters) {
-            std::smatch match;
-            if (std::regex_search(url, match, filter.regex)) {
-                BOOST_LOG_TRIVIAL(info) << "Url filter " << filter.str << " matched '" << match.str() << "' in value '" << url << "'";
-                return false;
-            }
+        if (std::regex_search(url, urlFilter)) {
+            BOOST_LOG_TRIVIAL(info) << "Url filter matched '" << url << "'";
+            return false;
         }
         
         return true;
