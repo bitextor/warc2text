@@ -17,9 +17,8 @@ namespace warc2text {
         if (attr_it == tag_it->second.cend())
             return true;
         for (const util::umap_attr_regex& filter : attr_it->second){
-            std::cmatch match;
-            if (std::regex_search(value, match, filter.regex)) {
-                BOOST_LOG_TRIVIAL(debug) << "Tag filter " << tag_it->first << "[" << attr_it->first << " ~ " << filter.str << "] matched '" << match.str() << "' in value '" << value << "'";
+            if (std::regex_search(value, filter.regex)) {
+                BOOST_LOG_TRIVIAL(debug) << "Tag filter " << tag_it->first << "[" << attr_it->first << " ~ " << filter.str << "] matched '" << value << "'";
                 return false;
             }
         }

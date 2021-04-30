@@ -12,7 +12,7 @@ find_path(uchardet_INCLUDE_DIR uchardet/uchardet.h
 )
 
 find_package(ZLIB 1.2.11 REQUIRED)
-find_package( Boost 1.71 COMPONENTS locale iostreams filesystem log REQUIRED )
+find_package( Boost 1.71 COMPONENTS locale iostreams filesystem log regex REQUIRED )
 
 include_directories(
     ${ZLIB_INCLUDE_DIR}
