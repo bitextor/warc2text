@@ -7,6 +7,7 @@
 #include "util.hh"
 #include <string>
 #include <unordered_set>
+#include <boost/regex.hpp>
 
 namespace warc2text {
     class WARCWriter {
@@ -31,7 +32,7 @@ namespace warc2text {
             unsigned int textBytes;
             unsigned int langBytes;
             util::umap_tag_filters_regex tagFilters;
-            std::regex urlFilter;
+            boost::regex urlFilter;
             std::string pdf_warc_filename;
             bool invert;
             bool multilang;

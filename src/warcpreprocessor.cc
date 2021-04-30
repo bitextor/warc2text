@@ -36,7 +36,7 @@ namespace warc2text {
             if (boost::algorithm::ends_with(url, ext))
                 return false;
 
-        if (std::regex_search(url, urlFilter)) {
+        if (boost::regex_search(url, urlFilter)) {
             BOOST_LOG_TRIVIAL(info) << "Url filter matched '" << url << "'";
             return false;
         }
