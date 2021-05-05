@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <vector>
 #include <regex>
+#include <boost/regex.hpp>
 
 namespace util {
     void toLower(std::string& s);
@@ -54,7 +55,7 @@ namespace util {
 
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters);
 
-    void readUrlFiltersRegex(const std::string &filename, std::vector<umap_attr_regex>& filters);
+    void readUrlFiltersRegex(const std::string &filename, boost::regex &urlFilter);
 
     bool createDirectories(const std::string& path);
 }

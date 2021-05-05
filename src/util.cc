@@ -1,5 +1,6 @@
 #include "util.hh"
 #include <fstream>
+#include <sstream>
 #include <algorithm>
 #include <vector>
 #include <boost/filesystem.hpp>
@@ -106,30 +107,36 @@ namespace util {
             std::vector<umap_attr_regex>& values = attrs[fields.at(1)];
             for (unsigned int i = 2; i < fields.size(); ++i)
                 values.emplace_back((umap_attr_regex){
-                    std::regex(fields.at(i), std::regex::optimize),
+                    std::regex(fields.at(i), std::regex::optimize | std::regex::nosubs),
                     fields.at(i)
                 });
         }
         f.close();
     }
 
-    void readUrlFiltersRegex(const std::string &filename, std::vector<umap_attr_regex>& filters) {
+    void readUrlFiltersRegex(const std::string &filename, boost::regex &urlFilter) {
         std::ifstream f(filename);
         std::string line;
+        std::ostringstream combined;
+        bool first = true;
         for (size_t line_i=1; std::getline(f, line); ++line_i) {
             if (boost::algorithm::all(line, boost::algorithm::is_space()) || boost::algorithm::starts_with(line, "#"))
                 continue;
             try {
-                filters.emplace_back((umap_attr_regex) {
-                    std::regex(line, std::regex::optimize),
-                    line
-                });
-            } catch (const std::regex_error& e) {
-                BOOST_LOG_TRIVIAL(warning) << "Coul not parse url filter at " << filename << ":" << line_i << ": " << e.what();
+                (boost::regex(line)); // Compile, but just to test its validity.
+                if (first)
+                    first = false;
+                else
+                    combined << "|";
+                combined << "(" << line << ")";
+            } catch (const boost::regex_error& e) {
+                BOOST_LOG_TRIVIAL(warning) << "Could not parse url filter at " << filename << ":" << line_i << ": " << e.what();
                 continue;
             }
         }
         f.close();
+
+        urlFilter.assign(combined.str(), boost::regex::optimize | boost::regex::nosubs);
     }
 
     bool createDirectories(const std::string& path){
