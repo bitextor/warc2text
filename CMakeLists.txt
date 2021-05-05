@@ -55,3 +55,11 @@ target_link_libraries(warc2text
     ${Boost_LIBRARIES}
     cld2_full
 )
+
+include(GNUInstallDirs)
+
+install(TARGETS cld2_full warc2text
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
