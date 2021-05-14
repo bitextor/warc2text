@@ -44,16 +44,8 @@ endif()
 target_include_directories(warc2text_lib PUBLIC ${PREPROCESS_PATH})
 #
 
-# build libcld2.so
-if (NOT EXISTS "${PROJECT_SOURCE_DIR}/cld2/internal/libcld2_full.so")
-    execute_process(
-            COMMAND bash -c "export CFLAGS='-Wno-narrowing -O3' && export CXX='${CMAKE_CXX_COMPILER}' && bash compile_libs.sh"
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/cld2/internal
-    )
-endif ()
-if (NOT EXISTS "${PROJECT_SOURCE_DIR}/cld2/internal/libcld2_full.so")
-    message (FATAL_ERROR "cld2 compilation failed")
-endif()
+# add libcld2.so
+add_subdirectory(cld2)
 #
 
 # define executables
@@ -61,13 +53,13 @@ add_executable(warc2text warc2text_main.cc)
 target_link_libraries(warc2text
     warc2text_lib
     ${Boost_LIBRARIES}
-    ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2_full.so
+    cld2_full
 )
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    add_custom_command(TARGET warc2text
-            POST_BUILD COMMAND
-            ${CMAKE_INSTALL_NAME_TOOL} -change libcld2_full.so ${PROJECT_SOURCE_DIR}/cld2/internal/libcld2_full.so
-            $<TARGET_FILE:warc2text>)
-endif()
-#
+include(GNUInstallDirs)
+
+install(TARGETS cld2_full warc2text
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
