@@ -27,7 +27,7 @@ namespace warc2text {
             // normalize header keys case
             util::toLower(line);
             header[line] = content.substr(last_pos, pos - last_pos);
-            util::toLower(header[line]);
+            // util::toLower(header[line]);
             last_pos = pos + 2;
             pos = content.find(':', last_pos);
         }
@@ -53,17 +53,27 @@ namespace warc2text {
 
         // get the most important stuff:
         // TODO: check for mandatory header fields
-        if (header.count("warc-type") == 1)
+        if (header.count("warc-type") == 1) {
             recordType = header["warc-type"];
+            util::toLower(recordType);
+        }
 
-        if (header.count("warc-target-uri") == 1)
+        if (header.count("warc-target-uri") == 1) {
+            // only lowercase the domain part of the URL
+            // lowercasing everything might cause problems with deferred crawling
             url = header["warc-target-uri"];
+            std::size_t domain_start = url.find("://"); // find https:// or http://
+            std::size_t domain_end = url.find("/", domain_start+3);
+            url = util::toLowerCopy(url.substr(0, domain_end + 1)) + url.substr(domain_end+1);
+        }
 
         if (!url.empty() && url[0] == '<' && url[url.size()-1] == '>')
             url = url.substr(1, url.size()-2);
 
-        if (header.count("content-type") == 1)
+        if (header.count("content-type") == 1) {
             WARCcontentType = header["content-type"];
+            util::toLower(WARCcontentType);
+        }
 
         payload_start = last_pos;
         if (header["warc-type"] == "response") {
@@ -155,9 +165,9 @@ namespace warc2text {
         // we assume the format is either "A/B; charset=C" or just "A/B"
         std::size_t delim = HTTPcontentType.find(';');
         if (delim == std::string::npos)
-            cleanHTTPcontentType = HTTPcontentType;
+            cleanHTTPcontentType = util::toLowerCopy(HTTPcontentType);
         else {
-            cleanHTTPcontentType = HTTPcontentType.substr(0, delim);
+            cleanHTTPcontentType = util::toLowerCopy(HTTPcontentType.substr(0, delim));
             delim = HTTPcontentType.find("charset=");
             if (delim != std::string::npos) {
                 // cut until next ';' or until the end otherwise
