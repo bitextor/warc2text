@@ -59,12 +59,8 @@ namespace warc2text {
         }
 
         if (header.count("warc-target-uri") == 1) {
-            // only lowercase the domain part of the URL
-            // lowercasing everything might cause problems with deferred crawling
+            // respect the original casing
             url = header["warc-target-uri"];
-            std::size_t domain_start = url.find("://"); // find https:// or http://
-            std::size_t domain_end = url.find("/", domain_start+3);
-            url = util::toLowerCopy(url.substr(0, domain_end + 1)) + url.substr(domain_end+1);
         }
 
         if (!url.empty() && url[0] == '<' && url[url.size()-1] == '>')
