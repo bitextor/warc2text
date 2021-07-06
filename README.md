@@ -26,9 +26,10 @@ brew install uchardet libzip
 ```
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_INSTALL_PREFIX=/your/prefix/path ..
 # cmake .. -DCMAKE_BUILD_TYPE=Debug # for debug
-make
+make -j
+make install
 ```
 
 ## Usage
