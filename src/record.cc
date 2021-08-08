@@ -205,17 +205,26 @@ namespace warc2text {
         // throw out documents if we don't know the charset
         else return util::UNKNOWN_ENCODING_ERROR;
 
+        bool needToConvert = !(charset == "utf8" or charset == "utf-8" or charset == "ascii");
+        bool isPlainText = cleanHTTPcontentType == "text/plain";
+        
+        int retval = util::SUCCESS;
+
         // remove HTML tags:
-        int retval = processHTML(payload, extracted, tagFilters);
+        if (isPlainText)
+            util::trimLinesCopy(payload, extracted);
+        else
+            retval = processHTML(payload, extracted, tagFilters);
 
         // convert to utf8 if needed:
-        bool needToConvert = !(charset == "utf8" or charset == "utf-8" or charset == "ascii");
-        if (needToConvert) {
+        if (needToConvert)
             extracted = util::toUTF8(extracted, charset);
-        }
 
         // decode HTML entities:
-        entities::decodeEntities(extracted, plaintext);
+        if (isPlainText)
+            plaintext = extracted;
+        else
+            entities::decodeEntities(extracted, plaintext);
 
         return retval;
     }
