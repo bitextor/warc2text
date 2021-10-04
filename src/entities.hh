@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <unordered_map>
+#include <string>
 
 namespace entities {
     void decodeEntities(const std::string& source, std::string& target);

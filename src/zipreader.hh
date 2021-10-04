@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <string>
 #include <memory>
 #include <zip.h>
