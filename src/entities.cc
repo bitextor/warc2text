@@ -6,6 +6,7 @@
 
 #include <string>
 #include <algorithm>
+#include <stdexcept>
 
 #define UNICODE_MAX 0x10FFFFul
 
@@ -74,10 +75,16 @@ namespace entities {
                 hex = ((pos+2 < end_pos) and (source[pos+2] == 'x' or source[pos+2] == 'X'));
                 len = end_pos - pos - (hex ? 3 : 2);
                 pos = pos + (hex ? 3 : 2);
-                entity_code = std::stoul(source.substr(pos, len), tail, hex ? 16 : 10);
-                if (*tail == len and entity_code <= UNICODE_MAX)
-                    target.append(get_dec_entity(entity_code));
-                ++end_pos;
+		try{
+	                entity_code = std::stoul(source.substr(pos, len), tail, hex ? 16 : 10);
+	                if (*tail == len and entity_code <= UNICODE_MAX)
+	                    target.append(get_dec_entity(entity_code));
+	                ++end_pos;
+		} catch (std::invalid_argument const& ex){
+			// invalid numeric entity code
+			// append the the consumed chars
+			target.append(source, pos, end_pos-pos);
+		}
             }
             else { // proper named entity
                 it = named_entities.find(source.substr(pos+1, end_pos-pos-1));
