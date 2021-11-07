@@ -2,7 +2,6 @@
 	path = preprocess
 	url = https://github.com/kpu/preprocess.git
     ignore = dirty
-[submodule "cld2"]
-	path = cld2
-	url = https://github.com/bitextor/cld2.git
-    ignore = dirty
+[submodule "fasttext"]
+	path = fasttext
+	url = https://github.com/facebookresearch/fastText.git

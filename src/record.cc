@@ -4,6 +4,7 @@
 
 #include "record.hh"
 #include "html.hh"
+#include "lang.hh"
 #include "util.hh"
 #include "entities.hh"
 #include "zipreader.hh"
@@ -233,10 +234,8 @@ namespace warc2text {
         return text_by_langs;
     }
 
-    int Record::detectLanguage(bool multilang){
-        if (not multilang) return warc2text::detectLanguage(plaintext, language);
-
-        warc2text::detectLanguage(plaintext, text_by_langs);
+    std::size_t Record::detectLanguage(const LanguageDetector &langid) {
+        langid.detect(plaintext, text_by_langs);
         return text_by_langs.size();
     }
 

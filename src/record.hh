@@ -9,9 +9,10 @@
 #include <unordered_map>
 #include <regex>
 #include "util.hh"
-#include "lang.hh"
 
 namespace warc2text {
+    class LanguageDetector;
+
     class Record {
     public:
         Record() {};
@@ -38,7 +39,7 @@ namespace warc2text {
 
         int cleanPayload();
         int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
-        int detectLanguage(bool multilang);
+        std::size_t detectLanguage(const LanguageDetector &langid);
 
         static std::string readZipPayload(const std::string& content_type, const std::string& payload);
         static std::string isPayloadZip(const std::string& content_type, const std::string& uri);

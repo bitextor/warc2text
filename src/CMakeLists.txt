@@ -52,5 +52,6 @@ target_link_libraries(warc2text_lib
     ${Boost_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${uchardet_LIBRARIES}
+    fasttext-static
 )
-
+target_include_directories(warc2text_lib PRIVATE ../fasttext/src)

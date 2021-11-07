@@ -1,18 +1,29 @@
 #ifndef WARC2TEXT_LANG_HH
 #define WARC2TEXT_LANG_HH
 
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <utility>
-#include "cld2/public/compact_lang_det.h"
-#include "cld2/public/encodings.h"
+
+namespace fasttext {
+class FastText;
+} // namespace fasttext
 
 namespace warc2text {
-    // detect language of plain text, return top 3 languages
-    bool detectLanguage(const std::string& text, std::unordered_map<std::string, std::string>& chunks);
 
-    // detect top language of plain text
-    bool detectLanguage(const std::string& text, std::string& lang);
-}
+class LanguageDetector {
+  public:
+    explicit LanguageDetector(const std::string &filename);
+
+    ~LanguageDetector();
+
+    // detect language of plain text, return top languages
+    bool detect(const std::string& text, std::unordered_map<std::string, std::string>& chunks) const;
+
+  private:
+    std::unique_ptr<fasttext::FastText> classifier_;
+};
+
+} // namespace warc2text
 
 #endif

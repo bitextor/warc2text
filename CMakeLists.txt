@@ -45,7 +45,7 @@ target_include_directories(warc2text_lib PUBLIC ${PREPROCESS_PATH})
 #
 
 # add libcld2.so
-add_subdirectory(cld2)
+add_subdirectory(fasttext)
 #
 
 # define executables
@@ -53,12 +53,11 @@ add_executable(warc2text warc2text_main.cc)
 target_link_libraries(warc2text
     warc2text_lib
     ${Boost_LIBRARIES}
-    cld2_full
 )
 
 include(GNUInstallDirs)
 
-install(TARGETS cld2_full warc2text
+install(TARGETS warc2text
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}

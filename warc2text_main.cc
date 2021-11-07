@@ -21,7 +21,7 @@ struct Options {
     std::string tag_filters_filename;
     bool tag_filters_invert{};
     std::string url_filters_filename;
-    bool multilang{};
+    std::string langid_model;
     bool encodeURLs{};
 };
 
@@ -31,6 +31,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
     desc.add_options()
         ("help,h", po::bool_switch(), "Show this help message")
         ("output,o", po::value(&out.output)->default_value("."), "Output folder")
+        ("langid-model,m", po::value(&out.langid_model)->required(), "Fasttext model to use for language classification")
         ("files,f", po::value(&out.files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
@@ -39,7 +40,6 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
-        ("multilang", po::bool_switch(&out.multilang)->default_value(false), "Detect multiple languages in a single record")
         ("encode-urls", po::bool_switch(&out.encodeURLs)->default_value(false), "Encode URLs obtained from WARC records");
 
     po::positional_options_description pd;
@@ -55,8 +55,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " -f <output_files>                List of output files separated by commas\n"
                 "                                  Default (mandatory): \"url,text\"\n"
                 "                                  Optional values: \"mime,html\"\n"
-                " --multilang                      Detect multiple languages in documents (up to 3),\n"
-                "                                  write as many text records as languages detected\n"
+                " --langid-model                   Path to langid model (for fasttext)\n"
                 " --tag-filters <filters_files>    File containing html tag filters\n"
                 "                                  Format: \"html_tag <tab> tag_attr <tab> regexp\"\n"
                 " --invert-tag-filters             Only output records that got filtered\n"
@@ -91,7 +90,7 @@ int main(int argc, char *argv[]) {
     std::unordered_set<std::string> output_files(files_list.begin(), files_list.end());
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename, options.tag_filters_invert, options.url_filters_filename, options.multilang, options.encodeURLs);
+    WARCPreprocessor warcpproc(options.output, options.langid_model, output_files, options.pdf_warc_filename, options.tag_filters_filename, options.tag_filters_invert, options.url_filters_filename, options.encodeURLs);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }
