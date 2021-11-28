@@ -4,8 +4,6 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
-#include <sstream>
 
 namespace warc2text {
 
@@ -34,8 +32,6 @@ bool LanguageDetector::detect(const std::string& text, std::unordered_map<std::s
   }
   label.erase(0, sizeof(kLabelPrefix) - 1);
 
-  std::cout << "LABEL " << label << ' ' << predictions[0].first << ' ';
-  std::cout << text << '\n';
   // For better or worse, we're currently doing everything as one chunk.
   chunks[label] = text;
   return true;
