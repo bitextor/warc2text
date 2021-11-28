@@ -18,27 +18,27 @@ LanguageDetector::~LanguageDetector() {}
 
 const char kLabelPrefix[] = "__label__";
 
-bool LanguageDetector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
+bool LanguageDetector::detect(const std::string& text, std::unordered_map<std::string, std::string>& chunks) const {
   const float kThreshold = 0.5f;
-  std::vector<std::pair<fasttext::real, std::string> > predictions;
-  // TODO eliminate this copy by refactoring fastText
-  std::stringstream stream(text);
-  std::size_t begin_offset = 0;
-  while (classifier_->predictLine(stream, predictions, 1, kThreshold)) {
-    std::size_t end_offset = stream.tellg();
-    if (!predictions.empty()) {
-      // Labels look like __label__eng
-      const std::string &label = predictions[0].second;
-      if (strncmp(label.c_str(), kLabelPrefix, sizeof(kLabelPrefix) - 1)) {
-        std::cerr << "Was expecting text classifier labels to begin with " << kLabelPrefix << " but they look like " << label << std::endl;
-        std::abort();
-      }
-      std::string actual_label(label.data() + sizeof(kLabelPrefix) - 1, label.size() - (sizeof(kLabelPrefix) - 1));
-      text_by_lang[actual_label].append(text.data() + begin_offset, text.data() + end_offset);
-    }
-    begin_offset = end_offset;
+  std::vector<int32_t> words, labels;
+  classifier_->getDictionary()->getStringNoNewline(text, words, labels);
+  fasttext::Predictions predictions;
+  classifier_->predict(1, words, predictions, kThreshold);
+  if (predictions.empty()) return false;
+
+  // Labels look like __label__eng
+  std::string label = classifier_->getDictionary()->getLabel(predictions[0].second);
+  if (strncmp(label.c_str(), kLabelPrefix, sizeof(kLabelPrefix) - 1)) {
+    std::cerr << "Was expecting text classifier labels to begin with " << kLabelPrefix << " but they look like " << label << std::endl;
+    std::abort();
   }
-  return !text_by_lang.empty();
+  label.erase(0, sizeof(kLabelPrefix) - 1);
+
+  std::cout << "LABEL " << label << ' ' << predictions[0].first << ' ';
+  std::cout << text << '\n';
+  // For better or worse, we're currently doing everything as one chunk.
+  chunks[label] = text;
+  return true;
 }
 
 } // namespace warc2text

@@ -4,4 +4,4 @@
     ignore = dirty
 [submodule "fasttext"]
 	path = fasttext
-	url = https://github.com/facebookresearch/fastText.git
+	url = https://github.com/kpuatfb/fastText.git
