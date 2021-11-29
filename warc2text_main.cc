@@ -15,6 +15,7 @@ struct Options {
     std::vector<std::string> warcs;
     std::string files;
     std::string pdf_warc_filename;
+    bool paragraph_identification{};
     bool verbose{};
     bool silent{};
     std::string output;
@@ -37,6 +38,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
         ("url-filters", po::value(&out.url_filters_filename), "Plain text file containing url filters")
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
+        ("paragraph-identification", po::bool_switch(&out.paragraph_identification)->default_value(false), "Add paragraph index in each b64encoded document as tab separated column")
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
         ("multilang", po::bool_switch(&out.multilang)->default_value(false), "Detect multiple languages in a single record")
@@ -64,6 +66,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "                                  Format: \"regexp\"\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
                 " --encode-urls                    Encode URLs obtained from WARC records\n"
+                " --paragraph-identification       Add paragraph index in each b64encoded document\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
@@ -91,7 +94,9 @@ int main(int argc, char *argv[]) {
     std::unordered_set<std::string> output_files(files_list.begin(), files_list.end());
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename, options.tag_filters_invert, options.url_filters_filename, options.multilang, options.encodeURLs);
+    WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename,
+                               options.tag_filters_invert, options.url_filters_filename, options.multilang,
+                               options.encodeURLs, options.paragraph_identification);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }

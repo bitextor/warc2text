@@ -1,6 +1,7 @@
 #include "bilangwriter.hh"
 #include "util.hh"
 #include <cassert>
+#include <string>
 
 namespace warc2text{
 
@@ -92,23 +93,49 @@ namespace warc2text{
         if (gzhtml != nullptr) gzhtml->writeLine(b64html);
     }
 
-    void BilangWriter::write(const Record& record, bool multilang) {
+    std::string get_paragraph_id(const std::string& text) {
+        std::string result = "";
+        std::vector<std::string> lines = util::split(text, "\n");
+
+        for (size_t i = 0; i < lines.size(); ++i) {
+            result += lines[i] + "\t" + std::to_string(i) + "\n";
+        }
+
+        return result;
+    }
+
+    void BilangWriter::write(const Record& record, bool multilang, bool paragraph_identification) {
         std::string base64text;
         std::string base64html;
+
         if (multilang) {
 
             if (output_files.count("html") == 1)
                 util::encodeBase64(record.getPayload(), base64html);
 
             for (const auto& it : record.getTextByLangs()) {
-                util::encodeBase64(it.second, base64text);
+                std::string payload = it.second;
+
+                if (paragraph_identification) {
+                    payload = get_paragraph_id(payload);
+                }
+
+                util::encodeBase64(payload, base64text);
                 this->write(it.first, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
             }
 
         } else {
-            util::encodeBase64(record.getPlainText(), base64text);
+            std::string payload = record.getPlainText();
+
+            if (paragraph_identification) {
+                payload = get_paragraph_id(payload);
+            }
+
+            util::encodeBase64(payload, base64text);
+
             if (output_files.count("html") == 1)
                 util::encodeBase64(record.getPayload(), base64html);
+
             this->write(record.getLanguage(), base64text, record.getURL(), record.getHTTPcontentType(), base64html);
         }
     }
