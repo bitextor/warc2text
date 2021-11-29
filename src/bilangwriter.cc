@@ -97,6 +97,10 @@ namespace warc2text{
         std::string result = "";
         std::vector<std::string> lines = util::split(text, "\n");
 
+        while (lines[lines.size() - 1] == "\n") {
+            lines.pop_back();
+        }
+
         for (size_t i = 0; i < lines.size(); ++i) {
             result += lines[i] + "\t" + std::to_string(i) + "\n";
         }
