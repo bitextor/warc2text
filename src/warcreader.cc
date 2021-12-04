@@ -16,7 +16,7 @@ namespace warc2text {
         s.avail_in = 0;
         s.next_in = buf;
 
-        if (!(inflateInit2(&s, 32) != Z_OK)) {
+        if (inflateInit2(&s, 32) != Z_OK) {
           BOOST_LOG_TRIVIAL(error) << "Failed to init zlib";
           abort();
         }
