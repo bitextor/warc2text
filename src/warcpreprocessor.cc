@@ -5,9 +5,13 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
-    const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3", ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
+    const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3",
+                                                                                ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files, const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert, const std::string& urlFiltersFile, bool multilang, bool encodeURLs) :
+    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files,
+                                       const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert,
+                                       const std::string& urlFiltersFile, bool multilang, bool encodeURLs,
+                                       bool paragraph_identification) :
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -19,7 +23,8 @@ namespace warc2text {
         pdf_warc_filename(pdf_warc_filename),
         invert(invert),
         multilang(multilang),
-        encodeURLs(encodeURLs) {
+        encodeURLs(encodeURLs),
+        paragraph_identification(paragraph_identification) {
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
 
@@ -155,7 +160,7 @@ namespace warc2text {
 
             langRecords += n_langs;
 
-            writer.write(record, multilang);
+            writer.write(record, multilang, paragraph_identification);
         }
         pdf_warc_writer.close();
     }

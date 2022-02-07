@@ -9,7 +9,7 @@ git clone --recurse-submodules https://github.com/bitextor/warc2text.git
 Or:
 ```
 git clone https://github.com/bitextor/warc2text.git
-git submodule update --init
+git submodule update --init --recursive
 ```
 
 ## Install dependencies
@@ -34,11 +34,13 @@ make install
 
 ## Usage
 ```
-warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ] [ --tag-filters <filters_file> ] <warc_file>...
+warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ]
+          [ --paragraph-identification ] [ --tag-filters <filters_file> ] <warc_file>...
 ```
 * `--output`/`-o` output folder
 * `--files`/`-f` list of output files separated by commas (and without `.gz`); `text` and `url` are always written, while `mime` and `html` are optional
 * `--pdfpass` WARC file where PDF records will be stored
+* `--paragraph-identification` print the paragraph identifier for each sentence extracted from the HTML
 * `--tag-filters` file containing filters that are used to eliminate matching documents
 * `--invert-tag-filters` output only documents that match the filter
 * `--url-filters` file containing regular expressions that match urls of documents to eliminate
