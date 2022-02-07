@@ -1,6 +1,6 @@
 #include "warcreader.hh"
 #include <boost/log/trivial.hpp>
-#include <cassert>
+#include <stdlib.h>
 
 namespace warc2text {
     WARCReader::WARCReader(){
@@ -16,7 +16,10 @@ namespace warc2text {
         s.avail_in = 0;
         s.next_in = buf;
 
-        assert(inflateInit2(&s, 32) == Z_OK);
+        if (inflateInit2(&s, 32) != Z_OK) {
+          BOOST_LOG_TRIVIAL(error) << "Failed to init zlib";
+          abort();
+        }
     }
 
     WARCReader::WARCReader(const std::string& filename) : WARCReader() {
@@ -64,7 +67,10 @@ namespace warc2text {
                 }
             }
             if (inflate_ret == Z_STREAM_END) {
-                assert(inflateReset(&s) == Z_OK);
+                if (inflateReset(&s) != Z_OK) {
+                  BOOST_LOG_TRIVIAL(error) << "Failed to reset zlib";
+                  abort();
+                }
                 // next in and avail_in are updated while inflating, so no need to update them manually
             }
         }
