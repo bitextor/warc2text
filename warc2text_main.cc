@@ -50,7 +50,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
     if (argc == 1 || vm["help"].as<bool>()) {
-        std::cerr << "Usage: " << argv[0] << " -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ] [ --tag-filters <filters_file> ] <warc_file>...\n"
+        std::cerr << "Usage: " << argv[0] << " -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ] [ --paragraph-identification ] [ --tag-filters <filters_file> ] <warc_file>...\n"
                 "\n"
                 "Options:\n"
                 " -o <output_folder>               Output folder, required\n"
@@ -66,7 +66,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "                                  Format: \"regexp\"\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
                 " --encode-urls                    Encode URLs obtained from WARC records\n"
-                " --paragraph-identification       Add paragraph index in each b64encoded document\n"
+                " --paragraph-identification       Add paragraph index for each sentence extracted from the html\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
