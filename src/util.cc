@@ -169,4 +169,21 @@ namespace util {
         return out.str();
     }
 
+    std::vector<std::string> split(const std::string& s, const std::string& delimiter)
+    {
+        std::vector<std::string> result;
+        size_t pos = 0, previous_pos = 0;
+        std::string token;
+
+        while ((pos = s.find(delimiter, previous_pos)) != std::string::npos) {
+            result.push_back(s.substr(previous_pos, pos - previous_pos));
+
+            previous_pos = pos + delimiter.size();
+        }
+
+        result.push_back(s.substr(previous_pos, s.size() - previous_pos));
+
+        return result;
+    }
+
 }
