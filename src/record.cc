@@ -182,7 +182,7 @@ namespace warc2text {
 
     int Record::cleanPayload(const util::umap_tag_filters_regex& tagFilters){
 
-        // we know for sure that HTTP content type is incorrect if it present and not text
+        // we know for sure that HTTP content type is incorrect if it is present, and it is not 'text'
         bool nonTextHTTPcontentType = not cleanHTTPcontentType.empty() and textContentTypes.find(cleanHTTPcontentType) == textContentTypes.end();
 
         std::string content_type;

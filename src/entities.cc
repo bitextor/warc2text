@@ -42,7 +42,7 @@ namespace entities {
             if (numeric and not hex and alpha) return pos;
             // hex entities must only have xdigits
             if (hex and not xdigit) return pos;
-            // entities may only contains digits and alpha chars
+            // entities may only contain digits and alpha chars
             if (not alpha and not digit) return pos;
         }
         return std::string::npos;
@@ -60,7 +60,7 @@ namespace entities {
         target.reserve(source.size());
         std::unordered_map<std::string, std::string>::const_iterator it;
         while (pos != std::string::npos) {
-            target.append(source, end_pos, pos-end_pos); // append everthing before '&'
+            target.append(source, end_pos, pos-end_pos); // append everything before '&'
             end_pos = findEntityEnd(source, pos); // find where the entity ends
             if (end_pos == std::string::npos) {
                 // entity has no proper ending, append the rest of the string and quit
@@ -69,22 +69,22 @@ namespace entities {
             }
             else if (source[end_pos] != ';') {
                 // invalid char found: '&' didn't start a proper entity
-                // append the the consumed chars
+                // append the consumed chars
                 target.append(source, pos, end_pos-pos);
             } else if (source[pos+1] == '#') { // proper numeric entity
                 hex = ((pos+2 < end_pos) and (source[pos+2] == 'x' or source[pos+2] == 'X'));
                 len = end_pos - pos - (hex ? 3 : 2);
                 pos = pos + (hex ? 3 : 2);
-		try{
-	                entity_code = std::stoul(source.substr(pos, len), tail, hex ? 16 : 10);
-	                if (*tail == len and entity_code <= UNICODE_MAX)
-	                    target.append(get_dec_entity(entity_code));
-	                ++end_pos;
-		} catch (std::invalid_argument const& ex){
-			// invalid numeric entity code
-			// append the the consumed chars
-			target.append(source, pos, end_pos-pos);
-		}
+                try{
+                    entity_code = std::stoul(source.substr(pos, len), tail, hex ? 16 : 10);
+                    if (*tail == len and entity_code <= UNICODE_MAX)
+                        target.append(get_dec_entity(entity_code));
+                    ++end_pos;
+                } catch (std::invalid_argument const& ex){
+                    // invalid numeric entity code
+                    // append the consumed chars
+                    target.append(source, pos, end_pos-pos);
+                }
             }
             else { // proper named entity
                 it = named_entities.find(source.substr(pos+1, end_pos-pos-1));
@@ -104,6 +104,10 @@ namespace entities {
     std::string get_dec_entity(std::size_t cp) {
         std::string value;
         if (cp <= 0x7Ful) { // 127, ascii
+            if (cp < 32) { // Treat initial 32 ASCII characters as spaces
+                value.push_back(' ');
+                return value;
+            }
             value.push_back( (unsigned char) cp );
         } else if ( cp <= 0x7FFul) { // 2047, 2 bytes
             if (cp == 160) { // nbsp
