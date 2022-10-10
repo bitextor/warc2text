@@ -102,7 +102,7 @@ namespace warc2text{
         }
 
         for (size_t i = 0; i < lines.size(); ++i) {
-            result += lines[i] + "\t" + std::to_string(i) + "\n";
+            result += lines[i] + "\t" + std::to_string(i) + ":" + std::to_string(lines.size()) + "\n";
         }
 
         return result;
