@@ -25,6 +25,7 @@ struct Options {
     std::string url_filters_filename;
     bool multilang{};
     bool encodeURLs{};
+    bool jsonl{};
 };
 
 void parseArgs(int argc, char *argv[], Options& out) {
@@ -43,6 +44,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
         ("multilang", po::bool_switch(&out.multilang)->default_value(false), "Detect multiple languages in a single record")
+        ("jsonl", po::bool_switch(&out.jsonl)->default_value(false), "Output jsonl to stdout")
         ("encode-urls", po::bool_switch(&out.encodeURLs)->default_value(false), "Encode URLs obtained from WARC records");
 
     po::positional_options_description pd;
@@ -69,6 +71,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --encode-urls                    Encode URLs obtained from WARC records\n"
                 " --paragraph-identification       Add paragraph index for each sentence extracted from the html\n"
                 " -s                               Only output errors\n"
+                " --jsonl                          Write JSONLines to stdout\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
     }
@@ -97,7 +100,7 @@ int main(int argc, char *argv[]) {
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename,
                                options.tag_filters_invert, options.url_filters_filename, options.multilang,
-                               options.encodeURLs, options.paragraph_identification);
+                               options.encodeURLs, options.paragraph_identification, options.jsonl);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }

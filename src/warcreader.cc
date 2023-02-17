@@ -100,4 +100,8 @@ namespace warc2text {
         return len;
     }
 
+    std::size_t WARCReader::tell() const {
+        return std::ftell(file) - s.avail_in;
+    }
+
 } // warc2text

@@ -14,9 +14,7 @@
 namespace warc2text {
     class Record {
     public:
-        Record() {};
-
-        explicit Record(const std::string& content);
+        Record(const std::string& content, const std::string &filename, std::size_t offset);
         const std::string& getHeaderProperty(const std::string& property) const;
         bool headerExists(const std::string& property) const;
 
@@ -34,6 +32,14 @@ namespace warc2text {
         bool isBroaderDocumentFormat() const;
         bool isTextFormat() const;
 
+        inline const std::string& getFilename() const {
+            return filename;
+        }
+
+        inline std::size_t getOffset() const {
+            return offset;
+        }
+        
         const std::unordered_map<std::string, std::string>& getTextByLangs() const;
 
         int cleanPayload();
@@ -46,6 +52,9 @@ namespace warc2text {
         void encodeURL();
 
     private:
+        const std::string &filename;
+        std::size_t offset;
+
         std::unordered_map<std::string, std::string> header;
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;

@@ -1,3 +1,5 @@
+
+#include <iostream>
 #include "warcpreprocessor.hh"
 #include "zipreader.hh"
 #include "util/compress.hh"
@@ -11,8 +13,7 @@ namespace warc2text {
     WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files,
                                        const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert,
                                        const std::string& urlFiltersFile, bool multilang, bool encodeURLs,
-                                       bool paragraph_identification) :
-        writer(outputFolder, output_files),
+                                       bool paragraph_identification, bool jsonl) :
         totalRecords(0),
         textRecords(0),
         langRecords(0),
@@ -25,6 +26,13 @@ namespace warc2text {
         multilang(multilang),
         encodeURLs(encodeURLs),
         paragraph_identification(paragraph_identification) {
+            if (jsonl)
+                writer = std::make_unique<JSONLinesWriter>(std::cout);
+            else if (!output_files.empty())
+                writer = std::make_unique<BilangWriter>(outputFolder, output_files);
+            else
+                std::exit(1);
+
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
 
@@ -54,6 +62,7 @@ namespace warc2text {
         BOOST_LOG_TRIVIAL(info) << "Processing " << filename;
         WARCReader reader(filename);
 
+        std::size_t offset;
         std::string content;
         bool done = false;
         int n_langs = 0;
@@ -62,11 +71,12 @@ namespace warc2text {
         WARCWriter pdf_warc_writer;
 
         while (!done) {
+            offset = reader.tell();
             done = !reader.getRecord(content);
             if (done or content.empty())
                 continue;
 
-            Record record(content);
+            Record record(content, filename, offset);
             if (record.getPayload().empty())
                 continue;
 
@@ -160,7 +170,7 @@ namespace warc2text {
 
             langRecords += n_langs;
 
-            writer.write(record, multilang, paragraph_identification);
+            writer->write(record, multilang, paragraph_identification);
         }
         pdf_warc_writer.close();
     }

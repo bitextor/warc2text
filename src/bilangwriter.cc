@@ -2,6 +2,32 @@
 #include "util.hh"
 #include <cassert>
 #include <string>
+#include <iomanip>
+
+
+namespace {
+    /**
+     * Little bit of JSON wrapping to make sure we only ever print safe values
+     */
+
+    template <typename T>
+    struct JSONValue {
+        const T& ref;
+    };
+
+    template <typename T>
+    JSONValue<T> escapeJSON(T const &ref) {
+        return JSONValue<T>{ref};
+    }
+
+    std::ostream &operator<<(std::ostream &out, JSONValue<std::size_t> const &val) {
+        return out << val.ref;
+    }
+
+    std::ostream &operator<<(std::ostream &out, JSONValue<std::string> const &val) {
+        return out << std::quoted(val.ref);
+    }
+}
 
 namespace warc2text{
 
@@ -144,5 +170,17 @@ namespace warc2text{
         }
     }
 
+    void JSONLinesWriter::write(const Record& record, bool multilang, bool paragraph_identification) {
+        // JSON lines format (https://jsonlines.org)
+        out_ << "{"
+             << "\"f\":"   << escapeJSON(record.getFilename()) << ","
+             << "\"o\":"   << escapeJSON(record.getOffset()) << ","
+             << "\"rs\":"  << escapeJSON(record.getPayload().size()) << ","
+             << "\"ps\":"  << escapeJSON(record.getPlainText().size()) << ","
+             << "\"l\":" << escapeJSON(record.getLanguage()) << ","
+             << "\"u\":" << escapeJSON(record.getURL()) << ","
+             << "\"c\":" << escapeJSON(record.getHTTPcontentType())
+             << "}\n";
+    }
 }
 

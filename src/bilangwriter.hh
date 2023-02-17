@@ -3,10 +3,17 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <ostream>
 #include "record.hh"
 #include "zlib.h"
 
 namespace warc2text {
+
+    class RecordWriter {
+    public:
+        virtual void write(const Record& record, bool multilang = false, bool paragraph_identification = false) = 0;
+        virtual ~RecordWriter() = default;
+    };
 
     class GzipWriter {
         private:
@@ -27,7 +34,7 @@ namespace warc2text {
             static const std::size_t BUFFER_SIZE = 4096;
     };
 
-    class BilangWriter {
+    class BilangWriter : public RecordWriter {
         private:
             std::string folder;
             std::unordered_map<std::string, GzipWriter> url_files;
@@ -57,11 +64,18 @@ namespace warc2text {
                 output_files(output_files)
             {};
 
-            void write(const Record& record, bool multilang = false, bool paragraph_identification = false);
+            virtual void write(const Record& record, bool multilang = false, bool paragraph_identification = false);
 
     };
 
+    class JSONLinesWriter : public RecordWriter {
+        private:
+            std::ostream &out_;
+        public:
+            explicit JSONLinesWriter(std::ostream &out) : out_(out) {};
 
+            virtual void write(const Record& record, bool multilang = false, bool paragraph_identification = false);
+    };
 }
 
 #endif

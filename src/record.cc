@@ -34,7 +34,10 @@ namespace warc2text {
         return header_end + 4;
     }
 
-    Record::Record(const std::string& content) {
+    Record::Record(const std::string& content, const std::string& filename, std::size_t offset) :
+        filename(filename),
+        offset(offset)
+    {
         std::string line;
         std::size_t last_pos = 0, payload_start = 0;
         std::size_t pos = content.find("WARC/1.0\r\n");
@@ -306,5 +309,4 @@ namespace warc2text {
     void Record::encodeURL() {
         url = util::encodeURLs(url);
     }
-
 } // warc2text
