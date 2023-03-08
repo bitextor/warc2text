@@ -1,5 +1,6 @@
 #include "bilangwriter.hh"
 #include "util.hh"
+#include "util/exception.hh"
 #include <cassert>
 #include <string>
 
@@ -50,6 +51,7 @@ namespace warc2text{
 
     void GzipWriter::open(const std::string& filename) {
         dest = std::fopen(filename.c_str(), "wb");
+        UTIL_THROW_IF(!dest, util::ErrnoException, "while creating " << filename);
     }
 
     void GzipWriter::write(const char* text, std::size_t size) {
