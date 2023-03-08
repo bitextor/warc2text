@@ -1,10 +1,24 @@
 #include "src/lang.hh"
+#include "cld2/public/compact_lang_det.h"
+#include "cld2/public/encodings.h"
 
 namespace warc2text {
     // hint = {content language code(s), tld, original encoding, CLD2::Language}
     const CLD2::CLDHints NO_HINT = {nullptr, nullptr, CLD2::UNKNOWN_ENCODING, CLD2::UNKNOWN_LANGUAGE};
 
-    bool detectLanguage(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang){
+    CLD2Detector::~CLD2Detector() {}
+
+    bool CLD2Detector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
+        bool reliable = false;
+        int valid_prefix_bytes = 0;
+        CLD2::Language l = CLD2::DetectLanguageCheckUTF8(text.data(), text.size(), true, &reliable, &valid_prefix_bytes);
+        text_by_lang[CLD2::LanguageCode(l)] = text;
+        return reliable;
+    }
+
+    CLD2MultiLangDetector::~CLD2MultiLangDetector() {}
+
+    bool CLD2MultiLangDetector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
         CLD2::Language langs[3] = {CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE};
         int percents[3] = {0,0,0};
         double scores[3] = {0.0, 0.0, 0.0};
@@ -57,14 +71,6 @@ namespace warc2text {
 
         // TODO: do something with the scores?
 
-        return reliable;
-    }
-
-    bool detectLanguage(const std::string& text, std::string& lang){
-        bool reliable = false;
-        int valid_prefix_bytes = 0;
-        CLD2::Language l = CLD2::DetectLanguageCheckUTF8(text.data(), text.size(), true, &reliable, &valid_prefix_bytes);
-        lang = CLD2::LanguageCode(l);
         return reliable;
     }
 } // namespace warc2text

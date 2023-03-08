@@ -6,3 +6,6 @@
 	path = cld2
 	url = https://github.com/bitextor/cld2.git
     ignore = dirty
+[submodule "fasttext"]
+	path = fasttext
+	url = https://github.com/kpuatfb/fastText.git

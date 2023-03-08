@@ -28,6 +28,7 @@ mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/your/prefix/path ..
 # cmake .. -DCMAKE_BUILD_TYPE=Debug # for debug
+# cmake .. -DICU_ROOT_DIR=(brew --prefix icu4c)/lib # for macOS
 make -j
 make install
 ```

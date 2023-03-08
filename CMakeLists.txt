@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(warc2text)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -DBOOST_LOG_DYN_LINK ${CMAKE_CXX_FLAGS}")
@@ -41,10 +41,12 @@ if (NOT SKIP_PREPROCESS_BUILD)
 endif()
 
 target_include_directories(warc2text_lib PUBLIC ${PREPROCESS_PATH})
+target_include_directories(warc2text_lib PRIVATE fasttext/src)
 #
 
 # add libcld2.so
 add_subdirectory(cld2)
+add_subdirectory(fasttext)
 #
 
 # define executables
@@ -53,6 +55,7 @@ target_link_libraries(warc2text
     warc2text_lib
     ${Boost_LIBRARIES}
     cld2_full
+    fasttext-static
 )
 
 include(GNUInstallDirs)
