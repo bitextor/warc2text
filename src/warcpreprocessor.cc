@@ -169,7 +169,7 @@ namespace warc2text {
 
             langRecords += n_langs;
 
-            writer.write(record, true, paragraph_identification);
+            writer.write(record, paragraph_identification);
         }
         pdf_warc_writer.close();
     }

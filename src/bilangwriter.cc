@@ -110,39 +110,22 @@ namespace warc2text{
         return result;
     }
 
-    void BilangWriter::write(const Record& record, bool multilang, bool paragraph_identification) {
+    void BilangWriter::write(const Record& record, bool paragraph_identification) {
         std::string base64text;
         std::string base64html;
 
-        if (multilang) {
+        if (output_files.count("html") == 1)
+            util::encodeBase64(record.getPayload(), base64html);
 
-            if (output_files.count("html") == 1)
-                util::encodeBase64(record.getPayload(), base64html);
-
-            for (const auto& it : record.getTextByLangs()) {
-                std::string payload = it.second;
-
-                if (paragraph_identification) {
-                    payload = get_paragraph_id(payload);
-                }
-
-                util::encodeBase64(payload, base64text);
-                this->write(it.first, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
-            }
-
-        } else {
-            std::string payload = record.getPlainText();
+        for (const auto& it : record.getTextByLangs()) {
+            std::string payload = it.second;
 
             if (paragraph_identification) {
                 payload = get_paragraph_id(payload);
             }
 
             util::encodeBase64(payload, base64text);
-
-            if (output_files.count("html") == 1)
-                util::encodeBase64(record.getPayload(), base64html);
-
-            this->write(record.getLanguage(), base64text, record.getURL(), record.getHTTPcontentType(), base64html);
+            this->write(it.first, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
         }
     }
 
