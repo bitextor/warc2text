@@ -1,4 +1,5 @@
 #include "warcpreprocessor.hh"
+#include "src/lang.hh"
 #include "zipreader.hh"
 #include "util/compress.hh"
 #include <boost/log/trivial.hpp>
@@ -147,16 +148,23 @@ namespace warc2text {
             ++textRecords;
             textBytes += record.getPlainText().size();
 
-            n_langs = record.detectLanguage(detector);
-            if (n_langs == 1) {
-                langBytes += record.getPlainText().size();
-            } else if (n_langs > 1) {
+            record.detectLanguage(detector);
+            n_langs = 0;
+            for (auto const &chunk : record.getTextByLangs()) {
+                // Don't count the unknown language chunks
+                if (chunk.first == LanguageDetector::kUnknownLanguageLabel)
+                    continue;
+                
+                langBytes += chunk.second.size();
+                ++n_langs;
+            }
+
+            if (n_langs > 1) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": multiple (" << n_langs << ") languages detected";
-                for (auto it : record.getTextByLangs())
-                    langBytes += it.second.size();
+            } else if (n_langs == 1) {
+
             } else {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": language not detected";
-                continue;
             }
 
             langRecords += n_langs;

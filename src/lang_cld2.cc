@@ -8,17 +8,16 @@ namespace warc2text {
 
     CLD2Detector::~CLD2Detector() {}
 
-    bool CLD2Detector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
+    void CLD2Detector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
         bool reliable = false;
         int valid_prefix_bytes = 0;
         CLD2::Language l = CLD2::DetectLanguageCheckUTF8(text.data(), text.size(), true, &reliable, &valid_prefix_bytes);
-        text_by_lang[CLD2::LanguageCode(l)] = text;
-        return reliable;
+        text_by_lang[reliable ? CLD2::LanguageCode(l) : kUnknownLanguageLabel] = text;
     }
 
     CLD2MultiLangDetector::~CLD2MultiLangDetector() {}
 
-    bool CLD2MultiLangDetector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
+    void CLD2MultiLangDetector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
         CLD2::Language langs[3] = {CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE};
         int percents[3] = {0,0,0};
         double scores[3] = {0.0, 0.0, 0.0};
@@ -33,7 +32,10 @@ namespace warc2text {
 
         text_by_lang.clear();
 
-        if (not reliable) return reliable;
+        if (not reliable) {
+            text_by_lang[kUnknownLanguageLabel] = text;
+            return;
+        }
 
         std::string* top1 = nullptr;
         std::string* top2 = nullptr;
@@ -70,7 +72,5 @@ namespace warc2text {
         }
 
         // TODO: do something with the scores?
-
-        return reliable;
     }
 } // namespace warc2text
