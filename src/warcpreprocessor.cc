@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include "src/bilangwriter.hh"
 #include "warcpreprocessor.hh"
 #include "zipreader.hh"
 #include "util/compress.hh"
@@ -10,10 +11,11 @@ namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3",
                                                                                 ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files,
+    WARCPreprocessor::WARCPreprocessor(RecordWriter &writer,
                                        const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert,
                                        const std::string& urlFiltersFile, bool multilang, bool encodeURLs,
-                                       bool paragraph_identification, bool jsonl) :
+                                       bool paragraph_identification) :
+        writer(writer),
         totalRecords(0),
         textRecords(0),
         langRecords(0),
@@ -26,13 +28,6 @@ namespace warc2text {
         multilang(multilang),
         encodeURLs(encodeURLs),
         paragraph_identification(paragraph_identification) {
-            if (jsonl)
-                writer = std::make_unique<JSONLinesWriter>(std::cout);
-            else if (!output_files.empty())
-                writer = std::make_unique<BilangWriter>(outputFolder, output_files);
-            else
-                std::exit(1);
-
             if (!tagFiltersFile.empty())
                 util::readTagFiltersRegex(tagFiltersFile, tagFilters);
 
@@ -170,7 +165,7 @@ namespace warc2text {
 
             langRecords += n_langs;
 
-            writer->write(record, multilang, paragraph_identification);
+            writer.write(record, multilang, paragraph_identification);
         }
         pdf_warc_writer.close();
     }

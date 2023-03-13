@@ -97,10 +97,20 @@ int main(int argc, char *argv[]) {
     boost::algorithm::split(files_list, options.files, [](char c) {return c == ',';});
     std::unordered_set<std::string> output_files(files_list.begin(), files_list.end());
 
+    std::unique_ptr<RecordWriter> writer;
+    if (options.jsonl) {
+        writer = std::make_unique<JSONLinesWriter>(std::cout);
+    } else if (!output_files.empty()) {
+        writer = std::make_unique<BilangWriter>(options.output, output_files);
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "No output files specified";
+        abort();
+    }
+
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename,
+    WARCPreprocessor warcpproc(*writer, options.pdf_warc_filename, options.tag_filters_filename,
                                options.tag_filters_invert, options.url_filters_filename, options.multilang,
-                               options.encodeURLs, options.paragraph_identification, options.jsonl);
+                               options.encodeURLs, options.paragraph_identification);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }

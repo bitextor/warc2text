@@ -25,7 +25,7 @@ namespace warc2text {
 
     class WARCPreprocessor {
         private:
-            std::unique_ptr<RecordWriter> writer;
+            RecordWriter &writer;
             unsigned int totalRecords;
             unsigned int textRecords;
             unsigned int langRecords;
@@ -44,10 +44,10 @@ namespace warc2text {
             bool URLfilter(const std::string& url);
 
         public:
-            explicit WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files = {},
+            explicit WARCPreprocessor(RecordWriter &writer,
                                       const std::string& pdf_warc_filename = "", const std::string& tagFiltersFile = "",
                                       bool invert = false, const std::string& urlFiltersFile = "", bool multilang = false,
-                                      bool encodeURLs = false, bool paragraph_identification = false, bool jsonl = false);
+                                      bool encodeURLs = false, bool paragraph_identification = false);
             void process(const std::string &filename);
             void printStatistics() const;
     };
