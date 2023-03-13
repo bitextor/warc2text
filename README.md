@@ -34,6 +34,9 @@ make install
 ```
 
 ## Usage
+
+**note:** for warcs with many languages you might hit the open file limit quite quickly. It is therefore advised to increase it, e.g. `ulimit -n 8192`.
+
 ```
 warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ]
           [ --paragraph-identification ] [ --tag-filters <filters_file> ] <warc_file>...
