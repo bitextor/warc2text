@@ -42,6 +42,8 @@ warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ]
 * `--files`/`-f` list of output files separated by commas (and without `.gz`); `text` and `url` are always written, while `mime` and `html` are optional
 * `--pdfpass` WARC file where PDF records will be stored
 * `--paragraph-identification` print the paragraph identifier for each sentence extracted from the HTML
+* `--classifier` classifier to use: `cld2` or `fasttext`.
+* `--fasttext-model` path to FastText model for fasttext classifier.
 * `--tag-filters` file containing filters that are used to eliminate matching documents
 * `--invert-tag-filters` output only documents that match the filter
 * `--url-filters` file containing regular expressions that match urls of documents to eliminate
