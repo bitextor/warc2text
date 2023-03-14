@@ -1,4 +1,5 @@
 #include "warcpreprocessor.hh"
+#include "src/lang.hh"
 #include "zipreader.hh"
 #include "util/compress.hh"
 #include <boost/log/trivial.hpp>
@@ -8,10 +9,12 @@ namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3",
                                                                                 ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const std::string& outputFolder, const std::unordered_set<std::string>& output_files,
+    WARCPreprocessor::WARCPreprocessor(const LanguageDetector &detector, 
+                                       const std::string& outputFolder, const std::unordered_set<std::string>& output_files,
                                        const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert,
-                                       const std::string& urlFiltersFile, bool multilang, bool encodeURLs,
+                                       const std::string& urlFiltersFile, bool encodeURLs,
                                        bool paragraph_identification) :
+        detector(detector),
         writer(outputFolder, output_files),
         totalRecords(0),
         textRecords(0),
@@ -22,7 +25,6 @@ namespace warc2text {
         tagFilters(),
         pdf_warc_filename(pdf_warc_filename),
         invert(invert),
-        multilang(multilang),
         encodeURLs(encodeURLs),
         paragraph_identification(paragraph_identification) {
             if (!tagFiltersFile.empty())
@@ -146,21 +148,28 @@ namespace warc2text {
             ++textRecords;
             textBytes += record.getPlainText().size();
 
-            n_langs = record.detectLanguage(multilang);
-            if (n_langs == 1) {
-                langBytes += record.getPlainText().size();
-            } else if (n_langs > 1) {
+            record.detectLanguage(detector);
+            n_langs = 0;
+            for (auto const &chunk : record.getTextByLangs()) {
+                // Don't count the unknown language chunks
+                if (chunk.first == LanguageDetector::kUnknownLanguageLabel)
+                    continue;
+                
+                langBytes += chunk.second.size();
+                ++n_langs;
+            }
+
+            if (n_langs > 1) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": multiple (" << n_langs << ") languages detected";
-                for (auto it : record.getTextByLangs())
-                    langBytes += it.second.size();
+            } else if (n_langs == 1) {
+
             } else {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": language not detected";
-                continue;
             }
 
             langRecords += n_langs;
 
-            writer.write(record, multilang, paragraph_identification);
+            writer.write(record, paragraph_identification);
         }
         pdf_warc_writer.close();
     }
