@@ -49,7 +49,7 @@ target_include_directories(warc2text_lib PRIVATE fasttext/src)
 
 # add libcld2.so
 add_subdirectory(cld2)
-add_subdirectory(fasttext)
+add_subdirectory(fasttext EXCLUDE_FROM_ALL)
 #
 
 # define executables
