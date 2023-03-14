@@ -44,7 +44,7 @@ namespace warc2text {
 
         int cleanPayload();
         int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
-        int detectLanguage(bool multilang);
+        int detectLanguage(LanguageDetector const &detector);
 
         static std::string readZipPayload(const std::string& content_type, const std::string& payload);
         static std::string isPayloadZip(const std::string& content_type, const std::string& uri);

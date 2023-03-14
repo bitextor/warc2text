@@ -26,6 +26,8 @@ add_library(warc2text_lib
     record.cc
     html.cc
     lang.cc
+    lang_cld2.cc
+    lang_fasttext.cc
     util.cc
     bilangwriter.cc
     xh_scanner.cc

@@ -2,6 +2,7 @@
 #define WARC2TEXT_WARCPREPROCESSOR_HH
 
 #include "record.hh"
+#include "src/lang.hh"
 #include "warcreader.hh"
 #include "bilangwriter.hh"
 #include "util.hh"
@@ -26,6 +27,7 @@ namespace warc2text {
     class WARCPreprocessor {
         private:
             RecordWriter &writer;
+            LanguageDetector const &detector;
             unsigned int totalRecords;
             unsigned int textRecords;
             unsigned int langRecords;
@@ -36,7 +38,6 @@ namespace warc2text {
             boost::regex urlFilter;
             std::string pdf_warc_filename;
             bool invert;
-            bool multilang;
             bool encodeURLs;
             bool paragraph_identification;
 
@@ -44,9 +45,9 @@ namespace warc2text {
             bool URLfilter(const std::string& url);
 
         public:
-            explicit WARCPreprocessor(RecordWriter &writer,
+            explicit WARCPreprocessor(RecordWriter &writer, LanguageDetector const &detector,
                                       const std::string& pdf_warc_filename = "", const std::string& tagFiltersFile = "",
-                                      bool invert = false, const std::string& urlFiltersFile = "", bool multilang = false,
+                                      bool invert = false, const std::string& urlFiltersFile = "",
                                       bool encodeURLs = false, bool paragraph_identification = false);
             void process(const std::string &filename);
             void printStatistics() const;

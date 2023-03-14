@@ -11,7 +11,7 @@ namespace warc2text {
 
     class RecordWriter {
     public:
-        virtual void write(const Record& record, bool multilang = false, bool paragraph_identification = false) = 0;
+        virtual void write(const Record& record, bool paragraph_identification = false) = 0;
         virtual ~RecordWriter() = default;
     };
 
@@ -64,7 +64,7 @@ namespace warc2text {
                 output_files(output_files)
             {};
 
-            virtual void write(const Record& record, bool multilang = false, bool paragraph_identification = false);
+            virtual void write(const Record& record, bool paragraph_identification = false);
 
     };
 
@@ -74,7 +74,7 @@ namespace warc2text {
         public:
             explicit JSONLinesWriter(std::ostream &out) : out_(out) {};
 
-            virtual void write(const Record& record, bool multilang = false, bool paragraph_identification = false);
+            virtual void write(const Record& record, bool paragraph_identification = false);
     };
 }
 

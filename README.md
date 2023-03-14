@@ -28,11 +28,15 @@ mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/your/prefix/path ..
 # cmake .. -DCMAKE_BUILD_TYPE=Debug # for debug
+# cmake .. -DICU_ROOT_DIR=(brew --prefix icu4c)/lib # for macOS
 make -j
 make install
 ```
 
 ## Usage
+
+**note:** for warcs with many languages you might hit the open file limit quite quickly. It is therefore advised to increase it, e.g. `ulimit -n 8192`.
+
 ```
 warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ]
           [ --paragraph-identification ] [ --tag-filters <filters_file> ] <warc_file>...
@@ -41,6 +45,8 @@ warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ]
 * `--files`/`-f` list of output files separated by commas (and without `.gz`); `text` and `url` are always written, while `mime` and `html` are optional
 * `--pdfpass` WARC file where PDF records will be stored
 * `--paragraph-identification` print the paragraph identifier for each sentence extracted from the HTML
+* `--classifier` classifier to use: `cld2` or `fasttext`.
+* `--fasttext-model` path to FastText model for fasttext classifier.
 * `--tag-filters` file containing filters that are used to eliminate matching documents
 * `--invert-tag-filters` output only documents that match the filter
 * `--url-filters` file containing regular expressions that match urls of documents to eliminate

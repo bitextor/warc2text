@@ -242,10 +242,8 @@ namespace warc2text {
         return text_by_langs;
     }
 
-    int Record::detectLanguage(bool multilang){
-        if (not multilang) return warc2text::detectLanguage(plaintext, language);
-
-        warc2text::detectLanguage(plaintext, text_by_langs);
+    int Record::detectLanguage(LanguageDetector const &detector){
+        detector.detect(plaintext, text_by_langs);
         return text_by_langs.size();
     }
 

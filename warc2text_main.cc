@@ -8,6 +8,7 @@
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include "src/lang.hh"
 #include "src/warcpreprocessor.hh"
 
 using namespace warc2text;
@@ -26,6 +27,8 @@ struct Options {
     bool multilang{};
     bool encodeURLs{};
     bool jsonl{};
+    std::string classifier;
+    std::string fasttext_model;
 };
 
 void parseArgs(int argc, char *argv[], Options& out) {
@@ -45,6 +48,8 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
         ("multilang", po::bool_switch(&out.multilang)->default_value(false), "Detect multiple languages in a single record")
         ("jsonl", po::bool_switch(&out.jsonl)->default_value(false), "Output jsonl to stdout")
+        ("classifier", po::value(&out.classifier)->default_value("cld2"), "Language classifier: cld2 or fasttext (default cld2)")
+        ("fasttext-model", po::value(&out.fasttext_model)->default_value(""), "Path to fasttext model")
         ("encode-urls", po::bool_switch(&out.encodeURLs)->default_value(false), "Encode URLs obtained from WARC records");
 
     po::positional_options_description pd;
@@ -60,6 +65,8 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " -f <output_files>                List of output files separated by commas\n"
                 "                                  Default (mandatory): \"url,text\"\n"
                 "                                  Optional values: \"mime,html\"\n"
+                " --classifier                     Classifier to use: cld2 or fasttext\n"
+                " --fasttext-model <model_file>    Path to FastText model for fasttext classifier\n"
                 " --multilang                      Detect multiple languages in documents (up to 3),\n"
                 "                                  write as many text records as languages detected\n"
                 " --tag-filters <filters_files>    File containing html tag filters\n"
@@ -107,9 +114,28 @@ int main(int argc, char *argv[]) {
         abort();
     }
 
+    std::unique_ptr<LanguageDetector> detector;
+    if (options.classifier == "cld2") {
+        if (options.multilang) {
+            detector.reset(new CLD2MultiLangDetector());
+        } else {
+            detector.reset(new CLD2Detector());
+        }
+    } else if (options.classifier == "fasttext") {
+        if (options.multilang) {
+            BOOST_LOG_TRIVIAL(error) << "FastText classifier doesn't do multilang at the moment";
+            abort();
+        } else {
+            detector.reset(new FastTextDetector(options.fasttext_model));
+        }
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "Unsupported classifier option";
+        abort();
+    }
+
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(*writer, options.pdf_warc_filename, options.tag_filters_filename,
-                               options.tag_filters_invert, options.url_filters_filename, options.multilang,
+    WARCPreprocessor warcpproc(*writer, *detector, options.pdf_warc_filename, options.tag_filters_filename,
+                               options.tag_filters_invert, options.url_filters_filename,
                                options.encodeURLs, options.paragraph_identification);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
