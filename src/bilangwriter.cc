@@ -98,13 +98,15 @@ namespace warc2text{
         return dest != nullptr;
     }
 
-    void BilangWriter::write(const std::string& lang, const std::string& b64text, const std::string& url, const std::string& mime, const std::string& b64html) {
+    void BilangWriter::write(const std::string& lang, const std::string& b64text, const std::string& url, const std::string& mime, const std::string& b64html, const std::string& file) {
         GzipWriter* gzurl = &url_files[lang];
         GzipWriter* gztext = &text_files[lang];
         GzipWriter* gzmime = nullptr;
         GzipWriter* gzhtml = nullptr;
+        GzipWriter* gzfile = nullptr;
         if (output_files.count("mime") == 1) gzmime = &(mime_files[lang]);
         if (output_files.count("html") == 1) gzhtml = &(html_files[lang]);
+        if (output_files.count("file") == 1) gzfile = &(file_files[lang]);
         if (!gzurl->is_open()) {
             // if one file does not exist, the rest shouldn't either
             std::string path = folder + "/" + lang;
@@ -113,12 +115,14 @@ namespace warc2text{
             gztext->open(path + "/text.gz");
             if (gzmime != nullptr) gzmime->open(path + "/mime.gz");
             if (gzhtml != nullptr) gzhtml->open(path + "/html.gz");
+            if (gzfile != nullptr) gzfile->open(path + "/file.gz");
         }
 
         gzurl->writeLine(url);
         gztext->writeLine(b64text);
         if (gzmime != nullptr) gzmime->writeLine(mime);
         if (gzhtml != nullptr) gzhtml->writeLine(b64html);
+        if (gzfile != nullptr) gzfile->writeLine(file);
     }
 
     std::string get_paragraph_id(const std::string& text) {
@@ -143,6 +147,8 @@ namespace warc2text{
         if (output_files.count("html") == 1)
             util::encodeBase64(record.getPayload(), base64html);
 
+        std::string file = record.getFilename() + ":" + std::to_string(record.getOffset()) + ":" + std::to_string(record.getSize());
+
         for (const auto& it : record.getTextByLangs()) {
             std::string payload = it.second;
 
@@ -151,11 +157,11 @@ namespace warc2text{
             }
 
             util::encodeBase64(payload, base64text);
-            this->write(it.first, base64text, record.getURL(), record.getHTTPcontentType(), base64html);
+            this->write(it.first, base64text, record.getURL(), record.getHTTPcontentType(), base64html, file);
         }
     }
 
-    void JSONLinesWriter::write(const Record& record, bool paragraph_identification) {
+    void JSONLinesWriter::write(const Record& record, [[maybe_unused]] bool paragraph_identification) {
         // JSON lines format (https://jsonlines.org)
         out_ << "{"
              << "\"f\":"   << escapeJSON(record.getFilename()) << ","

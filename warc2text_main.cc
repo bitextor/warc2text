@@ -64,7 +64,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " -o <output_folder>               Output folder, required\n"
                 " -f <output_files>                List of output files separated by commas\n"
                 "                                  Default (mandatory): \"url,text\"\n"
-                "                                  Optional values: \"mime,html\"\n"
+                "                                  Optional values: \"mime,html,file\"\n"
                 " --classifier                     Classifier to use: cld2 or fasttext\n"
                 " --fasttext-model <model_file>    Path to FastText model for fasttext classifier\n"
                 " --multilang                      Detect multiple languages in documents (up to 3),\n"
