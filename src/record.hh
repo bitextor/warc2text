@@ -14,7 +14,7 @@
 namespace warc2text {
     class Record {
     public:
-        Record(const std::string& content, const std::string &filename, std::size_t offset);
+        Record(const std::string& content, const std::string &filename, std::size_t size, std::size_t offset);
         const std::string& getHeaderProperty(const std::string& property) const;
         bool headerExists(const std::string& property) const;
 
@@ -36,6 +36,10 @@ namespace warc2text {
             return filename;
         }
 
+        inline std::size_t getSize() const {
+            return size;
+        }
+
         inline std::size_t getOffset() const {
             return offset;
         }
@@ -53,7 +57,8 @@ namespace warc2text {
 
     private:
         const std::string &filename;
-        std::size_t offset;
+        std::size_t size; // compressed record length in WARC
+        std::size_t offset; // byte offset of start of record in WARC
 
         std::unordered_map<std::string, std::string> header;
         std::unordered_map<std::string, std::string> HTTPheader;

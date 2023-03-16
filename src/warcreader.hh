@@ -9,7 +9,7 @@ namespace warc2text {
         public:
             WARCReader();
             explicit WARCReader(const std::string& filename);
-            bool getRecord(std::string& out, std::size_t max_size = 1024*1024*20); //20MB
+            std::size_t getRecord(std::string& out, std::size_t max_size = 1024*1024*20); //20MB
             std::size_t tell() const;
             ~WARCReader();
         private:

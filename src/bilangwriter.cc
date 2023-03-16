@@ -160,6 +160,7 @@ namespace warc2text{
         out_ << "{"
              << "\"f\":"   << escapeJSON(record.getFilename()) << ","
              << "\"o\":"   << escapeJSON(record.getOffset()) << ","
+             << "\"s\":"   << escapeJSON(record.getSize()) << ","
              << "\"rs\":"  << escapeJSON(record.getPayload().size()) << ","
              << "\"ps\":"  << escapeJSON(record.getPlainText().size()) << ","
              << "\"l\":" << escapeJSON(record.getLanguage()) << ","

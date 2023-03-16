@@ -33,18 +33,18 @@ namespace warc2text {
         closeFile();
     }
 
-    bool WARCReader::getRecord(std::string& out, std::size_t max_size){
+    std::size_t WARCReader::getRecord(std::string& out, std::size_t max_size){
         int inflate_ret = 0;
         out.clear();
-        std::size_t len;
+        std::size_t offset = tell();
         bool skip_record = false;
         while (inflate_ret != Z_STREAM_END) {
             if (s.avail_in == 0) {
-                len = readChunk();
+                std::size_t len = readChunk();
                 if (len <= 0) {
                     // nothing more to read
                     out.clear();
-                    return false;
+                    return 0;
                 }
                 s.avail_in = len;
                 s.next_in = buf;
@@ -57,7 +57,7 @@ namespace warc2text {
                 if (inflate_ret != Z_OK && inflate_ret != Z_STREAM_END) {
                     BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": error during decompressing";
                     out.clear();
-                    return false;
+                    return 0;
                 }
                 if (not skip_record) out.append(scratch, scratch + (BUFFER_SIZE - s.avail_out));
                 if (out.size() > max_size) {
@@ -74,7 +74,7 @@ namespace warc2text {
                 // next in and avail_in are updated while inflating, so no need to update them manually
             }
         }
-        return true;
+        return tell() - offset;
     }
 
     void WARCReader::openFile(const std::string& filename){
@@ -101,7 +101,7 @@ namespace warc2text {
     }
 
     std::size_t WARCReader::tell() const {
-        return std::ftell(file) - s.avail_in;
+        return std::ftell(const_cast<std::FILE*>(file)) - s.avail_in;
     }
 
 } // warc2text

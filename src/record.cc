@@ -34,8 +34,9 @@ namespace warc2text {
         return header_end + 4;
     }
 
-    Record::Record(const std::string& content, const std::string& filename, std::size_t offset) :
+    Record::Record(const std::string& content, const std::string& filename, std::size_t size, std::size_t offset) :
         filename(filename),
+        size(size),
         offset(offset)
     {
         std::string line;

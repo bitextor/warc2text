@@ -58,21 +58,25 @@ namespace warc2text {
         BOOST_LOG_TRIVIAL(info) << "Processing " << filename;
         WARCReader reader(filename);
 
-        std::size_t offset;
         std::string content;
-        bool done = false;
         int n_langs = 0;
 
         bool pdfpass = !pdf_warc_filename.empty();
         WARCWriter pdf_warc_writer;
 
-        while (!done) {
-            offset = reader.tell();
-            done = !reader.getRecord(content);
-            if (done or content.empty())
+        while (true) {
+            std::size_t offset = reader.tell();
+            std::size_t size = reader.getRecord(content);
+            
+            // No more records (EOF or failure to inflate)
+            if (size == 0)
+                break;
+
+            // Skipped record (i.e. larger than max_size)
+            if (content.empty())
                 continue;
 
-            Record record(content, filename, offset);
+            Record record(content, filename, size, offset);
             if (record.getPayload().empty())
                 continue;
 
