@@ -3,18 +3,13 @@
 #include <stdlib.h>
 
 namespace warc2text {
-    WARCReader::WARCReader(){
-        warc_filename = "";
-        file = nullptr;
-
-        buf = new uint8_t[BUFFER_SIZE];
-        scratch = new uint8_t[BUFFER_SIZE];
-
+    WARCReader::WARCReader()
+    {
         s.zalloc = nullptr;
         s.zfree = nullptr;
         s.opaque = nullptr;
         s.avail_in = 0;
-        s.next_in = buf;
+        s.next_in = buf.data();
 
         if (inflateInit2(&s, 32) != Z_OK) {
           BOOST_LOG_TRIVIAL(error) << "Failed to init zlib";
@@ -27,10 +22,7 @@ namespace warc2text {
     }
 
     WARCReader::~WARCReader(){
-        delete[] buf;
-        delete[] scratch;
         inflateEnd(&s);
-        closeFile();
     }
 
     std::size_t WARCReader::getRecord(std::string& out, std::size_t max_size){
@@ -47,11 +39,11 @@ namespace warc2text {
                     return 0;
                 }
                 s.avail_in = len;
-                s.next_in = buf;
+                s.next_in = buf.data();
             }
             // inflate until either stream end is reached, or there is no more data
             while (inflate_ret != Z_STREAM_END && s.avail_in != 0) {
-                s.next_out = scratch;
+                s.next_out = scratch.data();
                 s.avail_out = BUFFER_SIZE;
                 inflate_ret = inflate(&s, Z_NO_FLUSH);
                 if (inflate_ret != Z_OK && inflate_ret != Z_STREAM_END) {
@@ -59,7 +51,7 @@ namespace warc2text {
                     out.clear();
                     return 0;
                 }
-                if (not skip_record) out.append(scratch, scratch + (BUFFER_SIZE - s.avail_out));
+                if (not skip_record) out.append(scratch.data(), scratch.data() + (scratch.size() - s.avail_out));
                 if (out.size() > max_size) {
                     BOOST_LOG_TRIVIAL(trace) << "WARC " << warc_filename << ": skipping large record";
                     out.clear();
@@ -80,20 +72,17 @@ namespace warc2text {
     void WARCReader::openFile(const std::string& filename){
         warc_filename = filename;
         if (filename.empty() || filename == "-")
-            file = std::freopen(nullptr, "rb", stdin); // make sure stdin is open in binary mode
-        else file = std::fopen(filename.c_str(), "r");
-        if (!file) {
+            file.reset(std::freopen(nullptr, "rb", stdin)); // make sure stdin is open in binary mode
+        else
+            file.reset(std::fopen(filename.c_str(), "r"));
+        if (!file.get()) {
             BOOST_LOG_TRIVIAL(error) << "WARC " << filename << ": file opening failed, skipping this WARC";
         }
     }
 
-    void WARCReader::closeFile() {
-        if (file) std::fclose(file);
-    }
-
     std::size_t WARCReader::readChunk(){
-        std::size_t len = std::fread(buf, sizeof(uint8_t), BUFFER_SIZE, file);
-        if (std::ferror(file) && !std::feof(file)) {
+        std::size_t len = std::fread(buf.data(), sizeof(uint8_t), BUFFER_SIZE, file.get());
+        if (std::ferror(file.get()) && !std::feof(file.get())) {
             BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": error during reading";
             return 0;
         }
@@ -101,7 +90,7 @@ namespace warc2text {
     }
 
     std::size_t WARCReader::tell() const {
-        return std::ftell(const_cast<std::FILE*>(file)) - s.avail_in;
+        return std::ftell(const_cast<std::FILE*>(file.get())) - s.avail_in;
     }
 
 } // warc2text

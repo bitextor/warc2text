@@ -2,7 +2,9 @@
 #define WARC2TEXT_WARCREADER_HH
 
 #include "zlib.h"
+#include <array>
 #include <string>
+#include "util/file.hh"
 
 namespace warc2text {
     class WARCReader {
@@ -13,12 +15,12 @@ namespace warc2text {
             std::size_t tell() const;
             ~WARCReader();
         private:
-            std::FILE* file;
+            util::scoped_FILE file;
             std::string warc_filename;
             z_stream s{};
             static const std::size_t BUFFER_SIZE = 4096;
-            uint8_t* buf;
-            uint8_t* scratch;
+            std::array<uint8_t, BUFFER_SIZE> buf;
+            std::array<uint8_t, BUFFER_SIZE> scratch;
 
             void openFile(const std::string& filename);
             void closeFile();
