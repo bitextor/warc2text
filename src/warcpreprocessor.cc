@@ -6,36 +6,31 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
+    const std::string kRobotsTxtPath = "/robots.txt";
+
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3",
                                                                                 ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const LanguageDetector &detector, 
-                                       const std::string& outputFolder, const std::unordered_set<std::string>& output_files,
-                                       const std::string& pdf_warc_filename, const std::string& tagFiltersFile, bool invert,
-                                       const std::string& urlFiltersFile, bool encodeURLs,
-                                       bool paragraph_identification) :
+    WARCPreprocessor::WARCPreprocessor(const LanguageDetector &detector, WARCPreprocessorOptions const &options) :
         detector(detector),
-        writer(outputFolder, output_files),
+        options(options),
+        writer(options.output, options.output_files),
         totalRecords(0),
         textRecords(0),
         langRecords(0),
         totalBytes(0),
         textBytes(0),
         langBytes(0),
-        tagFilters(),
-        pdf_warc_filename(pdf_warc_filename),
-        invert(invert),
-        encodeURLs(encodeURLs),
-        paragraph_identification(paragraph_identification) {
-            if (!tagFiltersFile.empty())
-                util::readTagFiltersRegex(tagFiltersFile, tagFilters);
+        tagFilters() {
+            if (!options.tag_filters_filename.empty())
+                util::readTagFiltersRegex(options.tag_filters_filename, tagFilters);
 
-            if (!urlFiltersFile.empty())
-                util::readUrlFiltersRegex(urlFiltersFile, urlFilter);
+            if (!options.url_filters_filename.empty())
+                util::readUrlFiltersRegex(options.url_filters_filename, urlFilter);
         }
 
     // true if url is good
-    bool WARCPreprocessor::URLfilter(const std::string& url) {
+    bool WARCPreprocessor::URLfilter(const std::string& url) const {
         if (boost::algorithm::ends_with(url, "robots.txt"))
             return false;
 
@@ -60,11 +55,14 @@ namespace warc2text {
         bool done = false;
         int n_langs = 0;
 
-        bool pdfpass = !pdf_warc_filename.empty();
         WARCWriter pdf_warc_writer;
+        if (!options.pdf_warc_filename.empty())
+            pdf_warc_writer.open(options.pdf_warc_filename);
 
         while (!done) {
             done = !reader.getRecord(content);
+
+            // Note that content.empty() will also be true when len(record) > max_size (which is 20MB by default)
             if (done or content.empty())
                 continue;
 
@@ -82,19 +80,8 @@ namespace warc2text {
             // PDFs that have gone through bitextor-warc2htmlwarc.py will have URL ending in .pdf but text HTTP content type
             if (not record.isTextFormat() and (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf")) {
                 // found a PDF file, write record to disk and continue
-                if (pdfpass) {
-                    // Work-around for https://github.com/bitextor/warc2text/issues/16 for ParaCrawl
-                    // we do not really have a use case for massive PDFs at this moment. Skip em.
-                    if (content.size() >= static_cast<std::size_t>(std::numeric_limits<uInt>::max())) {
-                        BOOST_LOG_TRIVIAL(info) << "PDF too large to compress with util::GZCompress";
-                        continue;
-                    }
-
-                    if (!pdf_warc_writer.is_open())
-                        pdf_warc_writer.open(pdf_warc_filename);
-
-                    pdf_warc_writer.writeRecord(content);
-                }
+                // this is a no-op if pdf_warc_writer is not opened.
+                pdf_warc_writer.writeRecord(content);
                 continue;
             }
 
@@ -104,7 +91,7 @@ namespace warc2text {
             if (!URLfilter(record.getURL()))
                 continue;
 
-            if (encodeURLs)
+            if (options.encodeURLs)
                 record.encodeURL();
 
             BOOST_LOG_TRIVIAL(trace) << "Processing HTML document " << record.getURL() << "\n";
@@ -123,7 +110,7 @@ namespace warc2text {
                 continue;
             }
 
-            if ((clean_retval == util::FILTERED_DOCUMENT_ERROR) != invert) {
+            if ((clean_retval == util::FILTERED_DOCUMENT_ERROR) != options.tag_filters_invert) {
                 BOOST_LOG_TRIVIAL(info) << "Record " << record.getURL() << " discarded due to tag filters";
                 continue;
             } else if (clean_retval == util::HTML_PARSING_ERROR) {
@@ -169,7 +156,7 @@ namespace warc2text {
 
             langRecords += n_langs;
 
-            writer.write(record, paragraph_identification);
+            writer.write(record, options.paragraph_identification);
         }
     }
 
