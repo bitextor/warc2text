@@ -26,6 +26,7 @@ namespace warc2text {
 
     struct WARCPreprocessorOptions {
         std::string pdf_warc_filename;
+        std::string robots_warc_filename;
         
         bool paragraph_identification{};
 
@@ -57,6 +58,8 @@ namespace warc2text {
             
             static const std::unordered_set<std::string> removeExtensions;
             bool URLfilter(const std::string& url) const;
+
+            bool isRobotsTxt(const Record &record) const;
 
         public:
             explicit WARCPreprocessor(LanguageDetector const &detector, WARCPreprocessorOptions const &options);

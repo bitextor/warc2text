@@ -46,6 +46,45 @@ namespace warc2text {
         return true;
     }
 
+    bool WARCPreprocessor::isRobotsTxt(const Record &record) const {
+        const auto &url = record.getURL();
+
+        // Find the bit after https://
+        auto host_offset = url.find("://");
+        if (host_offset != std::string::npos) {
+            host_offset += 3; // len(://)
+        }
+        // maybe it is a relative url, i.e. //hostname?
+        else if (url.substr(0, 2) == "//") {
+            host_offset = 2; // len(//)
+        }
+        // Just assume there is no protocol, and we start with the hostname.
+        else {
+            host_offset = 0;
+        }
+
+        // Find the beginning of the path
+        auto path_offset = url.find("/", host_offset);
+        if (path_offset == std::string::npos)
+            return false;
+
+        // If the first bit of the path is robots.txt, that's hopeful.
+        if (url.compare(path_offset, kRobotsTxtPath.size(), kRobotsTxtPath) != 0)
+            return false;
+
+        // Is there anything after the /robots.txt?
+        if (url.size() > path_offset + kRobotsTxtPath.size()) {
+            switch (url[path_offset + kRobotsTxtPath.size()]) {
+                case '#': // anchor?
+                case '?': // query string?
+                    break; // that's okay
+                default:
+                    return false; // anything else is not
+            }
+        }
+
+        return true;
+    }
 
     void WARCPreprocessor::process(const std::string& filename) {
         BOOST_LOG_TRIVIAL(info) << "Processing " << filename;
@@ -59,6 +98,10 @@ namespace warc2text {
         if (!options.pdf_warc_filename.empty())
             pdf_warc_writer.open(options.pdf_warc_filename);
 
+        WARCWriter robots_warc_writer;
+        if (!options.robots_warc_filename.empty())
+            robots_warc_writer.open(options.robots_warc_filename);
+        
         while (!done) {
             done = !reader.getRecord(content);
 
@@ -69,6 +112,14 @@ namespace warc2text {
             Record record(content);
             if (record.getPayload().empty())
                 continue;
+
+            // Pick out all robots.txt related records
+            // TODO: or do we only want response/resource?
+            // TODO: test for url.path == /robots.txt, not just ending in robots.txt
+            if (boost::algorithm::ends_with(record.getURL(), "/robots.txt")) {
+                robots_warc_writer.writeRecord(content);
+                continue;
+            }
 
             if (record.getRecordType() != "response" && record.getRecordType() != "resource")
                 continue;

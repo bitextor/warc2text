@@ -34,6 +34,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
         ("url-filters", po::value(&out.url_filters_filename), "Plain text file containing url filters")
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
+        ("robotspass", po::value(&out.robots_warc_filename), "Write robots.txt records to WARC")
         ("paragraph-identification", po::bool_switch(&out.paragraph_identification)->default_value(false), "Add paragraph index in each b64encoded document as tab separated column")
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
@@ -65,6 +66,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --url-filters <filters_file>     File containing url filters\n"
                 "                                  Format: \"regexp\"\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
+                " --robotspass <output_warc>       Write Robots.txt records to <output_warc>\n"
                 " --encode-urls                    Encode URLs obtained from WARC records\n"
                 " --paragraph-identification       Add paragraph index for each sentence extracted from the html\n"
                 " -s                               Only output errors\n"
