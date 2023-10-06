@@ -171,7 +171,6 @@ namespace warc2text {
 
             writer.write(record, paragraph_identification);
         }
-        pdf_warc_writer.close();
     }
 
     void WARCPreprocessor::printStatistics() const{
@@ -186,6 +185,10 @@ namespace warc2text {
 
     WARCWriter::WARCWriter() {
         warc = nullptr;
+    }
+
+    WARCWriter::~WARCWriter() {
+        close();
     }
 
     void WARCWriter::open(const std::string& warc_filename) {

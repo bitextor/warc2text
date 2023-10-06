@@ -17,6 +17,7 @@ namespace warc2text {
             std::string filename;
         public:
             WARCWriter();
+            ~WARCWriter();
             void open(const std::string& warc_filename);
             void close();
             bool is_open();
