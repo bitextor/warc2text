@@ -195,8 +195,11 @@ namespace warc2text {
         filename = warc_filename;
         if (not boost::algorithm::ends_with(filename, ".warc.gz"))
             filename += ".warc.gz";
-        std::string folder = filename.substr(0, filename.find_last_of('/'));
-        util::createDirectories(folder);
+        auto filename_offset = filename.find_last_of('/');
+        if (filename_offset != std::string::npos) {
+            std::string folder = filename.substr(0, filename_offset);
+            util::createDirectories(folder);
+        }
         warc = std::fopen(filename.c_str(), "wb");
     }
 
