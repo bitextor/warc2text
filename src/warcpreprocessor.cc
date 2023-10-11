@@ -73,15 +73,8 @@ namespace warc2text {
             return false;
 
         // Is there anything after the /robots.txt?
-        if (url.size() > path_offset + kRobotsTxtPath.size()) {
-            switch (url[path_offset + kRobotsTxtPath.size()]) {
-                case '#': // anchor?
-                case '?': // query string?
-                    break; // that's okay
-                default:
-                    return false; // anything else is not
-            }
-        }
+        if (url.size() > path_offset + kRobotsTxtPath.size())
+            return false;
 
         return true;
     }
