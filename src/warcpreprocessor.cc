@@ -5,9 +5,44 @@
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-namespace warc2text {
+namespace {
     const std::string kRobotsTxtPath = "/robots.txt";
 
+    bool isRobotsTxt(const warc2text::Record &record) {
+        const auto &url = record.getURL();
+
+        // Find the bit after https://
+        auto host_offset = url.find("://");
+        if (host_offset != std::string::npos) {
+            host_offset += 3; // len(://)
+        }
+        // maybe it is a relative url, i.e. //hostname?
+        else if (url.substr(0, 2) == "//") {
+            host_offset = 2; // len(//)
+        }
+        // Just assume there is no protocol, and we start with the hostname.
+        else {
+            host_offset = 0;
+        }
+
+        // Find the beginning of the path
+        auto path_offset = url.find("/", host_offset);
+        if (path_offset == std::string::npos)
+            return false;
+
+        // If the first bit of the path is robots.txt, that's hopeful.
+        if (url.compare(path_offset, kRobotsTxtPath.size(), kRobotsTxtPath) != 0)
+            return false;
+
+        // Is there anything after the /robots.txt?
+        if (url.size() > path_offset + kRobotsTxtPath.size())
+            return false;
+
+        return true;
+    }
+}
+
+namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3",
                                                                                 ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
@@ -46,39 +81,6 @@ namespace warc2text {
         return true;
     }
 
-    bool WARCPreprocessor::isRobotsTxt(const Record &record) const {
-        const auto &url = record.getURL();
-
-        // Find the bit after https://
-        auto host_offset = url.find("://");
-        if (host_offset != std::string::npos) {
-            host_offset += 3; // len(://)
-        }
-        // maybe it is a relative url, i.e. //hostname?
-        else if (url.substr(0, 2) == "//") {
-            host_offset = 2; // len(//)
-        }
-        // Just assume there is no protocol, and we start with the hostname.
-        else {
-            host_offset = 0;
-        }
-
-        // Find the beginning of the path
-        auto path_offset = url.find("/", host_offset);
-        if (path_offset == std::string::npos)
-            return false;
-
-        // If the first bit of the path is robots.txt, that's hopeful.
-        if (url.compare(path_offset, kRobotsTxtPath.size(), kRobotsTxtPath) != 0)
-            return false;
-
-        // Is there anything after the /robots.txt?
-        if (url.size() > path_offset + kRobotsTxtPath.size())
-            return false;
-
-        return true;
-    }
-
     void WARCPreprocessor::process(const std::string& filename) {
         BOOST_LOG_TRIVIAL(info) << "Processing " << filename;
         WARCReader reader(filename);
@@ -106,11 +108,9 @@ namespace warc2text {
             if (record.getPayload().empty())
                 continue;
 
-            // Pick out all robots.txt related records
-            // TODO: or do we only want response/resource?
-            // TODO: test for url.path == /robots.txt, not just ending in robots.txt
-            if (boost::algorithm::ends_with(record.getURL(), "/robots.txt")) {
-                robots_warc_writer.writeRecord(content);
+            // Pick out all robots.txt related records.
+            if (::isRobotsTxt(record)) {
+                robots_warc_writer.writeRecord(content); // no-op if robots_warc_writer is not opened.
                 continue;
             }
 
