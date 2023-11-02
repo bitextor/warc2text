@@ -35,7 +35,7 @@ namespace util {
 
     void trimLinesCopy(const std::string& original, std::string& result){
         result.clear();
-        result.reserve(original); // Worst case
+        result.reserve(original.size()); // Worst case
 
         auto text_begin = original.begin();
         while (text_begin != original.end()) {
