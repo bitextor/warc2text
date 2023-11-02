@@ -150,7 +150,7 @@ namespace warc2text{
                  {"l", boost::json::string(chunk.first)},
                  {"u", boost::json::string(record.getURL())},
                  {"c", boost::json::string(record.getHTTPcontentType())},
-                 {"t", boost::json::string(chunk.second)},
+                 {"p", boost::json::string(chunk.second)},
             } << "\n";
         }
     }
