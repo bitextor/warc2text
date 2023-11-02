@@ -37,7 +37,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
     desc.add_options()
         ("help,h", po::bool_switch(), "Show this help message")
         ("output,o", po::value(&out.output)->default_value("."), "Output folder")
-        ("files,f", po::value(&out.files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
+        ("files,f", po::value(&out.files)->default_value("url,text"), "List of output files separated by commas. Default: 'url,text'. Optional: 'mime,html,file'")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
         ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
