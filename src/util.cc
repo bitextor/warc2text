@@ -34,19 +34,34 @@ namespace util {
     }
 
     void trimLinesCopy(const std::string& original, std::string& result){
-        result = "";
-        auto first = original.begin();
-        auto last = std::find(original.begin(), original.end(), '\n');
-        std::string line;
-        while (first < original.end()) {
-            line = std::string(first, last);
-            boost::trim_all(line);
-            if (!line.empty()){
-                result.append(line);
+        result.clear();
+        result.reserve(original); // Worst case
+
+        auto text_begin = original.begin();
+        while (text_begin != original.end()) {
+            // Find begin of text (trim whitespace at the front of line)
+            if (std::isspace(*text_begin)) {
+                ++text_begin;
+                continue;
+            }
+
+            // Find line ending
+            auto line_end = std::find(text_begin, original.end(), '\n');
+
+            // Find where, before the line ending, the actual text ended
+            auto text_end = line_end;
+            while (text_end != text_begin && std::isspace(*(text_end - 1)))
+                --text_end;
+
+            // If there was text between text_begin and text_end, result!
+            if (text_end != text_begin) {// not empty line
+                result.append(text_begin, text_end);
                 result.append("\n");
             }
-            first = last + 1;
-            last = std::find(first, original.end(), '\n');
+            
+            // Jump to next line
+            // (std::is_space will take care of \n if there is any text left)
+            text_begin = line_end;
         }
     }
 
