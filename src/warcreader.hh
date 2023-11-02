@@ -1,10 +1,11 @@
 #ifndef WARC2TEXT_WARCREADER_HH
 #define WARC2TEXT_WARCREADER_HH
 
+#include "util/file.hh"
 #include "zlib.h"
 #include <array>
 #include <string>
-#include "util/file.hh"
+#include <cstdint>
 
 namespace warc2text {
     class WARCReader {
