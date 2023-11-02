@@ -82,12 +82,10 @@ namespace util {
         return boost::locale::conv::to_utf<char>(text, charset);
     }
 
-    void encodeBase64(const std::string& original, std::string& base64){
-        preprocess::base64_encode(original, base64);
-    }
-
-    void decodeBase64(const std::string& base64, std::string& output){
-        preprocess::base64_decode(base64, output);
+    std::string encodeBase64(const std::string &original) {
+        std::string out;
+        preprocess::base64_encode(original, out);
+        return out;
     }
 
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters) {

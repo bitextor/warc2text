@@ -25,9 +25,7 @@ namespace util {
     std::string toUTF8 (const std::string& text, const std::string& charset);
     std::string toUTF8 (const char* text, const std::string& charset);
 
-    void encodeBase64(const std::string& original, std::string& base64);
-
-    void decodeBase64(const std::string& base64, std::string& output);
+    std::string encodeBase64(const std::string& original);
 
     const std::string reserved_chars_url("!#$&'()*+,/:;=?[]");
     std::string encodeURLs(const std::string& url);
