@@ -4,31 +4,8 @@
 #include <cassert>
 #include <string>
 #include <iomanip>
+#include <boost/json.hpp>
 
-
-namespace {
-    /**
-     * Little bit of JSON wrapping to make sure we only ever print safe values
-     */
-
-    template <typename T>
-    struct JSONValue {
-        const T& ref;
-    };
-
-    template <typename T>
-    JSONValue<T> escapeJSON(T const &ref) {
-        return JSONValue<T>{ref};
-    }
-
-    std::ostream &operator<<(std::ostream &out, JSONValue<std::size_t> const &val) {
-        return out << val.ref;
-    }
-
-    std::ostream &operator<<(std::ostream &out, JSONValue<std::string> const &val) {
-        return out << std::quoted(val.ref);
-    }
-}
 
 namespace warc2text{
 
@@ -163,16 +140,19 @@ namespace warc2text{
 
     void JSONLinesWriter::write(const Record& record, [[maybe_unused]] bool paragraph_identification) {
         // JSON lines format (https://jsonlines.org)
-        out_ << "{"
-             << "\"f\":"   << escapeJSON(record.getFilename()) << ","
-             << "\"o\":"   << escapeJSON(record.getOffset()) << ","
-             << "\"s\":"   << escapeJSON(record.getSize()) << ","
-             << "\"rs\":"  << escapeJSON(record.getPayload().size()) << ","
-             << "\"ps\":"  << escapeJSON(record.getPlainText().size()) << ","
-             << "\"l\":" << escapeJSON(record.getLanguage()) << ","
-             << "\"u\":" << escapeJSON(record.getURL()) << ","
-             << "\"c\":" << escapeJSON(record.getHTTPcontentType())
-             << "}\n";
+        for (auto &&chunk : record.getTextByLangs()) {
+            out_ << boost::json::value{
+                 {"f", boost::json::string(record.getFilename())},
+                 {"o", boost::json::value(record.getOffset())},
+                 {"s", boost::json::value(record.getSize())},
+                 {"rs", boost::json::value(record.getPayload().size())},
+                 {"ps", boost::json::value(chunk.second.size())},
+                 {"l", boost::json::string(chunk.first)},
+                 {"u", boost::json::string(record.getURL())},
+                 {"c", boost::json::string(record.getHTTPcontentType())},
+                 {"t", boost::json::string(chunk.second)},
+            } << "\n";
+        }
     }
 }
 
