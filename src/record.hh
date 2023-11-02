@@ -23,7 +23,6 @@ namespace warc2text {
 
         const std::string& getPayload() const;
         const std::string& getPlainText() const;
-        const std::string& getLanguage() const;
         const std::string& getURL() const;
         const std::string& getRecordType() const;
         const std::string& getWARCcontentType() const;

@@ -279,10 +279,6 @@ namespace warc2text {
         return plaintext;
     }
 
-    const std::string& Record::getLanguage() const {
-        return language;
-    }
-
     const std::string& Record::getURL() const {
         return url;
     }
