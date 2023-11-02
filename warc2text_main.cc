@@ -13,21 +13,13 @@
 
 using namespace warc2text;
 
-struct Options {
+struct Options : WARCPreprocessorOptions {
+    std::string file_list;
     std::vector<std::string> warcs;
-    std::string files;
-    std::string pdf_warc_filename;
-    bool paragraph_identification{};
-    bool verbose{};
-    bool silent{};
-    std::string output;
-    std::string tag_filters_filename;
-    bool tag_filters_invert{};
-    std::string url_filters_filename;
-    bool multilang{};
-    bool encodeURLs{};
     std::string classifier;
     std::string fasttext_model;
+    bool verbose{};
+    bool silent{};
 };
 
 void parseArgs(int argc, char *argv[], Options& out) {
@@ -36,12 +28,13 @@ void parseArgs(int argc, char *argv[], Options& out) {
     desc.add_options()
         ("help,h", po::bool_switch(), "Show this help message")
         ("output,o", po::value(&out.output)->default_value("."), "Output folder")
-        ("files,f", po::value(&out.files)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
+        ("files,f", po::value(&out.file_list)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
         ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
         ("url-filters", po::value(&out.url_filters_filename), "Plain text file containing url filters")
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
+        ("robotspass", po::value(&out.robots_warc_filename), "Write robots.txt records to WARC")
         ("paragraph-identification", po::bool_switch(&out.paragraph_identification)->default_value(false), "Add paragraph index in each b64encoded document as tab separated column")
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
@@ -73,6 +66,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --url-filters <filters_file>     File containing url filters\n"
                 "                                  Format: \"regexp\"\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
+                " --robotspass <output_warc>       Write Robots.txt records to <output_warc>\n"
                 " --encode-urls                    Encode URLs obtained from WARC records\n"
                 " --paragraph-identification       Add paragraph index for each sentence extracted from the html\n"
                 " -s                               Only output errors\n"
@@ -98,8 +92,8 @@ int main(int argc, char *argv[]) {
 
     // prepare list of output files
     std::vector<std::string> files_list;
-    boost::algorithm::split(files_list, options.files, [](char c) {return c == ',';});
-    std::unordered_set<std::string> output_files(files_list.begin(), files_list.end());
+    boost::algorithm::split(files_list, options.file_list, [](char c) {return c == ',';});
+    options.output_files.insert(files_list.begin(), files_list.end());
 
     std::unique_ptr<LanguageDetector> detector;
 
@@ -122,9 +116,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(*detector, options.output, output_files, options.pdf_warc_filename, options.tag_filters_filename,
-                               options.tag_filters_invert, options.url_filters_filename,
-                               options.encodeURLs, options.paragraph_identification);
+    WARCPreprocessor warcpproc(*detector, options);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }
