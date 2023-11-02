@@ -99,7 +99,7 @@ namespace warc2text{
         std::string result = "";
         std::vector<std::string> lines = util::split(text, "\n");
 
-        while (lines[lines.size() - 1] == "") {
+        while (!lines.empty() && lines[lines.size() - 1] == "") {
             lines.pop_back();
         }
 
