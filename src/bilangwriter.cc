@@ -93,6 +93,8 @@ namespace warc2text{
             html_file.open(path + "/html.gz");
         if (output_files.count("file"))
             file_file.open(path + "/file.gz");
+        if (output_files.count("date"))
+            date_file.open(path + "/date.gz");
     }
 
     void LangWriter::write(Record const &record, std::string const &chunk) {
@@ -102,6 +104,8 @@ namespace warc2text{
             mime_file.writeLine(record.getHTTPcontentType());
         if (file_file.is_open())
             file_file.writeLine(record.getFilename() + ":" + std::to_string(record.getOffset()) + ":" + std::to_string(record.getSize()));
+        if (date_file.is_open())
+            date_file.writeLine(record.getWARCdate());
         if (html_file.is_open())
             html_file.writeLine(util::encodeBase64(record.getPayload()));
         if (text_file.is_open())
@@ -147,6 +151,7 @@ namespace warc2text{
                  {"l", boost::json::string(chunk.first)},
                  {"u", boost::json::string(record.getURL())},
                  {"c", boost::json::string(record.getHTTPcontentType())},
+                 {"ts", boost::json::string(record.getWARCdate())},
                  {"p", boost::json::string(chunk.second)},
             } << "\n";
         }

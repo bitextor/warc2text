@@ -51,6 +51,7 @@ namespace warc2text {
             GzipWriter text_file;
             GzipWriter html_file;
             GzipWriter file_file;
+            GzipWriter date_file;
         public:
             LangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files);
             void write(const Record& record, const std::string &chunk);

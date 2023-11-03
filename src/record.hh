@@ -26,6 +26,7 @@ namespace warc2text {
         const std::string& getURL() const;
         const std::string& getRecordType() const;
         const std::string& getWARCcontentType() const;
+        const std::string& getWARCdate() const;
         const std::string& getHTTPcontentType() const;
         const std::string& getCharset() const;
         bool isBroaderDocumentFormat() const;
@@ -70,6 +71,7 @@ namespace warc2text {
         // these are present in the headers, but it's convenient to have them apart also
         std::string recordType;
         std::string WARCcontentType;
+        std::string WARCdate;
         std::string cleanHTTPcontentType;
         std::string charset;
         std::string url;

@@ -75,6 +75,10 @@ namespace warc2text {
             util::toLower(WARCcontentType);
         }
 
+        if (header.count("warc-date") == 1) {
+            WARCdate = header["warc-date"];
+        }
+
         payload_start = last_pos;
         if (header["warc-type"] == "response") {
             // parse HTTP header
@@ -285,6 +289,10 @@ namespace warc2text {
 
     const std::string& Record::getRecordType() const {
         return recordType;
+    }
+
+    const std::string& Record::getWARCdate() const {
+        return WARCdate;
     }
 
     const std::string& Record::getWARCcontentType() const {
