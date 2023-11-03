@@ -18,16 +18,36 @@ namespace warc2text {
             std::string filename;
         public:
             WARCWriter();
+            ~WARCWriter();
             void open(const std::string& warc_filename);
             void close();
             bool is_open();
             void writeRecord(const std::string& content);
     };
 
+    struct WARCPreprocessorOptions {
+        std::string pdf_warc_filename;
+        std::string robots_warc_filename;
+        
+        bool paragraph_identification{};
+
+        std::string output;
+        std::unordered_set<std::string> output_files;
+        
+        std::string tag_filters_filename;
+        bool tag_filters_invert{};
+        
+        std::string url_filters_filename;
+        
+        bool multilang{};
+        bool encodeURLs{};
+    };
+
     class WARCPreprocessor {
         private:
             RecordWriter &writer;
             LanguageDetector const &detector;
+            WARCPreprocessorOptions const &options;
             unsigned int totalRecords;
             unsigned int textRecords;
             unsigned int langRecords;
@@ -36,19 +56,12 @@ namespace warc2text {
             unsigned int langBytes;
             util::umap_tag_filters_regex tagFilters;
             boost::regex urlFilter;
-            std::string pdf_warc_filename;
-            bool invert;
-            bool encodeURLs;
-            bool paragraph_identification;
-
+            
             static const std::unordered_set<std::string> removeExtensions;
-            bool URLfilter(const std::string& url);
+            bool URLfilter(const std::string& url) const;
 
         public:
-            explicit WARCPreprocessor(RecordWriter &writer, LanguageDetector const &detector,
-                                      const std::string& pdf_warc_filename = "", const std::string& tagFiltersFile = "",
-                                      bool invert = false, const std::string& urlFiltersFile = "",
-                                      bool encodeURLs = false, bool paragraph_identification = false);
+            explicit WARCPreprocessor(RecordWriter &writer, LanguageDetector const &detector, WARCPreprocessorOptions const &options);
             void process(const std::string &filename);
             void printStatistics() const;
     };
