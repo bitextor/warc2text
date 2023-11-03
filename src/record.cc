@@ -65,10 +65,11 @@ namespace warc2text {
         if (header.count("warc-target-uri") == 1) {
             // respect the original casing
             url = header["warc-target-uri"];
-        }
 
-        if (!url.empty() && url[0] == '<' && url[url.size()-1] == '>')
-            url = url.substr(1, url.size()-2);
+            // Remove any "<" and ">" wrappings from the URL
+            if (!url.empty() && url[0] == '<' && url[url.size()-1] == '>')
+                url = url.substr(1, url.size()-2);
+        }
 
         if (header.count("content-type") == 1) {
             WARCcontentType = header["content-type"];
@@ -80,7 +81,7 @@ namespace warc2text {
         }
 
         payload_start = last_pos;
-        if (header["warc-type"] == "response") {
+        if (recordType == "response") {
             // parse HTTP header
             pos = content.find("HTTP/1.", last_pos);
             if (pos == last_pos) { // found HTTP header
