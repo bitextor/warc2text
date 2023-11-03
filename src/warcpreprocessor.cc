@@ -62,6 +62,12 @@ namespace warc2text {
 
             if (!options.url_filters_filename.empty())
                 util::readUrlFiltersRegex(options.url_filters_filename, urlFilter);
+
+            if (!options.pdf_warc_filename.empty())
+                pdf_warc_writer.open(options.pdf_warc_filename);
+
+            if (!options.robots_warc_filename.empty())
+                robots_warc_writer.open(options.robots_warc_filename);
         }
 
     // true if url is good
@@ -89,14 +95,6 @@ namespace warc2text {
         bool done = false;
         int n_langs = 0;
 
-        WARCWriter pdf_warc_writer;
-        if (!options.pdf_warc_filename.empty())
-            pdf_warc_writer.open(options.pdf_warc_filename);
-
-        WARCWriter robots_warc_writer;
-        if (!options.robots_warc_filename.empty())
-            robots_warc_writer.open(options.robots_warc_filename);
-        
         while (!done) {
             done = !reader.getRecord(content);
 
