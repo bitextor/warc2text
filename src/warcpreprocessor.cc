@@ -40,6 +40,23 @@ namespace {
 
         return true;
     }
+
+    bool isPDF(const warc2text::Record &record) {
+        if (record.isTextFormat())
+            return false;
+
+        // if HTTP content type is 'text/html' or something similar, don't rely
+        // on URL extension to detect unprocessed PDFs. PDFs that have gone
+        // through bitextor-warc2htmlwarc.py will have URL ending in .pdf but
+        // text HTTP content type.
+        if (boost::algorithm::ends_with(record.getURL(), ".pdf"))
+            return true;
+
+        if (record.getHTTPcontentType() == "application/pdf")
+            return true;
+
+        return false;
+    }
 }
 
 namespace warc2text {
@@ -115,9 +132,7 @@ namespace warc2text {
             if (record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
 
-            // if HTTP content type is 'text/html' or something similar, don't rely on URL extension to detect unprocessed PDFs
-            // PDFs that have gone through bitextor-warc2htmlwarc.py will have URL ending in .pdf but text HTTP content type
-            if (not record.isTextFormat() and (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf")) {
+            if (::isPDF(record)) {
                 // found a PDF file, write record to disk and continue
                 // this is a no-op if pdf_warc_writer is not opened.
                 pdf_warc_writer.writeRecord(content);
