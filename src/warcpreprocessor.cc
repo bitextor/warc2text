@@ -72,9 +72,6 @@ namespace warc2text {
 
     // true if url is good
     bool WARCPreprocessor::URLfilter(const std::string& url) const {
-        if (boost::algorithm::ends_with(url, "robots.txt"))
-            return false;
-
         for (const std::string& ext : removeExtensions)
             if (boost::algorithm::ends_with(url, ext))
                 return false;
