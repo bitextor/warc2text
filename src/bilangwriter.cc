@@ -129,7 +129,7 @@ namespace warc2text{
 
     void BilangWriter::write(const Record& record, bool paragraph_identification) {
         for (const auto& it : record.getTextByLangs()) {
-            std::string chunk = it.second;
+            std::string chunk = it.second.text;
 
             if (paragraph_identification)
                 chunk = get_paragraph_id(chunk);
@@ -147,12 +147,13 @@ namespace warc2text{
                  {"o", boost::json::value(record.getOffset())},
                  {"s", boost::json::value(record.getSize())},
                  {"rs", boost::json::value(record.getPayload().size())},
-                 {"ps", boost::json::value(chunk.second.size())},
+                 {"ps", boost::json::value(chunk.second.text.size())},
                  {"l", boost::json::string(chunk.first)},
                  {"u", boost::json::string(record.getURL())},
                  {"c", boost::json::string(record.getHTTPcontentType())},
                  {"ts", boost::json::string(record.getWARCdate())},
-                 {"p", boost::json::string(chunk.second)},
+                 {"p", boost::json::string(chunk.second.text)},
+                 {"pt", boost::json::value_from(chunk.second.tags)},
             } << "\n";
         }
     }

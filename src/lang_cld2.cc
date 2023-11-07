@@ -8,17 +8,17 @@ namespace warc2text {
 
     CLD2Detector::~CLD2Detector() {}
 
-    void CLD2Detector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
+    void CLD2Detector::detect(AnnotatedText &&text, std::unordered_map<std::string, AnnotatedText>& text_by_lang) const {
         bool reliable = false;
         int valid_prefix_bytes = 0;
-        CLD2::Language l = CLD2::DetectLanguageCheckUTF8(text.data(), text.size(), true, &reliable, &valid_prefix_bytes);
-        text_by_lang[reliable ? CLD2::LanguageCode(l) : kUnknownLanguageLabel] = text;
+        CLD2::Language l = CLD2::DetectLanguageCheckUTF8(text.text.data(), text.text.size(), true, &reliable, &valid_prefix_bytes);
+        text_by_lang[reliable ? CLD2::LanguageCode(l) : kUnknownLanguageLabel] = std::move(text);
     }
 
     CLD2MultiLangDetector::~CLD2MultiLangDetector() {}
 
-    void CLD2MultiLangDetector::detect(const std::string& text, std::unordered_map<std::string, std::string>& text_by_lang) const {
-        CLD2::Language langs[3] = {CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE};
+    void CLD2MultiLangDetector::detect(AnnotatedText &&text, std::unordered_map<std::string, AnnotatedText>& text_by_lang) const {
+        CLD2::Language langs[] = {CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE, CLD2::UNKNOWN_LANGUAGE};
         int percents[3] = {0,0,0};
         double scores[3] = {0.0, 0.0, 0.0};
 
@@ -28,47 +28,39 @@ namespace warc2text {
 
         CLD2::ResultChunkVector chunks;
 
-        CLD2::ExtDetectLanguageSummaryCheckUTF8(text.data(), text.size(), true, &NO_HINT, 0, &langs[0], &percents[0], &scores[0], &chunks, &text_bytes, &reliable, &valid_prefix_bytes);
+        CLD2::ExtDetectLanguageSummaryCheckUTF8(text.text.data(), text.text.size(), true, &NO_HINT, 0, &langs[0], &percents[0], &scores[0], &chunks, &text_bytes, &reliable, &valid_prefix_bytes);
 
         text_by_lang.clear();
 
-        if (not reliable) {
-            text_by_lang[kUnknownLanguageLabel] = text;
+        if (!reliable) {
+            text_by_lang[kUnknownLanguageLabel] = std::move(text);
             return;
         }
 
-        std::string* top1 = nullptr;
-        std::string* top2 = nullptr;
-        std::string* top3 = nullptr;
+        const char* mapping[] = {nullptr, nullptr, nullptr};
 
-        if (langs[0] != CLD2::UNKNOWN_LANGUAGE and percents[0] > 0) {
-            top1 = &text_by_lang[CLD2::LanguageCode(langs[0])];
-            top1->reserve(text.size() * (percents[0] + 1));
-        }
-
-        if (langs[1] != CLD2::UNKNOWN_LANGUAGE and percents[1] > 0) {
-            top2 = &text_by_lang[CLD2::LanguageCode(langs[1])];
-            top2->reserve(text.size() * (percents[1] + 1));
-        }
-
-        if (langs[2] != CLD2::UNKNOWN_LANGUAGE and percents[2] > 0) {
-            top3 = &text_by_lang[CLD2::LanguageCode(langs[2])];
-            top3->reserve(text.size() * (percents[2] + 1));
+        for (size_t i = 0; i < 3; ++i) {
+            if (langs[i] != CLD2::UNKNOWN_LANGUAGE && percents[i] > 0)
+                mapping[i] = CLD2::LanguageCode(langs[2]);
         }
 
         for (const CLD2::ResultChunk& chunk : chunks) {
-            std::string* ref = static_cast<CLD2::Language>(chunk.lang1) == langs[0] ? top1 :
-                        static_cast<CLD2::Language>(chunk.lang1) == langs[1] ? top2 :
-                        static_cast<CLD2::Language>(chunk.lang1) == langs[2] ? top3 : nullptr;
-            if (ref == nullptr) continue;
-            ref->append(text, chunk.offset, chunk.bytes);
-        }
+            if (chunk.bytes == 0) // TODO: can this even happen?
+                continue;
 
-        // remove empty texts from text_by_lang
-        // apparently it is possible that the reported percentage is > 0, but the language does not appear in chunks
-        for (auto it = text_by_lang.cbegin(); it != text_by_lang.cend(); ){
-            if (it->second.size() == 0) text_by_lang.erase(it++);
-            else ++it;
+            // Which of the top 3 languages is this chunk in?
+            std::size_t i = 0;
+            for (; i < 3; ++i) {
+                if (static_cast<CLD2::Language>(chunk.lang1) == langs[i])
+                    break;
+            }
+
+            // Chunk is not in top 3
+            if (i == 3)
+                continue;
+
+            // Chunk is in top 3, append it to that AnnotatedText
+            text_by_lang[mapping[i]].append(text, chunk.offset, chunk.bytes);
         }
 
         // TODO: do something with the scores?
