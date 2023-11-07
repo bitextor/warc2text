@@ -40,6 +40,34 @@ BOOST_AUTO_TEST_CASE(CleanHTML) {
 	BOOST_CHECK_EQUAL_COLLECTIONS(out.tags.begin(), out.tags.end(), tags.begin(), tags.end());
 }
 
+BOOST_AUTO_TEST_CASE(TagsIdentifiers) {
+	// breaks because we don't have a stack, so after </p> but before <p> no idea
+	// we're inside <div>.
+	std::string html(
+		"<div>\n"
+		"  <p>Text</p>\n"
+		"  <span>not block text</span>\n"
+		"  <embed>alt text</embed>\n"
+		"  <p>Paragraph</p>\n"
+		"</div>"
+	);
+
+	std::string expected(
+		"Text\n"
+		"not block text alt text\n"
+		"Paragraph\n"
+	);
+
+	std::vector<std::string> tags{"p", "div", "p"};
+
+	AnnotatedText out;
+	auto retval = processHTML(html, out, {});
+
+	BOOST_CHECK_EQUAL(retval, util::SUCCESS);
+	BOOST_CHECK_EQUAL(out.text, expected);
+	BOOST_CHECK_EQUAL_COLLECTIONS(out.tags.begin(), out.tags.end(), tags.begin(), tags.end());
+}
+
 BOOST_AUTO_TEST_CASE(PreTagNotSupported) {
 	// We don't support keeping the formatting in <pre> tags.
 	std::string html(
