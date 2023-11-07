@@ -41,6 +41,7 @@ BOOST_AUTO_TEST_CASE(CleanHTML) {
 }
 
 BOOST_AUTO_TEST_CASE(PreTagNotSupported) {
+	// We don't support keeping the formatting in <pre> tags.
 	std::string html(
 		"<pre> This line\n"
 		"should keep its newlines\n"
@@ -58,8 +59,19 @@ BOOST_AUTO_TEST_CASE(PreTagNotSupported) {
 	BOOST_CHECK_EQUAL_COLLECTIONS(out.tags.begin(), out.tags.end(), tags.begin(), tags.end());
 }
 
-BOOST_AUTO_TEST_CASE(VoidTags) {
-	std::string html("Text inside <embed>ignore <span>and me</span> me!</embed> is ignored");
+BOOST_AUTO_TEST_CASE(BlockTags) {
+	std::string html("<body>Alpha <br> Beta <h1> Gamma </h1> Delta <span> Epsilon </span> Zeta</body>");
+	std::string expected("Alpha\nBeta\nGamma\nDelta Epsilon Zeta\n");
+	AnnotatedText out;
+	auto retval = processHTML(html, out, {});
+	BOOST_CHECK_EQUAL(retval, util::SUCCESS);
+	BOOST_CHECK_EQUAL(out.text, expected);
+}
+
+BOOST_AUTO_TEST_CASE(ScriptTags) {
+	// This fails since we don't keep a stack, so ` is ignored` will still
+	// have tag_name == "script" and be ignored :facepalm:
+	std::string html("<body>Text inside <script>ignore <span>and me</span> me!</script> is ignored</body>");
 	std::string expected("Test inside is ignored\n");
 	AnnotatedText out;
 	auto retval = processHTML(html, out, {});
