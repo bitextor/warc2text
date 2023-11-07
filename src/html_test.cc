@@ -46,19 +46,20 @@ BOOST_AUTO_TEST_CASE(TagsIdentifiers) {
 	std::string html(
 		"<div>\n"
 		"  <p>Text</p>\n"
-		"  <span>not block text</span>\n"
-		"  <embed>alt text</embed>\n"
+		"  not block text\n"
 		"  <p>Paragraph</p>\n"
+		"  Inside div\n"
 		"</div>"
 	);
 
 	std::string expected(
 		"Text\n"
-		"not block text alt text\n"
+		"not block text\n"
 		"Paragraph\n"
+		"Inside div\n"
 	);
 
-	std::vector<std::string> tags{"p", "div", "p"};
+	std::vector<std::string> tags{"p", "div", "p", "div"};
 
 	AnnotatedText out;
 	auto retval = processHTML(html, out, {});
