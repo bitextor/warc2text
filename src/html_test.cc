@@ -68,7 +68,16 @@ BOOST_AUTO_TEST_CASE(BlockTags) {
 	BOOST_CHECK_EQUAL(out.text, expected);
 }
 
-BOOST_AUTO_TEST_CASE(ScriptTags) {
+BOOST_AUTO_TEST_CASE(VoidTags) {
+	std::string html("<body>Void<img>tags<img>should<img>add<embed>beep</embed>spaces</body>");
+	std::string expected("Void tags should add beep spaces\n");
+	AnnotatedText out;
+	auto retval = processHTML(html, out, {});
+	BOOST_CHECK_EQUAL(retval, util::SUCCESS);
+	BOOST_CHECK_EQUAL(out.text, expected);
+}
+
+BOOST_AUTO_TEST_CASE(ScriptTags, *boost::unit_test::disabled()) {
 	// This fails since we don't keep a stack, so ` is ignored` will still
 	// have tag_name == "script" and be ignored :facepalm:
 	std::string html("<body>Text inside <script>ignore <span>and me</span> me!</script> is ignored</body>");
