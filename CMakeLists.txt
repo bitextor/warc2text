@@ -62,11 +62,14 @@ target_link_libraries(warc2text
 )
 
 include(CTest)
-add_executable(html_test src/html_test.cc)
-target_link_libraries(html_test
-    warc2text_lib
-    ${Boost_LIBRARIES})
-add_test(NAME html_test COMMAND $<TARGET_FILE:html_test>)
+
+foreach(test html text)
+    add_executable(${test}_test src/${test}_test.cc)
+    target_link_libraries(${test}_test
+        warc2text_lib
+        ${Boost_LIBRARIES})
+    add_test(NAME ${test}_test COMMAND $<TARGET_FILE:${test}_test>)    
+endforeach()
 
 include(GNUInstallDirs)
 

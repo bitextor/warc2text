@@ -39,10 +39,19 @@ AnnotatedText AnnotatedText::substr(std::size_t offset, std::size_t length) cons
 }
 
 AnnotatedText &AnnotatedText::append(AnnotatedText const &other, std::size_t offset, std::size_t length) {
+    std::size_t tag_offset = ::count('\n', other.text, 0, offset);
+    std::size_t tag_length = ::count('\n', other.text, offset, length);
+
+    // When the current text does not end with a newline, we skip copying the
+    // first tag of `other` because that line will be added to the current line
+    // that already has a tag.
+    if (!text.empty() && text.back() != '\n') {
+        tag_offset += 1;
+        tag_length -= 1;
+    }
+
     text.append(other.text, offset, length);
-    ::append(tags, other.tags,
-        ::count('\n', other.text, 0, offset),
-        ::count('\n', other.text, offset, length));
+    ::append(tags, other.tags, tag_offset, tag_length);
     return *this;
 }
 
