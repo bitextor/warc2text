@@ -48,6 +48,8 @@ namespace warc2text {
             RecordWriter &writer;
             LanguageDetector const &detector;
             WARCPreprocessorOptions const &options;
+            WARCWriter pdf_warc_writer;
+            WARCWriter robots_warc_writer;
             unsigned int totalRecords;
             unsigned int textRecords;
             unsigned int langRecords;

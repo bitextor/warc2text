@@ -43,6 +43,23 @@ namespace {
 
         return true;
     }
+
+    bool isPDF(const warc2text::Record &record) {
+        if (record.isTextFormat())
+            return false;
+
+        // if HTTP content type is 'text/html' or something similar, don't rely
+        // on URL extension to detect unprocessed PDFs. PDFs that have gone
+        // through bitextor-warc2htmlwarc.py will have URL ending in .pdf but
+        // text HTTP content type.
+        if (boost::algorithm::ends_with(record.getURL(), ".pdf"))
+            return true;
+
+        if (record.getHTTPcontentType() == "application/pdf")
+            return true;
+
+        return false;
+    }
 }
 
 namespace warc2text {
@@ -65,13 +82,16 @@ namespace warc2text {
 
             if (!options.url_filters_filename.empty())
                 util::readUrlFiltersRegex(options.url_filters_filename, urlFilter);
+
+            if (!options.pdf_warc_filename.empty())
+                pdf_warc_writer.open(options.pdf_warc_filename);
+
+            if (!options.robots_warc_filename.empty())
+                robots_warc_writer.open(options.robots_warc_filename);
         }
 
     // true if url is good
     bool WARCPreprocessor::URLfilter(const std::string& url) const {
-        if (boost::algorithm::ends_with(url, "robots.txt"))
-            return false;
-
         for (const std::string& ext : removeExtensions)
             if (boost::algorithm::ends_with(url, ext))
                 return false;
@@ -91,14 +111,6 @@ namespace warc2text {
         std::string content;
         int n_langs = 0;
 
-        WARCWriter pdf_warc_writer;
-        if (!options.pdf_warc_filename.empty())
-            pdf_warc_writer.open(options.pdf_warc_filename);
-
-        WARCWriter robots_warc_writer;
-        if (!options.robots_warc_filename.empty())
-            robots_warc_writer.open(options.robots_warc_filename);
-        
         while (true) {
             std::size_t offset = reader.tell();
             std::size_t size = reader.getRecord(content);
@@ -127,9 +139,7 @@ namespace warc2text {
             if (record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
 
-            // if HTTP content type is 'text/html' or something similar, don't rely on URL extension to detect unprocessed PDFs
-            // PDFs that have gone through bitextor-warc2htmlwarc.py will have URL ending in .pdf but text HTTP content type
-            if (not record.isTextFormat() and (boost::algorithm::ends_with(record.getURL(), ".pdf") or record.getHTTPcontentType() == "application/pdf")) {
+            if (::isPDF(record)) {
                 // found a PDF file, write record to disk and continue
                 // this is a no-op if pdf_warc_writer is not opened.
                 pdf_warc_writer.writeRecord(content);
