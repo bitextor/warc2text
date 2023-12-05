@@ -2,6 +2,7 @@
 #define WARC2TEXT_WARCREADER_HH
 
 #include "zlib.h"
+#include <cstdint>
 #include <string>
 
 namespace warc2text {
