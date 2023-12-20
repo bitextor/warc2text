@@ -119,6 +119,9 @@ int main(int argc, char *argv[]) {
         if (options.multilang) {
             BOOST_LOG_TRIVIAL(error) << "FastText classifier doesn't do multilang at the moment";
             abort();
+        } else if (options.fasttext_model.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "No FastText language identification model specified. Use --fasttext-model";
+            abort();
         } else {
             detector.reset(new FastTextDetector(options.fasttext_model));
         }

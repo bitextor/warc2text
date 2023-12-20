@@ -49,8 +49,8 @@ warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ]
 * `--encode-urls` Escape non-ascii characters that appear in the record URL with `%dd` encoding.
 * `--multilang` Detect multiple languages in the document, and split the document accordingly. Only supported with CLD2 classifier.
 * `--paragraph-identification` print the paragraph identifier for each sentence extracted from the HTML
-* `--classifier` classifier to use: `cld2` or `fasttext`.
-* `--fasttext-model` path to FastText model for fasttext classifier.
+* `--classifier` classifier to use: `cld2` or `fasttext`. When `fasttext` is used, one also has to specify a model using `--fasttext-model`.
+* `--fasttext-model` path to FastText model for fasttext classifier. Models can be any [FastText language identification model](https://fasttext.cc/docs/en/language-identification.html) such as [OpenLID lid201-model.ftz](https://github.com/laurieburchell/open-lid-dataset#quantised-model)
 * `--tag-filters` file containing filters that are used to eliminate matching documents
 * `--invert-tag-filters` output only documents that match the filter
 * `--url-filters` file containing regular expressions that match urls of documents to eliminate
