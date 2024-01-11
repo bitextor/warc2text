@@ -37,6 +37,7 @@ namespace warc2text {
         bool tag_filters_invert{};
         
         std::string url_filters_filename;
+        std::string domain_filters_filename;
         
         bool multilang{};
         bool encodeURLs{};
@@ -57,9 +58,12 @@ namespace warc2text {
             unsigned int langBytes;
             util::umap_tag_filters_regex tagFilters;
             boost::regex urlFilter;
-            
+            std::unordered_set<std::string> domainFilter;
+
             static const std::unordered_set<std::string> removeExtensions;
+            static const boost::regex domainExtractor;
             bool URLfilter(const std::string& url) const;
+            bool filterDomain(const std::string& url) const;
 
         public:
             explicit WARCPreprocessor(LanguageDetector const &detector, WARCPreprocessorOptions const &options);

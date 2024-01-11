@@ -57,6 +57,8 @@ namespace util {
 
     void readUrlFiltersRegex(const std::string &filename, boost::regex &urlFilter);
 
+    void readDomainFilters(const std::string &filename, std::unordered_set<std::string> &domainFilter);
+
     bool createDirectories(const std::string& path);
 
     std::vector<std::string> split(const std::string& s, const std::string& delimiter);

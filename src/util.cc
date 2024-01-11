@@ -154,6 +154,17 @@ namespace util {
         urlFilter.assign(combined.str(), boost::regex::optimize | boost::regex::nosubs);
     }
 
+    void readDomainFilters(const std::string &filename, std::unordered_set<std::string> &domainFilter) {
+        std::ifstream f(filename);
+        std::string line;
+        for (size_t line_i=1; std::getline(f, line); ++line_i) {
+            if (boost::algorithm::all(line, boost::algorithm::is_space()) || boost::algorithm::starts_with(line, "#"))
+                continue;
+            domainFilter.emplace(std::string(line));
+        }
+        f.close();
+    }
+
     bool createDirectories(const std::string& path){
         if (!boost::filesystem::exists(path))
             return boost::filesystem::create_directories(path);
