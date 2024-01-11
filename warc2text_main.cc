@@ -33,7 +33,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
         ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
         ("url-filters", po::value(&out.url_filters_filename), "Plain text file containing url filters")
-        ("domain-filters", po::value(&out.domain_filters_filename), "Plain text file containing domain filters")
+        ("domain-filters", po::value(&out.domain_filters_filename), "Gzip compressed text file containing domain filters")
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
         ("robotspass", po::value(&out.robots_warc_filename), "Write robots.txt records to WARC")
         ("paragraph-identification", po::bool_switch(&out.paragraph_identification)->default_value(false), "Add paragraph index in each b64encoded document as tab separated column")

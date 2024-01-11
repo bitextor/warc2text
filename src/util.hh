@@ -19,6 +19,8 @@ namespace util {
     void trimLines(std::string& text);
     void trimLinesCopy(const std::string& original, std::string& result);
 
+    bool isCompressedFile(const std::string &filename);
+
     // detect charset using uchardet
     bool detectCharset(const std::string& text, std::string& charset, const std::string& original_charset = "");
     // convert to utf8
