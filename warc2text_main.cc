@@ -37,6 +37,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
         ("robotspass", po::value(&out.robots_warc_filename), "Write robots.txt records to WARC")
         ("paragraph-identification", po::bool_switch(&out.paragraph_identification)->default_value(false), "Add paragraph index in each b64encoded document as tab separated column")
+        ("skip-text-extraction", po::bool_switch(&out.skip_text_extraction)->default_value(false))
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
         ("multilang", po::bool_switch(&out.multilang)->default_value(false), "Detect multiple languages in a single record")
@@ -56,7 +57,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "Options:\n"
                 " -o <output_folder>               Output folder, required\n"
                 " -f <output_files>                List of output files separated by commas\n"
-                "                                  Default (mandatory): \"url,text\"\n"
+                "                                  Default: \"url,text\"\n"
                 "                                  Optional values: \"mime,html,file,date\"\n"
                 " --classifier                     Classifier to use: cld2, fasttext or skip\n"
                 " --fasttext-model <model_file>    Path to FastText model for fasttext classifier\n"
@@ -71,6 +72,9 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --robotspass <output_warc>       Write Robots.txt records to <output_warc>\n"
                 " --encode-urls                    Encode URLs obtained from WARC records\n"
                 " --paragraph-identification       Add paragraph index for each sentence extracted from the html\n"
+                " --skip-text-extraction           Skip text extraction and output only html\n"
+                "                                  This option is not compatible with \"text\" value in -f option \n"
+                "                                  and also requires to skip language identification\n"
                 " -s                               Only output errors\n"
                 " --jsonl                          Write JSONLines to stdout\n"
                 " -v                               Verbose output (print trace)\n\n";
@@ -97,6 +101,19 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> files_list;
     boost::algorithm::split(files_list, options.files, [](char c) {return c == ',';});
     options.output_files.insert(files_list.begin(), files_list.end());
+
+    if (options.skip_text_extraction) {
+        if (options.files.find("text") != std::string::npos) {
+            BOOST_LOG_TRIVIAL(error) << "Cannot use 'text' as output file with '--skip-text-extraction'. Please use '-f url,html' or any other combination that does not include it.";
+            abort();
+        }
+        if (options.classifier != "skip") {
+            BOOST_LOG_TRIVIAL(error) << "When skipping text extraction, language identification cannot be performed. Please provide '--classifier skip' to skip language identification.";
+            abort();
+        }
+        if (options.tag_filters_filename != "")
+            BOOST_LOG_TRIVIAL(warning) << "If '--skip-text-extraction' is enabled, tag filters cannot be applied.";
+    }
 
     std::unique_ptr<RecordWriter> writer;
     if (options.jsonl) {
