@@ -142,18 +142,22 @@ namespace warc2text{
     void JSONLinesWriter::write(const Record& record, [[maybe_unused]] bool paragraph_identification) {
         // JSON lines format (https://jsonlines.org)
         for (auto &&chunk : record.getTextByLangs()) {
-            out_ << boost::json::value{
+            auto obj = boost::json::object{
                  {"f", boost::json::string(record.getFilename())},
                  {"o", boost::json::value(record.getOffset())},
                  {"s", boost::json::value(record.getSize())},
                  {"rs", boost::json::value(record.getPayload().size())},
                  {"ps", boost::json::value(chunk.second.size())},
-                 {"l", boost::json::string(chunk.first)},
                  {"u", boost::json::string(record.getURL())},
                  {"c", boost::json::string(record.getHTTPcontentType())},
                  {"ts", boost::json::string(record.getWARCdate())},
                  {"p", boost::json::string(chunk.second)},
-            } << "\n";
+            };
+            // Insert language if langid wasn't skipped
+            if(chunk.first != "")
+                obj["l"] = boost::json::string(chunk.first);
+
+            out_ << obj << "\n";
         }
     }
 }

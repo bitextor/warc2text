@@ -44,6 +44,12 @@ public:
   virtual ~CLD2MultiLangDetector();
 };
 
+class SkipLanguageDetector : public LanguageDetector {
+public:
+  virtual void detect(const std::string& text, std::unordered_map<std::string, std::string>& chunks) const;
+  virtual ~SkipLanguageDetector();
+};
+
 } // namespace warc2text
 
 #endif

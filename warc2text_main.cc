@@ -58,7 +58,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " -f <output_files>                List of output files separated by commas\n"
                 "                                  Default (mandatory): \"url,text\"\n"
                 "                                  Optional values: \"mime,html,file,date\"\n"
-                " --classifier                     Classifier to use: cld2 or fasttext\n"
+                " --classifier                     Classifier to use: cld2, fasttext or skip\n"
                 " --fasttext-model <model_file>    Path to FastText model for fasttext classifier\n"
                 " --multilang                      Detect multiple languages in documents (up to 3),\n"
                 "                                  write as many text records as languages detected\n"
@@ -125,6 +125,11 @@ int main(int argc, char *argv[]) {
         } else {
             detector.reset(new FastTextDetector(options.fasttext_model));
         }
+    } else if (options.classifier == "skip") {
+        if (options.multilang) {
+            BOOST_LOG_TRIVIAL(error) << "Language identification is being skipped, ignoring --multilang option.";
+        }
+        detector.reset(new SkipLanguageDetector());
     } else {
         BOOST_LOG_TRIVIAL(error) << "Unsupported classifier option";
         abort();
