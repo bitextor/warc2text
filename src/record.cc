@@ -34,7 +34,11 @@ namespace warc2text {
         return header_end + 4;
     }
 
-    Record::Record(const std::string& content) {
+    Record::Record(const std::string& content, const std::string& filename, std::size_t size, std::size_t offset) :
+        filename(filename),
+        size(size),
+        offset(offset)
+    {
         std::string line;
         std::size_t last_pos = 0, payload_start = 0;
         std::size_t pos = content.find("WARC/1.0\r\n");
@@ -61,18 +65,23 @@ namespace warc2text {
         if (header.count("warc-target-uri") == 1) {
             // respect the original casing
             url = header["warc-target-uri"];
-        }
 
-        if (!url.empty() && url[0] == '<' && url[url.size()-1] == '>')
-            url = url.substr(1, url.size()-2);
+            // Remove any "<" and ">" wrappings from the URL
+            if (!url.empty() && url[0] == '<' && url[url.size()-1] == '>')
+                url = url.substr(1, url.size()-2);
+        }
 
         if (header.count("content-type") == 1) {
             WARCcontentType = header["content-type"];
             util::toLower(WARCcontentType);
         }
 
+        if (header.count("warc-date") == 1) {
+            WARCdate = header["warc-date"];
+        }
+
         payload_start = last_pos;
-        if (header["warc-type"] == "response") {
+        if (recordType == "response") {
             // parse HTTP header
             pos = content.find("HTTP/1.", last_pos);
             if (pos == last_pos) { // found HTTP header
@@ -275,16 +284,16 @@ namespace warc2text {
         return plaintext;
     }
 
-    const std::string& Record::getLanguage() const {
-        return language;
-    }
-
     const std::string& Record::getURL() const {
         return url;
     }
 
     const std::string& Record::getRecordType() const {
         return recordType;
+    }
+
+    const std::string& Record::getWARCdate() const {
+        return WARCdate;
     }
 
     const std::string& Record::getWARCcontentType() const {
@@ -310,5 +319,4 @@ namespace warc2text {
     void Record::encodeURL() {
         url = util::encodeURLs(url);
     }
-
 } // warc2text

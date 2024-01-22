@@ -1,3 +1,6 @@
+
+#include <iostream>
+#include "src/bilangwriter.hh"
 #include "warcpreprocessor.hh"
 #include "src/lang.hh"
 #include "zipreader.hh"
@@ -63,10 +66,10 @@ namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3",
                                                                                 ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
 
-    WARCPreprocessor::WARCPreprocessor(const LanguageDetector &detector, WARCPreprocessorOptions const &options) :
+    WARCPreprocessor::WARCPreprocessor(RecordWriter &writer, const LanguageDetector &detector, WARCPreprocessorOptions const &options) :
+        writer(writer),
         detector(detector),
         options(options),
-        writer(options.output, options.output_files),
         totalRecords(0),
         textRecords(0),
         langRecords(0),
@@ -106,17 +109,21 @@ namespace warc2text {
         WARCReader reader(filename);
 
         std::string content;
-        bool done = false;
         int n_langs = 0;
 
-        while (!done) {
-            done = !reader.getRecord(content);
+        while (true) {
+            std::size_t offset = reader.tell();
+            std::size_t size = reader.getRecord(content);
+            
+            // No more records (EOF or failure to inflate)
+            if (size == 0)
+                break;
 
             // Note that content.empty() will also be true when len(record) > max_size (which is 20MB by default)
-            if (done or content.empty())
+            if (content.empty())
                 continue;
 
-            Record record(content);
+            Record record(content, filename, size, offset);
             if (record.getPayload().empty())
                 continue;
 

@@ -14,12 +14,13 @@
 using namespace warc2text;
 
 struct Options : WARCPreprocessorOptions {
-    std::string file_list;
     std::vector<std::string> warcs;
-    std::string classifier;
-    std::string fasttext_model;
+    std::string files;
     bool verbose{};
     bool silent{};
+    bool jsonl{};
+    std::string classifier;
+    std::string fasttext_model;
 };
 
 void parseArgs(int argc, char *argv[], Options& out) {
@@ -28,7 +29,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
     desc.add_options()
         ("help,h", po::bool_switch(), "Show this help message")
         ("output,o", po::value(&out.output)->default_value("."), "Output folder")
-        ("files,f", po::value(&out.file_list)->default_value("url,token"), "List of output files separated by commas. Default (mandatory files): 'url,text'. Optional: 'mime,html'")
+        ("files,f", po::value(&out.files)->default_value("url,text"), "List of output files separated by commas. Default: 'url,text'. Optional: 'mime,html,file'")
         ("input,i", po::value(&out.warcs)->multitoken(), "Input WARC file name(s)")
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
         ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
@@ -39,6 +40,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
         ("silent,s", po::bool_switch(&out.silent)->default_value(false))
         ("multilang", po::bool_switch(&out.multilang)->default_value(false), "Detect multiple languages in a single record")
+        ("jsonl", po::bool_switch(&out.jsonl)->default_value(false), "Output jsonl to stdout")
         ("classifier", po::value(&out.classifier)->default_value("cld2"), "Language classifier: cld2 or fasttext (default cld2)")
         ("fasttext-model", po::value(&out.fasttext_model)->default_value(""), "Path to fasttext model")
         ("encode-urls", po::bool_switch(&out.encodeURLs)->default_value(false), "Encode URLs obtained from WARC records");
@@ -55,7 +57,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " -o <output_folder>               Output folder, required\n"
                 " -f <output_files>                List of output files separated by commas\n"
                 "                                  Default (mandatory): \"url,text\"\n"
-                "                                  Optional values: \"mime,html\"\n"
+                "                                  Optional values: \"mime,html,file,date\"\n"
                 " --classifier                     Classifier to use: cld2 or fasttext\n"
                 " --fasttext-model <model_file>    Path to FastText model for fasttext classifier\n"
                 " --multilang                      Detect multiple languages in documents (up to 3),\n"
@@ -70,6 +72,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --encode-urls                    Encode URLs obtained from WARC records\n"
                 " --paragraph-identification       Add paragraph index for each sentence extracted from the html\n"
                 " -s                               Only output errors\n"
+                " --jsonl                          Write JSONLines to stdout\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
     }
@@ -92,11 +95,20 @@ int main(int argc, char *argv[]) {
 
     // prepare list of output files
     std::vector<std::string> files_list;
-    boost::algorithm::split(files_list, options.file_list, [](char c) {return c == ',';});
+    boost::algorithm::split(files_list, options.files, [](char c) {return c == ',';});
     options.output_files.insert(files_list.begin(), files_list.end());
 
-    std::unique_ptr<LanguageDetector> detector;
+    std::unique_ptr<RecordWriter> writer;
+    if (options.jsonl) {
+        writer = std::make_unique<JSONLinesWriter>(std::cout);
+    } else if (!options.output_files.empty()) {
+        writer = std::make_unique<BilangWriter>(options.output, options.output_files);
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "No output files specified";
+        abort();
+    }
 
+    std::unique_ptr<LanguageDetector> detector;
     if (options.classifier == "cld2") {
         if (options.multilang) {
             detector.reset(new CLD2MultiLangDetector());
@@ -107,6 +119,9 @@ int main(int argc, char *argv[]) {
         if (options.multilang) {
             BOOST_LOG_TRIVIAL(error) << "FastText classifier doesn't do multilang at the moment";
             abort();
+        } else if (options.fasttext_model.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "No FastText language identification model specified. Use --fasttext-model";
+            abort();
         } else {
             detector.reset(new FastTextDetector(options.fasttext_model));
         }
@@ -116,7 +131,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(*detector, options);
+    WARCPreprocessor warcpproc(*writer, *detector, options);
     for (const std::string& file : options.warcs){
         warcpproc.process(file);
     }

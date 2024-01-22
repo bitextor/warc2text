@@ -14,9 +14,7 @@
 namespace warc2text {
     class Record {
     public:
-        Record() {};
-
-        explicit Record(const std::string& content);
+        Record(const std::string& content, const std::string &filename, std::size_t size, std::size_t offset);
         const std::string& getHeaderProperty(const std::string& property) const;
         bool headerExists(const std::string& property) const;
 
@@ -25,15 +23,27 @@ namespace warc2text {
 
         const std::string& getPayload() const;
         const std::string& getPlainText() const;
-        const std::string& getLanguage() const;
         const std::string& getURL() const;
         const std::string& getRecordType() const;
         const std::string& getWARCcontentType() const;
+        const std::string& getWARCdate() const;
         const std::string& getHTTPcontentType() const;
         const std::string& getCharset() const;
         bool isBroaderDocumentFormat() const;
         bool isTextFormat() const;
 
+        inline const std::string& getFilename() const {
+            return filename;
+        }
+
+        inline std::size_t getSize() const {
+            return size;
+        }
+
+        inline std::size_t getOffset() const {
+            return offset;
+        }
+        
         const std::unordered_map<std::string, std::string>& getTextByLangs() const;
 
         int cleanPayload();
@@ -46,6 +56,10 @@ namespace warc2text {
         void encodeURL();
 
     private:
+        const std::string &filename;
+        std::size_t size; // compressed record length in WARC
+        std::size_t offset; // byte offset of start of record in WARC
+
         std::unordered_map<std::string, std::string> header;
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;
@@ -57,6 +71,7 @@ namespace warc2text {
         // these are present in the headers, but it's convenient to have them apart also
         std::string recordType;
         std::string WARCcontentType;
+        std::string WARCdate;
         std::string cleanHTTPcontentType;
         std::string charset;
         std::string url;

@@ -6,6 +6,7 @@
 #include "warcreader.hh"
 #include "bilangwriter.hh"
 #include "util.hh"
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <boost/regex.hpp>
@@ -44,9 +45,9 @@ namespace warc2text {
 
     class WARCPreprocessor {
         private:
+            RecordWriter &writer;
             LanguageDetector const &detector;
             WARCPreprocessorOptions const &options;
-            BilangWriter writer;
             WARCWriter pdf_warc_writer;
             WARCWriter robots_warc_writer;
             unsigned int totalRecords;
@@ -62,7 +63,7 @@ namespace warc2text {
             bool URLfilter(const std::string& url) const;
 
         public:
-            explicit WARCPreprocessor(LanguageDetector const &detector, WARCPreprocessorOptions const &options);
+            explicit WARCPreprocessor(RecordWriter &writer, LanguageDetector const &detector, WARCPreprocessorOptions const &options);
             void process(const std::string &filename);
             void printStatistics() const;
     };
