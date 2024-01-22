@@ -46,8 +46,8 @@ namespace warc2text {
         
         const std::unordered_map<std::string, std::string>& getTextByLangs() const;
 
-        int cleanPayload();
-        int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
+        int cleanPayload(bool skip_extraction);
+        int cleanPayload(const util::umap_tag_filters_regex& tagFilters, bool skip_extraction);
         int detectLanguage(LanguageDetector const &detector);
 
         static std::string readZipPayload(const std::string& content_type, const std::string& payload);

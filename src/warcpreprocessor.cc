@@ -162,7 +162,7 @@ namespace warc2text {
 
             int clean_retval;
             try{
-                clean_retval = record.cleanPayload(tagFilters);
+                clean_retval = record.cleanPayload(tagFilters, options.skip_text_extraction);
             }
             catch (std::out_of_range& e) { continue; }
             catch (std::invalid_argument& e) { continue; }
@@ -188,13 +188,17 @@ namespace warc2text {
                 continue;
             }
 
-            if (record.getPlainText().empty()) {
+            if (record.getPlainText().empty() && !options.skip_text_extraction) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": empty";
                 continue;
             }
 
             ++textRecords;
-            textBytes += record.getPlainText().size();
+            // When skipping text extraction sum payload bytes because text is empty
+            if (options.skip_text_extraction)
+                textBytes += record.getPayload().size();
+            else
+                textBytes += record.getPlainText().size();
 
             record.detectLanguage(detector);
             n_langs = 0;
@@ -223,12 +227,20 @@ namespace warc2text {
 
     void WARCPreprocessor::printStatistics() const{
         BOOST_LOG_TRIVIAL(info) << "total records: " << totalRecords;
-        BOOST_LOG_TRIVIAL(info) << "text records: " << textRecords;
-        BOOST_LOG_TRIVIAL(info) << "lang records: " << langRecords;
+        if (options.skip_text_extraction) {
+            BOOST_LOG_TRIVIAL(info) << "extracted records: " << textRecords;
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "text records: " << textRecords;
+            BOOST_LOG_TRIVIAL(info) << "lang records: " << langRecords;
+        }
 
         BOOST_LOG_TRIVIAL(info) << "total bytes: " << totalBytes;
-        BOOST_LOG_TRIVIAL(info) << "text bytes: " << textBytes;
-        BOOST_LOG_TRIVIAL(info) << "lang bytes: " << langBytes;
+        if (options.skip_text_extraction) {
+            BOOST_LOG_TRIVIAL(info) << "extracted bytes: " << textBytes;
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "text bytes: " << textBytes;
+            BOOST_LOG_TRIVIAL(info) << "lang bytes: " << langBytes;
+        }
     }
 
     WARCWriter::WARCWriter() {

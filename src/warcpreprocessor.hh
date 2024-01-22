@@ -30,6 +30,7 @@ namespace warc2text {
         std::string robots_warc_filename;
         
         bool paragraph_identification{};
+        bool skip_text_extraction{};
 
         std::string output;
         std::unordered_set<std::string> output_files;

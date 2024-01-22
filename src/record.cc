@@ -184,12 +184,12 @@ namespace warc2text {
         util::trim(cleanHTTPcontentType);
     }
 
-    int Record::cleanPayload(){
+    int Record::cleanPayload(bool skip_extraction){
         util::umap_tag_filters_regex tagFilters;
-        return cleanPayload(tagFilters);
+        return cleanPayload(tagFilters, skip_extraction);
     }
 
-    int Record::cleanPayload(const util::umap_tag_filters_regex& tagFilters){
+    int Record::cleanPayload(const util::umap_tag_filters_regex& tagFilters, bool skip_extraction){
 
         // we know for sure that HTTP content type is incorrect if it is present, and it is not 'text'
         bool nonTextHTTPcontentType = not cleanHTTPcontentType.empty() and textContentTypes.find(cleanHTTPcontentType) == textContentTypes.end();
@@ -218,6 +218,9 @@ namespace warc2text {
         bool isPlainText = cleanHTTPcontentType == "text/plain";
         
         int retval = util::SUCCESS;
+
+        if (skip_extraction)
+            return retval;
 
         // remove HTML tags:
         if (isPlainText) {
