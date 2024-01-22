@@ -61,6 +61,16 @@ target_link_libraries(warc2text
     fasttext-static
 )
 
+include(CTest)
+
+foreach(test html text)
+    add_executable(${test}_test src/${test}_test.cc)
+    target_link_libraries(${test}_test
+        warc2text_lib
+        ${Boost_LIBRARIES})
+    add_test(NAME ${test}_test COMMAND $<TARGET_FILE:${test}_test>)    
+endforeach()
+
 include(GNUInstallDirs)
 
 install(TARGETS cld2_full warc2text

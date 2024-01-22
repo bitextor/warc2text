@@ -17,14 +17,14 @@ FastTextDetector::~FastTextDetector() {}
 
 const char kLabelPrefix[] = "__label__";
 
-void FastTextDetector::detect(const std::string& text, std::unordered_map<std::string, std::string>& chunks) const {
+void FastTextDetector::detect(AnnotatedText &&text, std::unordered_map<std::string, AnnotatedText>& chunks) const {
   const float kThreshold = 0.5f;
   std::vector<int32_t> words, labels;
-  classifier_->getDictionary()->getStringNoNewline(text, words, labels);
+  classifier_->getDictionary()->getStringNoNewline(text.text, words, labels);
   fasttext::Predictions predictions;
   classifier_->predict(1, words, predictions, kThreshold);
   if (predictions.empty()) {
-    chunks[kUnknownLanguageLabel] = text;
+    chunks[kUnknownLanguageLabel] = std::move(text);
     return;
   }
 
@@ -34,7 +34,7 @@ void FastTextDetector::detect(const std::string& text, std::unordered_map<std::s
   label.erase(0, sizeof(kLabelPrefix) - 1);
 
   // For better or worse, we're currently doing everything as one chunk.
-  chunks[label] = text;
+  chunks[label] = std::move(text);
 }
 
 } // namespace warc2text

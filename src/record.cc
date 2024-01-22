@@ -205,9 +205,10 @@ namespace warc2text {
         if (bdf_zip)
             payload = readZipPayload(content_type, payload);
 
+        plaintext.clear();
+
         // detect charset
         std::string detected_charset;
-        std::string extracted;
         bool detection_result = util::detectCharset(payload, detected_charset, charset);
 
         if (detection_result) charset = detected_charset;
@@ -224,32 +225,28 @@ namespace warc2text {
             // convert to utf8 if needed (we do it before cleaning tabs, unlike HTML below):
             if (needToConvert)
                 payload = util::toUTF8(payload, charset);
+
+            std::string extracted;
             util::trimLinesCopy(payload, extracted);
             std::replace_if(extracted.begin(), extracted.end(), [](wchar_t c){ return std::iscntrl(c) && c != '\n'; }, ' ');
+            plaintext.push_back(std::move(extracted), "");
         }
         else {
-            retval = processHTML(payload, extracted, tagFilters);
-
-            // convert to utf8 if needed:
-            if (needToConvert)
-                extracted = util::toUTF8(extracted, charset);
+            retval = processHTML(
+                needToConvert ? util::toUTF8(payload, charset) : payload,
+                plaintext,
+                tagFilters);
         }
-
-        // decode HTML entities:
-        if (isPlainText)
-            plaintext = extracted;
-        else
-            entities::decodeEntities(extracted, plaintext);
 
         return retval;
     }
 
-    const std::unordered_map<std::string, std::string>& Record::getTextByLangs() const {
+    const std::unordered_map<std::string, AnnotatedText>& Record::getTextByLangs() const {
         return text_by_langs;
     }
 
     int Record::detectLanguage(LanguageDetector const &detector){
-        detector.detect(plaintext, text_by_langs);
+        detector.detect(std::move(plaintext), text_by_langs);
         return text_by_langs.size();
     }
 
@@ -280,8 +277,8 @@ namespace warc2text {
         return payload;
     }
 
-    const std::string& Record::getPlainText() const {
-        return plaintext;
+    std::size_t Record::getPlainTextSize() const {
+        return plaintext.text.size();
     }
 
     const std::string& Record::getURL() const {

@@ -188,13 +188,15 @@ namespace warc2text {
                 continue;
             }
 
-            if (record.getPlainText().empty()) {
+            std::size_t recordTextBytes = record.getPlainTextSize();
+
+            if (!recordTextBytes) {
                 BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": empty";
                 continue;
             }
 
             ++textRecords;
-            textBytes += record.getPlainText().size();
+            textBytes += recordTextBytes;
 
             record.detectLanguage(detector);
             n_langs = 0;
@@ -203,7 +205,7 @@ namespace warc2text {
                 if (chunk.first == LanguageDetector::kUnknownLanguageLabel)
                     continue;
                 
-                langBytes += chunk.second.size();
+                langBytes += chunk.second.text.size();
                 ++n_langs;
             }
 

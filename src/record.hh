@@ -10,6 +10,7 @@
 #include <regex>
 #include "util.hh"
 #include "lang.hh"
+#include "text.hh"
 
 namespace warc2text {
     class Record {
@@ -22,7 +23,6 @@ namespace warc2text {
         bool HTTPheaderExists(const std::string& property) const;
 
         const std::string& getPayload() const;
-        const std::string& getPlainText() const;
         const std::string& getURL() const;
         const std::string& getRecordType() const;
         const std::string& getWARCcontentType() const;
@@ -44,7 +44,8 @@ namespace warc2text {
             return offset;
         }
         
-        const std::unordered_map<std::string, std::string>& getTextByLangs() const;
+        std::size_t getPlainTextSize() const;
+        const std::unordered_map<std::string, AnnotatedText>& getTextByLangs() const;
 
         int cleanPayload();
         int cleanPayload(const util::umap_tag_filters_regex& tagFilters);
@@ -63,10 +64,9 @@ namespace warc2text {
         std::unordered_map<std::string, std::string> header;
         std::unordered_map<std::string, std::string> HTTPheader;
         std::string payload;
-        std::string plaintext;
-        std::string language;
-
-        std::unordered_map<std::string, std::string> text_by_langs;
+        
+        AnnotatedText plaintext; // might be empty after langid
+        std::unordered_map<std::string, AnnotatedText> text_by_langs;
 
         // these are present in the headers, but it's convenient to have them apart also
         std::string recordType;
