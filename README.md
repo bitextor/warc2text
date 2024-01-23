@@ -75,11 +75,13 @@ produce the following directory structure at the path specified by `--output`:
 - `./{lang}/html.gz` contains lines of base64 encoded HTML as returned by the server. For ePub, MS Office or ODF files this is the extracted XML.
 - `./{lang}/file.gz` contains the `{filename}:{offset}:{length}` pointer to the warc archive the record was extracted from. `{offset}` and `{length}` are of the compressed data, e.g. `tail -c+{offset} < {filename} | head -c{length} | gzip -cd` will give you the original record.
 - `./{lang}/date.gz` gives you the original crawl date/time as reported by the crawler. [This should be a UTC timestamp](https://iipc.github.io/warc-specifications/specifications/warc-format/warc-1.1/#warc-date-mandatory).
+- `./{lang}/metadata.jsonl.gz` contains the metadata as explained in the [JSONL section](#jsonl) below. Note that this output file will already contain some of the information described above, so `mime`, `url`, `file` and `date` are not needed when using `metadata`. Also note that this option will write **only** the metadata, so it will not include plain text or HTML.
 
 In every file, each line corresponds to the same record. E.g. the fifth line in `text.gz` and fifth line in `url.gz` together give you the text and url for a single record.
 
 The `{lang}` part of the path is determined by the classifier (see `--classifier`) and may be a two-letter or three-letter code depending on the classifier used. See [this list](https://github.com/CLD2Owners/cld2/blob/b56fa78a2fe44ac2851bae5bf4f4693a0644da7b/internal/generated_language.cc#L647-L1262) for CLD2. When skipping the language identification with `--classifier skip`, all the files will be written directly to output folder without creating language specific folders.
 
+### JSONL
 When using `--jsonl`, the output is instead a single JSON record per line, with the following keys (always in this order):
 ```ts
 {

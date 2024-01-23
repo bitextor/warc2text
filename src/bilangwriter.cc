@@ -80,9 +80,31 @@ namespace warc2text{
         return dest != nullptr;
     }
 
+    boost::json::object toJSON(Record const &record, std::string const &chunk, bool metadata_only) {
+        auto obj = boost::json::object{
+             {"f", boost::json::string(record.getFilename())},
+             {"o", boost::json::value(record.getOffset())},
+             {"s", boost::json::value(record.getSize())},
+             {"rs", boost::json::value(record.getPayload().size())},
+             {"u", boost::json::string(record.getURL())},
+             {"c", boost::json::string(record.getHTTPcontentType())},
+             {"ts", boost::json::string(record.getWARCdate())},
+        };
+
+        // Insert extracted plain text if requested
+        if(!metadata_only) {
+            obj["ps"] = boost::json::value(chunk.size());
+            obj["p"] = boost::json::string(chunk);
+        }
+
+        return obj;
+    }
+
     LangWriter::LangWriter(const std::string& path, const std::unordered_set<std::string>& output_files) {
         util::createDirectories(path);
 
+        if (output_files.count("metadata"))
+            metadata_file.open(path + "/metadata.jsonl.gz");
         if (output_files.count("url"))
             url_file.open(path + "/url.gz");
         if (output_files.count("text"))
@@ -98,6 +120,8 @@ namespace warc2text{
     }
 
     void LangWriter::write(Record const &record, std::string const &chunk) {
+        if (metadata_file.is_open())
+            metadata_file.writeLine(boost::json::serialize(toJSON(record, chunk, true)));
         if (url_file.is_open())
             url_file.writeLine(record.getURL());
         if (mime_file.is_open())
@@ -141,21 +165,15 @@ namespace warc2text{
 
     void JSONLinesWriter::write(const Record& record, [[maybe_unused]] bool paragraph_identification) {
         // JSON lines format (https://jsonlines.org)
-        for (auto &&chunk : record.getTextByLangs()) {
-            auto obj = boost::json::object{
-                 {"f", boost::json::string(record.getFilename())},
-                 {"o", boost::json::value(record.getOffset())},
-                 {"s", boost::json::value(record.getSize())},
-                 {"rs", boost::json::value(record.getPayload().size())},
-                 {"ps", boost::json::value(chunk.second.size())},
-                 {"u", boost::json::string(record.getURL())},
-                 {"c", boost::json::string(record.getHTTPcontentType())},
-                 {"ts", boost::json::string(record.getWARCdate())},
-                 {"p", boost::json::string(chunk.second)},
-            };
+        for (auto &&it : record.getTextByLangs()) {
+            std::string chunk = it.second;
+            std::string lang = it.first;
+
+            auto obj = toJSON(record, chunk, false);
+
             // Insert language if langid wasn't skipped
-            if(chunk.first != "")
-                obj["l"] = boost::json::string(chunk.first);
+            if(lang != "")
+                obj["l"] = boost::json::string(lang);
 
             out_ << obj << "\n";
         }
