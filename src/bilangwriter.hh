@@ -46,6 +46,7 @@ namespace warc2text {
      */
     class LangWriter {
         private:
+            GzipWriter metadata_file;
             GzipWriter url_file;
             GzipWriter mime_file;
             GzipWriter text_file;
