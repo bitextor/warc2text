@@ -3,11 +3,17 @@
 
 #include <unordered_map>
 #include <unordered_set>
-#include <ostream>
+#include <sstream>
+#include <fstream>
 #include "record.hh"
 #include "zlib.h"
+#include "boost/iostreams/filtering_streambuf.hpp"
 
 namespace warc2text {
+
+    namespace bio = boost::iostreams;
+
+    enum class Compression { zstd, gzip };
 
     /**
      * Generic interface for writing records to some form of output.
@@ -22,23 +28,21 @@ namespace warc2text {
      * Writer used by BilangWriter to write a single compressed file
      * (i.e. a column for a specific language)
      */
-    class GzipWriter {
+    class CompressWriter {
         private:
-            FILE* dest;
-            z_stream s{};
-            unsigned char* buf;
-            void compress(const char* in, std::size_t size, int flush);
+            std::ofstream file;
+            bio::filtering_streambuf<bio::output> compressor;
+            Compression compression;
+            int level;
 
         public:
-            GzipWriter();
-            ~GzipWriter();
+            CompressWriter();
+            CompressWriter(Compression c, int l);
+            ~CompressWriter();
             void open(const std::string& filename);
             void close();
-            void write(const char* text, std::size_t size);
-            void writeLine(const char* text, std::size_t size);
             void writeLine(const std::string& text);
             bool is_open();
-            static const std::size_t BUFFER_SIZE = 4096;
     };
 
     /**
@@ -46,15 +50,16 @@ namespace warc2text {
      */
     class LangWriter {
         private:
-            GzipWriter metadata_file;
-            GzipWriter url_file;
-            GzipWriter mime_file;
-            GzipWriter text_file;
-            GzipWriter html_file;
-            GzipWriter file_file;
-            GzipWriter date_file;
+            CompressWriter metadata_file;
+            CompressWriter url_file;
+            CompressWriter mime_file;
+            CompressWriter text_file;
+            CompressWriter html_file;
+            CompressWriter file_file;
+            CompressWriter date_file;
         public:
-            LangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files);
+            LangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files,
+                       Compression c = Compression::gzip, int l = 3);
             void write(const Record& record, const std::string &chunk);
     };
 
@@ -63,10 +68,12 @@ namespace warc2text {
             std::string folder;
             std::unordered_set<std::string> output_files;
             std::unordered_map<std::string, LangWriter> writers;
+            Compression compression;
+            int level;
         public:
-            BilangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files = {})
-            : folder(folder)
-            , output_files(output_files)
+            BilangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files = {},
+                         Compression c = Compression::gzip, int l = 3)
+            : folder(folder) , output_files(output_files) , compression(c) , level(l)
             {
                 //
             };
