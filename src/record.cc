@@ -8,6 +8,7 @@
 #include "entities.hh"
 #include "zipreader.hh"
 #include <boost/log/trivial.hpp>
+#include <boost/locale.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace warc2text {
@@ -225,8 +226,13 @@ namespace warc2text {
         // remove HTML tags:
         if (isPlainText) {
             // convert to utf8 if needed (we do it before cleaning tabs, unlike HTML below):
-            if (needToConvert)
-                payload = util::toUTF8(payload, charset);
+            if (needToConvert) {
+                try {
+                    payload = util::toUTF8(payload, charset);
+                } catch (boost::locale::conv::conversion_error &e) {
+                    return util::UTF8_CONVERSION_ERROR;
+                }
+            }
             util::trimLinesCopy(payload, extracted);
             std::replace_if(extracted.begin(), extracted.end(), [](wchar_t c){ return std::iscntrl(c) && c != '\n'; }, ' ');
         }
@@ -234,8 +240,13 @@ namespace warc2text {
             retval = processHTML(payload, extracted, tagFilters);
 
             // convert to utf8 if needed:
-            if (needToConvert)
-                extracted = util::toUTF8(extracted, charset);
+            if (needToConvert) {
+                try {
+                    payload = util::toUTF8(extracted, charset);
+                } catch (boost::locale::conv::conversion_error &e) {
+                    return util::UTF8_CONVERSION_ERROR;
+                }
+            }
         }
 
         // decode HTML entities:
