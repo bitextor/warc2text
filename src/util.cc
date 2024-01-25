@@ -91,10 +91,10 @@ namespace util {
     }
 
     std::string toUTF8(const std::string& text, const std::string& charset) {
-        return boost::locale::conv::to_utf<char>(text, charset);
+        return boost::locale::conv::to_utf<char>(text, charset, boost::locale::conv::stop);
     }
     std::string toUTF8(const char* text, const std::string& charset) {
-        return boost::locale::conv::to_utf<char>(text, charset);
+        return boost::locale::conv::to_utf<char>(text, charset, boost::locale::conv::stop);
     }
 
     std::string encodeBase64(const std::string &original) {
