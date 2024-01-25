@@ -15,6 +15,8 @@ namespace warc2text {
 
     enum class Compression { zstd, gzip };
 
+    enum class Format { b64, json };
+
     /**
      * Generic interface for writing records to some form of output.
      */
@@ -57,9 +59,12 @@ namespace warc2text {
             CompressWriter html_file;
             CompressWriter file_file;
             CompressWriter date_file;
+            Format format;
+
+            std::string format_text(const std::string &text, std::string field_name);
         public:
             LangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files,
-                       Compression c = Compression::gzip, int l = 3);
+                       Compression c = Compression::gzip, int l = 3, Format f = Format::b64);
             void write(const Record& record, const std::string &chunk);
     };
 
@@ -70,10 +75,11 @@ namespace warc2text {
             std::unordered_map<std::string, LangWriter> writers;
             Compression compression;
             int level;
+            Format format;
         public:
             BilangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files = {},
-                         Compression c = Compression::gzip, int l = 3)
-            : folder(folder) , output_files(output_files) , compression(c) , level(l)
+                         Compression c = Compression::gzip, int l = 3, Format f = Format::b64)
+            : folder(folder) , output_files(output_files) , compression(c) , level(l), format(f)
             {
                 //
             };

@@ -82,7 +82,11 @@ In every file, each line corresponds to the same record. E.g. the fifth line in 
 The `{lang}` part of the path is determined by the classifier (see `--classifier`) and may be a two-letter or three-letter code depending on the classifier used. See [this list](https://github.com/CLD2Owners/cld2/blob/b56fa78a2fe44ac2851bae5bf4f4693a0644da7b/internal/generated_language.cc#L647-L1262) for CLD2. When skipping the language identification with `--classifier skip`, all the files will be written directly to output folder without creating language specific folders.
 
 ### JSONL
-When using `--jsonl`, the output is instead a single JSON record per line, with the following keys (always in this order):
+When using `--jsonl`, the output files that previously were encoded in base64, are now written in a single JSON record per line.
+With the keys `"h"` and `"p"` for the `html` file and the `text` file respectively.
+
+#### stdout
+Instead of the classic Bitextor directory structure and files, the `--jsonl` option can be combined with `--stdout` to write all the output to stdout, with the following keys (always in this order):
 ```ts
 {
   f:  string, # filename of warc file (same as the `{filename}` part in `file.gz`)
@@ -98,7 +102,7 @@ When using `--jsonl`, the output is instead a single JSON record per line, with 
 }
 ```
 
-More keys might be added in the future (e.g. the raw HTML is not included now) and you should not expect the order of the keys to stay the same between different versions of warc2text.
+More keys might be added in the future (e.g. the raw HTML is not included in JSONL to stdout now) and you should not expect the order of the keys to stay the same between different versions of warc2text.
 
 ## Included dependencies
 HTML Tokenizer by [c-smile](https://www.codeproject.com/Articles/14076/Fast-and-Compact-HTML-XML-Scanner-Tokenizer)
