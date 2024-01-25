@@ -15,6 +15,7 @@
 
 
 namespace warc2text {
+    namespace bj = boost::json;
 
     CompressWriter::CompressWriter()
     : file(),
@@ -61,29 +62,34 @@ namespace warc2text {
         return file.is_open();
     }
 
-    boost::json::object toJSON(Record const &record, std::string const &chunk, bool metadata_only) {
-        auto obj = boost::json::object{
-             {"f", boost::json::string(record.getFilename())},
-             {"o", boost::json::value(record.getOffset())},
-             {"s", boost::json::value(record.getSize())},
-             {"rs", boost::json::value(record.getPayload().size())},
-             {"u", boost::json::string(record.getURL())},
-             {"c", boost::json::string(record.getHTTPcontentType())},
-             {"ts", boost::json::string(record.getWARCdate())},
+    bj::object toJSON(Record const &record, std::string const &chunk, bool metadata_only) {
+        auto obj = bj::object{
+             {"f", bj::string(record.getFilename())},
+             {"o", bj::value(record.getOffset())},
+             {"s", bj::value(record.getSize())},
+             {"rs", bj::value(record.getPayload().size())},
+             {"u", bj::string(record.getURL())},
+             {"c", bj::string(record.getHTTPcontentType())},
+             {"ts", bj::string(record.getWARCdate())},
         };
 
         // Insert extracted plain text if requested
         if(!metadata_only) {
-            obj["ps"] = boost::json::value(chunk.size());
-            obj["p"] = boost::json::string(chunk);
+            obj["ps"] = bj::value(chunk.size());
+            obj["p"] = bj::string(chunk);
         }
 
         return obj;
     }
 
+    std::string toJSON(const std::string &text, const std::string &field_name) {
+        auto json = bj::value{{field_name, bj::string(text)}};
+        return bj::serialize(json);
+    }
+
     LangWriter::LangWriter(const std::string& path, const std::unordered_set<std::string>& output_files,
-                           Compression c, int l)
-    : metadata_file(c,l), url_file(c,l), mime_file(c,l), text_file(c,l), html_file(c,l), file_file(c,l), date_file(c,l)
+                           Compression c, int l, Format f)
+    : metadata_file(c,l), url_file(c,l), mime_file(c,l), text_file(c,l), html_file(c,l), file_file(c,l), date_file(c,l), format(f)
     {
         util::createDirectories(path);
 
@@ -111,7 +117,7 @@ namespace warc2text {
 
     void LangWriter::write(Record const &record, std::string const &chunk) {
         if (metadata_file.is_open())
-            metadata_file.writeLine(boost::json::serialize(toJSON(record, chunk, true)));
+            metadata_file.writeLine(bj::serialize(toJSON(record, chunk, true)));
         if (url_file.is_open())
             url_file.writeLine(record.getURL());
         if (mime_file.is_open())
@@ -120,10 +126,17 @@ namespace warc2text {
             file_file.writeLine(record.getFilename() + ":" + std::to_string(record.getOffset()) + ":" + std::to_string(record.getSize()));
         if (date_file.is_open())
             date_file.writeLine(record.getWARCdate());
-        if (html_file.is_open())
-            html_file.writeLine(util::encodeBase64(record.getPayload()));
+        if (html_file.is_open()) {
+            if (format == Format::json)
+                html_file.writeLine(toJSON(record.getPayload(), "h"));
+            else
+                html_file.writeLine(util::encodeBase64(record.getPayload()));
+        }
         if (text_file.is_open())
-            text_file.writeLine(util::encodeBase64(chunk));
+            if (format == Format::json)
+                html_file.writeLine(toJSON(chunk, "p"));
+            else
+                html_file.writeLine(util::encodeBase64(chunk));
     }
 
     std::string get_paragraph_id(const std::string& text) {
@@ -148,7 +161,7 @@ namespace warc2text {
             if (paragraph_identification)
                 chunk = get_paragraph_id(chunk);
 
-            auto writer_it = writers.try_emplace(it.first, folder + "/" + it.first, output_files, compression, level);
+            auto writer_it = writers.try_emplace(it.first, folder + "/" + it.first, output_files, compression, level, format);
             writer_it.first->second.write(record, chunk);
         }
     }
@@ -163,7 +176,7 @@ namespace warc2text {
 
             // Insert language if langid wasn't skipped
             if(lang != "")
-                obj["l"] = boost::json::string(lang);
+                obj["l"] = bj::string(lang);
 
             out_ << obj << "\n";
         }
