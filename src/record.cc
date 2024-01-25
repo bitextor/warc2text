@@ -220,8 +220,16 @@ namespace warc2text {
         
         int retval = util::SUCCESS;
 
-        if (skip_extraction)
+        if (skip_extraction) {
+            if (needToConvert) {
+                try {
+                    payload = util::toUTF8(payload, charset);
+                } catch (boost::locale::conv::conversion_error &e) {
+                    return util::UTF8_CONVERSION_ERROR;
+                }
+            }
             return retval;
+        }
 
         // remove HTML tags:
         if (isPlainText) {
