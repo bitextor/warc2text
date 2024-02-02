@@ -100,7 +100,7 @@ namespace warc2text {
         }
 
         if (output_files.count("metadata"))
-            metadata_file.open(path + "/metadata.jsonl" + suffix);
+            metadata_file.open(path + "/metadata" + suffix);
         if (output_files.count("url"))
             url_file.open(path + "/url" + suffix);
         if (output_files.count("text"))
