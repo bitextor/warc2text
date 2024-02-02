@@ -82,10 +82,13 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --skip-text-extraction           Skip text extraction and output only html\n"
                 "                                  This option is not compatible with \"text\" value in -f option \n"
                 "                                  and also requires to skip language identification\n"
-                " --jsonl                          Write JSONLines to stdout\n"
+                " --jsonl                          Produce \"html\" and \"text\" files in JSONLines format,\n"
+                "                                  instead of bease64 encoded lines\n"
+                " --stdout                         Write all the information in JSONLines to stdout\n"
+                "                                  Needs --jsonl option\n"
                 " --compress <compression>         Compression algorithm for the output files\n"
                 "                                  Default: gzip. Values: gzip or zstd\n"
-                " --compress-level <level>         Compression level to use.\n"
+                " --compress-level <level>         Compression level to use\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);

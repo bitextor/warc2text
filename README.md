@@ -42,8 +42,9 @@ warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ]
           [ --paragraph-identification ] [ --tag-filters <filters_file> ] <warc_file>...
 ```
 * `--output`/`-o` output folder
-* `--files`/`-f` list of output files separated by commas (and without `.gz`); Options are `text`,`html`,`url`,`mime`,`file` and `date`. Defaults to `text,url`. See [output](#output).
-* `--jsonl` Produce JSON Lines on stdout instead of writing to files per language.
+* `--files`/`-f` list of output files separated by commas (and without `.gz`); Options are `text`,`html`,`metadata`, `url`,`mime`,`file` and `date`. Defaults to `text,url`. See [output](#output).
+* `--jsonl` Produce JSON Lines for `html` and `text` files instead of base64 encoding.
+* `--stdout` Write all the information in JSONLines to stdout. Needs --jsonl option.
 * `--pdfpass` WARC file where PDF records will be stored
 * `--robotstxtpass` WARC file where robots.txt related records will be stored
 * `--encode-urls` Escape non-ascii characters that appear in the record URL with `%dd` encoding.
@@ -51,6 +52,7 @@ warc2text -o <output_folder> [ -f <output_files> ] [ --pdfpass <output_warc> ]
 * `--paragraph-identification` print the paragraph identifier for each sentence extracted from the HTML
 * `--classifier` classifier to use: `cld2`, `fasttext`, or `skip`. When `fasttext` is used, one also has to specify a model using `--fasttext-model`. Use `skip` to skip language identification entirely.
 * `--fasttext-model` path to FastText model for fasttext classifier. Models can be any [FastText language identification model](https://fasttext.cc/docs/en/language-identification.html) such as [OpenLID lid201-model.ftz](https://github.com/laurieburchell/open-lid-dataset#quantised-model)
+* `--skip-text-extraction` Skip text extraction and output only html. This option is not compatible with "text" value in -f option and also requires to skip language identification.
 * `--tag-filters` file containing filters that are used to eliminate matching documents
 * `--invert-tag-filters` output only documents that match the filter
 * `--url-filters` file containing regular expressions that match urls of documents to eliminate
