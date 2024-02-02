@@ -132,11 +132,12 @@ namespace warc2text {
             else
                 html_file.writeLine(util::encodeBase64(record.getPayload()));
         }
-        if (text_file.is_open())
+        if (text_file.is_open()) {
             if (format == Format::json)
                 html_file.writeLine(toJSON(chunk, "p"));
             else
                 html_file.writeLine(util::encodeBase64(chunk));
+        }
     }
 
     std::string get_paragraph_id(const std::string& text) {
