@@ -19,6 +19,8 @@ namespace util {
     void trimLines(std::string& text);
     void trimLinesCopy(const std::string& original, std::string& result);
 
+    bool isCompressedFile(const std::string &filename);
+
     // detect charset using uchardet
     bool detectCharset(const std::string& text, std::string& charset, const std::string& original_charset = "");
     // convert to utf8
@@ -54,6 +56,8 @@ namespace util {
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters);
 
     void readUrlFiltersRegex(const std::string &filename, boost::regex &urlFilter);
+
+    void readDomainFilters(const std::string &filename, std::unordered_set<std::string> &domainFilter);
 
     bool createDirectories(const std::string& path);
 

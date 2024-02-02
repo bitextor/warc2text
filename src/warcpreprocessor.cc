@@ -65,6 +65,7 @@ namespace {
 namespace warc2text {
     const std::unordered_set<std::string> WARCPreprocessor::removeExtensions = {".jpg", ".jpeg", ".gif", ".png", ".css", ".js", ".mp3",
                                                                                 ".mp4", ".flv", ".wmv", ".gz", ".zip", ".rar" };
+    const boost::regex WARCPreprocessor::domainExtractor("^(https?:\\/\\/)?(www\\.)?([^:\\/]+)(.*)", boost::regex::extended|boost::regex::icase);
 
     WARCPreprocessor::WARCPreprocessor(RecordWriter &writer, const LanguageDetector &detector, WARCPreprocessorOptions const &options) :
         writer(writer),
@@ -82,6 +83,9 @@ namespace warc2text {
 
             if (!options.url_filters_filename.empty())
                 util::readUrlFiltersRegex(options.url_filters_filename, urlFilter);
+
+            if (!options.domain_filters_filename.empty())
+                util::readDomainFilters(options.domain_filters_filename, domainFilter);
 
             if (!options.pdf_warc_filename.empty())
                 pdf_warc_writer.open(options.pdf_warc_filename);
@@ -101,6 +105,19 @@ namespace warc2text {
             return false;
         }
         
+        return true;
+    }
+
+    // true if the domain of the url is good
+    bool WARCPreprocessor::filterDomain(const std::string& url) const {
+        std::string domain = boost::regex_replace(url, domainExtractor, "$3");
+        BOOST_LOG_TRIVIAL(trace) << "Domain extracted '" << domain << "'";
+
+        if (!domainFilter.empty() && domainFilter.find(domain) != domainFilter.end()) {
+            BOOST_LOG_TRIVIAL(trace) << "Domain filter matched '" << url << "'";
+            return false;
+        }
+
         return true;
     }
 
@@ -150,6 +167,9 @@ namespace warc2text {
                 continue;
 
             if (!URLfilter(record.getURL()))
+                continue;
+
+            if (!filterDomain(record.getURL()))
                 continue;
 
             if (options.encodeURLs)
