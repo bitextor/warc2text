@@ -9,3 +9,6 @@
 [submodule "fasttext"]
 	path = fasttext
 	url = https://github.com/kpu/fasterText.git
+[submodule "nlohmann_json"]
+	path = nlohmann_json
+	url = https://github.com/nlohmann/json

@@ -4,9 +4,10 @@
 #include <cassert>
 #include <string>
 #include <ostream>
+#include <iostream>
 #include <iomanip>
+#include <nlohmann/json.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/json.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/zstd.hpp>
 #include <boost/iostreams/copy.hpp>
@@ -15,7 +16,7 @@
 
 
 namespace warc2text {
-    namespace bj = boost::json;
+    using json = nlohmann::ordered_json;
 
     CompressWriter::CompressWriter()
     : file(),
@@ -62,29 +63,30 @@ namespace warc2text {
         return file.is_open();
     }
 
-    bj::object toJSON(Record const &record, std::string const &chunk, bool metadata_only) {
-        auto obj = bj::object{
-             {"f", bj::string(record.getFilename())},
-             {"o", bj::value(record.getOffset())},
-             {"s", bj::value(record.getSize())},
-             {"rs", bj::value(record.getPayload().size())},
-             {"u", bj::string(record.getURL())},
-             {"c", bj::string(record.getHTTPcontentType())},
-             {"ts", bj::string(record.getWARCdate())},
+    json toJSON(Record const &record, std::string const &chunk, bool metadata_only) {
+        json obj = {
+             {"f", record.getFilename()},
+             {"o", record.getOffset()},
+             {"s", record.getSize()},
+             {"rs", record.getPayload().size()},
+             {"u", record.getURL()},
+             {"c", record.getHTTPcontentType()},
+             {"ts", record.getWARCdate()},
         };
 
         // Insert extracted plain text if requested
         if(!metadata_only) {
-            obj["ps"] = bj::value(chunk.size());
-            obj["p"] = bj::string(chunk);
+            obj["ps"] = chunk.size();
+            obj["p"] = chunk;
         }
 
         return obj;
     }
 
     std::string toJSON(const std::string &text, const std::string &field_name) {
-        auto json = bj::value{{field_name, bj::string(text)}};
-        return bj::serialize(json);
+        json object = {field_name, text};
+        std::string s;
+        return object.dump(-1, ' ', false, json::error_handler_t::replace);
     }
 
     LangWriter::LangWriter(const std::string& path, const std::unordered_set<std::string>& output_files,
@@ -117,7 +119,8 @@ namespace warc2text {
 
     void LangWriter::write(Record const &record, std::string const &chunk) {
         if (metadata_file.is_open())
-            metadata_file.writeLine(bj::serialize(toJSON(record, chunk, true)));
+            metadata_file.writeLine(toJSON(record, chunk, true)
+                    .dump(-1, ' ', false, json::error_handler_t::replace));
         if (url_file.is_open())
             url_file.writeLine(record.getURL());
         if (mime_file.is_open())
@@ -177,9 +180,9 @@ namespace warc2text {
 
             // Insert language if langid wasn't skipped
             if(lang != "")
-                obj["l"] = bj::string(lang);
+                obj["l"] = lang;
 
-            out_ << obj << "\n";
+            out_ << obj.dump(-1, ' ', false, json::error_handler_t::replace) << "\n";
         }
     }
 
