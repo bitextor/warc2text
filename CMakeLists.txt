@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(warc2text)
 
 set(CMAKE_CXX_STANDARD 17)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
@@ -16,7 +17,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-find_package(Boost 1.75 COMPONENTS program_options json log log_setup REQUIRED)
+find_package(Boost 1.71 COMPONENTS program_options log log_setup REQUIRED)
 
 # compile executable into bin/
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -50,6 +51,7 @@ target_include_directories(warc2text_lib PRIVATE fasttext/src)
 # add libcld2.so
 add_subdirectory(cld2)
 add_subdirectory(fasttext EXCLUDE_FROM_ALL)
+add_subdirectory(nlohmann_json)
 #
 
 # define executables
@@ -60,6 +62,7 @@ target_link_libraries(warc2text
     cld2_full
     fasttext-static
 )
+target_link_libraries(warc2text PRIVATE nlohmann_json::nlohmann_json)
 
 include(GNUInstallDirs)
 

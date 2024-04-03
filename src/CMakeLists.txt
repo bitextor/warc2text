@@ -55,4 +55,5 @@ target_link_libraries(warc2text_lib
     ${ZLIB_LIBRARIES}
     ${uchardet_LIBRARIES}
 )
+target_link_libraries(warc2text_lib PRIVATE nlohmann_json::nlohmann_json)
 
