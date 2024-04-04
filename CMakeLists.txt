@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10)
 
 project(warc2text)
 
@@ -57,12 +57,12 @@ add_subdirectory(nlohmann_json)
 # define executables
 add_executable(warc2text warc2text_main.cc)
 target_link_libraries(warc2text
-    warc2text_lib
-    ${Boost_LIBRARIES}
-    cld2_full
-    fasttext-static
+    PRIVATE warc2text_lib
+    PRIVATE ${Boost_LIBRARIES}
+    PRIVATE cld2_full
+    PRIVATE fasttext-static
+    PRIVATE nlohmann_json::nlohmann_json
 )
-target_link_libraries(warc2text PRIVATE nlohmann_json::nlohmann_json)
 
 include(GNUInstallDirs)
 
