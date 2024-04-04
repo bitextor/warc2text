@@ -26,6 +26,8 @@ namespace warc2text {
     }
 
     void addNewLine(std::string& plaintext) {
+        if (plaintext.empty())
+            return;
         if (std::isspace(plaintext.back())) {
             plaintext.back() = '\n';
         } else if (!plaintext.empty()) {
