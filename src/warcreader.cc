@@ -76,7 +76,8 @@ namespace warc2text {
         else
             file.reset(std::fopen(filename.c_str(), "r"));
         if (!file.get()) {
-            BOOST_LOG_TRIVIAL(error) << "WARC " << filename << ": file opening failed, skipping this WARC";
+            BOOST_LOG_TRIVIAL(error) << "WARC " << filename << ": file opening failed";
+            throw WARCFileException();
         }
     }
 

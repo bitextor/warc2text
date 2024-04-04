@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <vector>
 #include <regex>
+#include <exception>
 #include <boost/regex.hpp>
 
 namespace util {
@@ -51,8 +52,16 @@ namespace util {
     typedef std::unordered_map<std::string, std::vector<umap_attr_regex>> umap_attr_filters_regex;
     typedef std::unordered_map<std::string, umap_attr_filters_regex> umap_tag_filters_regex;
 
+    class UtilException : public std::exception {};
+
+    class TagFiltersFileException: public UtilException {
+        virtual const char* what() const throw() { return "Tag filter file could not be opened"; }
+    };
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters);
 
+    class URLFiltersFileException: public UtilException {
+        virtual const char* what() const throw() { return "URL filter file could not be opened"; }
+    };
     void readUrlFiltersRegex(const std::string &filename, boost::regex &urlFilter);
 
     bool createDirectories(const std::string& path);
