@@ -83,15 +83,16 @@ namespace warc2text {
         return obj;
     }
 
-    std::string toJSON(const std::string &text, const std::string &field_name) {
+    std::string toJSON(const std::string &text, const std::string &field_name,
+            json::error_handler_t encoding_error) {
         json object = {field_name, text};
         std::string s;
-        return object.dump(-1, ' ', false, json::error_handler_t::replace);
+        return object.dump(-1, ' ', false, encoding_error);
     }
 
     LangWriter::LangWriter(const std::string& path, const std::unordered_set<std::string>& output_files,
-                           Compression c, int l, Format f)
-    : metadata_file(c,l), url_file(c,l), mime_file(c,l), text_file(c,l), html_file(c,l), file_file(c,l), date_file(c,l), format(f)
+                           Compression c, int l, Format f, json::error_handler_t e)
+    : metadata_file(c,l), url_file(c,l), mime_file(c,l), text_file(c,l), html_file(c,l), file_file(c,l), date_file(c,l), format(f), encoding_error(e)
     {
         util::createDirectories(path);
 
@@ -119,8 +120,7 @@ namespace warc2text {
 
     void LangWriter::write(Record const &record, std::string const &chunk) {
         if (metadata_file.is_open())
-            metadata_file.writeLine(toJSON(record, chunk, true)
-                    .dump(-1, ' ', false, json::error_handler_t::replace));
+            metadata_file.writeLine(toJSON(record, chunk, true).dump(-1, ' ', false, encoding_error));
         if (url_file.is_open())
             url_file.writeLine(record.getURL());
         if (mime_file.is_open())
@@ -131,13 +131,13 @@ namespace warc2text {
             date_file.writeLine(record.getWARCdate());
         if (html_file.is_open()) {
             if (format == Format::json)
-                html_file.writeLine(toJSON(record.getPayload(), "h"));
+                html_file.writeLine(toJSON(record.getPayload(), "h", encoding_error));
             else
                 html_file.writeLine(util::encodeBase64(record.getPayload()));
         }
         if (text_file.is_open()) {
             if (format == Format::json)
-                text_file.writeLine(toJSON(chunk, "p"));
+                text_file.writeLine(toJSON(chunk, "p", encoding_error));
             else
                 text_file.writeLine(util::encodeBase64(chunk));
         }
@@ -165,7 +165,7 @@ namespace warc2text {
             if (paragraph_identification)
                 chunk = get_paragraph_id(chunk);
 
-            auto writer_it = writers.try_emplace(it.first, folder + "/" + it.first, output_files, compression, level, format);
+            auto writer_it = writers.try_emplace(it.first, folder + "/" + it.first, output_files, compression, level, format, encoding_error);
             writer_it.first->second.write(record, chunk);
         }
     }
@@ -182,7 +182,7 @@ namespace warc2text {
             if(lang != "")
                 obj["l"] = lang;
 
-            out_ << obj.dump(-1, ' ', false, json::error_handler_t::replace) << "\n";
+            out_ << obj.dump(-1, ' ', false, encoding_error) << "\n";
         }
     }
 

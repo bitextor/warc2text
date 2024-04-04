@@ -8,10 +8,12 @@
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <nlohmann/json.hpp>
 #include "src/lang.hh"
 #include "src/warcpreprocessor.hh"
 
 using namespace warc2text;
+using json_error = nlohmann::ordered_json::error_handler_t;
 
 struct Options : WARCPreprocessorOptions {
     std::vector<std::string> warcs;
@@ -24,6 +26,7 @@ struct Options : WARCPreprocessorOptions {
     std::string fasttext_model;
     std::string compress;
     int compress_level;
+    std::string encoding_errors;
 };
 
 void parseArgs(int argc, char *argv[], Options& out) {
@@ -51,6 +54,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("encode-urls", po::bool_switch(&out.encodeURLs)->default_value(false), "Encode URLs obtained from WARC records")
         ("compress", po::value(&out.compress)->default_value("gzip"), "Compression type for the output files")
         ("compress-level", po::value<int>(&out.compress_level)->default_value(3), "Compression level for the output files")
+        ("encoding-errors", po::value(&out.encoding_errors)->default_value("replace"), "How encoding errors should be handled")
         ;
 
     po::positional_options_description pd;
@@ -89,6 +93,9 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --compress <compression>         Compression algorithm for the output files\n"
                 "                                  Default: gzip. Values: gzip or zstd\n"
                 " --compress-level <level>         Compression level to use\n"
+                " --encoding-errors <handle>       How encoding errors should be handled\n"
+                "                                  Possible values: ignore, replace (default), discard\n"
+                "                                  discard will discard every document that contains errors\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
@@ -138,14 +145,26 @@ int main(int argc, char *argv[]) {
         abort();
     }
 
+    json_error encoding_errors;
+    if (options.encoding_errors == "ignore") {
+        encoding_errors = json_error::ignore;
+    } else if (options.encoding_errors == "replace") {
+        encoding_errors = json_error::replace;
+    } else if (options.encoding_errors == "discard") {
+        encoding_errors = json_error::strict;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "Invalid encoding_errors value '" << options.encoding_errors << "'";
+        abort();
+    }
+
     std::unique_ptr<RecordWriter> writer;
     if (options.jsonl && options.stdout) {
-        writer = std::make_unique<JSONLinesWriter>(std::cout);
+        writer = std::make_unique<JSONLinesWriter>(std::cout, encoding_errors);
     } else if (!options.output_files.empty()) {
         Format format = Format::b64;
         if (options.jsonl)
             format = Format::json;
-        writer = std::make_unique<BilangWriter>(options.output, options.output_files, compression, options.compress_level, format);
+        writer = std::make_unique<BilangWriter>(options.output, options.output_files, compression, options.compress_level, format, encoding_errors);
     } else {
         BOOST_LOG_TRIVIAL(error) << "No output files specified";
         abort();

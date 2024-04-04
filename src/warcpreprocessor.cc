@@ -5,11 +5,13 @@
 #include "src/lang.hh"
 #include "zipreader.hh"
 #include "util/compress.hh"
+#include <nlohmann/json.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace {
     const std::string kRobotsTxtPath = "/robots.txt";
+    using json = nlohmann::json;
 
     bool isRobotsTxt(const warc2text::Record &record) {
         const auto &url = record.getURL();
@@ -221,7 +223,16 @@ namespace warc2text {
 
             langRecords += n_langs;
 
-            writer.write(record, options.paragraph_identification);
+            try {
+                writer.write(record, options.paragraph_identification);
+            } catch (const json::type_error &e) {
+                if (e.id == 316) {
+                    BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": utf8 conversion error";
+                    continue;
+                }
+                // If we get another type of json exception, throw it, as we do not expect it to happen
+                throw e;
+            }
         }
     }
 
