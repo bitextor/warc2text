@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10)
 
 project(warc2text_src)
 
@@ -38,22 +38,21 @@ add_library(warc2text_lib
 
 if (APPLE)
 	target_link_libraries(warc2text_lib
-		/usr/local/opt/libzip/lib/libzip.dylib)
+            PRIVATE /usr/local/opt/libzip/lib/libzip.dylib)
 elseif(LIBZIP_PATH)
 	target_link_libraries(warc2text_lib
-		${LIBZIP_PATH})
+            PRIVATE ${LIBZIP_PATH})
 else()
 	target_link_libraries(warc2text_lib
-		zip)
+            PRIVATE zip)
 
 endif()
 
 target_link_libraries(warc2text_lib
-    base64
-    preprocess_util
-    ${Boost_LIBRARIES}
-    ${ZLIB_LIBRARIES}
-    ${uchardet_LIBRARIES}
+    PRIVATE base64
+    PRIVATE preprocess_util
+    PRIVATE ${Boost_LIBRARIES}
+    PRIVATE ${ZLIB_LIBRARIES}
+    PRIVATE ${uchardet_LIBRARIES}
+    PRIVATE nlohmann_json::nlohmann_json
 )
-target_link_libraries(warc2text_lib PRIVATE nlohmann_json::nlohmann_json)
-
