@@ -105,6 +105,8 @@ namespace util {
 
     void readTagFiltersRegex(const std::string& filename, umap_tag_filters_regex& filters) {
         std::ifstream f(filename);
+        if (!f)
+            throw TagFiltersFileException();
         std::string line;
         std::vector<std::string> fields;
         for (size_t line_i=1; std::getline(f, line); ++line_i) {
@@ -129,6 +131,8 @@ namespace util {
 
     void readUrlFiltersRegex(const std::string &filename, boost::regex &urlFilter) {
         std::ifstream f(filename);
+        if (!f)
+            throw URLFiltersFileException();
         std::string line;
         std::ostringstream combined;
         bool first = true;
@@ -148,6 +152,7 @@ namespace util {
             }
         }
         f.close();
+        BOOST_LOG_TRIVIAL(debug) << "URL filter: " << combined.str();
 
         urlFilter.assign(combined.str(), boost::regex::optimize | boost::regex::nosubs);
     }

@@ -6,8 +6,13 @@
 #include <array>
 #include <string>
 #include <cstdint>
+#include <exception>
 
 namespace warc2text {
+    class WARCFileException : public std::exception {
+          virtual const char* what() const throw() { return "WARC file could not be opened"; }
+    };
+
     class WARCReader {
         public:
             WARCReader();

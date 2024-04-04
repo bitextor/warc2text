@@ -179,11 +179,16 @@ int main(int argc, char *argv[]) {
     }
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    WARCPreprocessor warcpproc(*writer, *detector, options);
-    for (const std::string& file : options.warcs){
-        warcpproc.process(file);
+    try {
+        WARCPreprocessor warcpproc(*writer, *detector, options);
+        for (const std::string& file : options.warcs){
+            warcpproc.process(file);
+        }
+        warcpproc.printStatistics();
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(error) << e.what();
+        abort();
     }
-    warcpproc.printStatistics();
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
     unsigned int hours = std::chrono::duration_cast<std::chrono::hours>(end - start).count();
