@@ -60,7 +60,8 @@ namespace warc2text {
             unsigned int langBytes;
             util::umap_tag_filters_regex tagFilters;
             boost::regex urlFilter;
-            
+            const boost::regex statusFilter;
+
             static const std::unordered_set<std::string> removeExtensions;
             bool URLfilter(const std::string& url) const;
 

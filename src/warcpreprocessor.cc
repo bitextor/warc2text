@@ -78,7 +78,9 @@ namespace warc2text {
         totalBytes(0),
         textBytes(0),
         langBytes(0),
-        tagFilters() {
+        tagFilters(),
+        statusFilter("^20[036] ?.*$")
+    {
             if (!options.tag_filters_filename.empty())
                 util::readTagFiltersRegex(options.tag_filters_filename, tagFilters);
 
@@ -137,6 +139,10 @@ namespace warc2text {
 
             if (record.getRecordType() != "response" && record.getRecordType() != "resource")
                 continue;
+
+            if (record.HTTPheaderExists("status") && !boost::regex_match(record.getHTTPheaderProperty("status"), statusFilter)) {
+                continue;
+            }
 
             if (record.getWARCcontentType().find("application/http") == std::string::npos)
                 continue;
