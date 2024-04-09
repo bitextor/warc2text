@@ -86,7 +86,11 @@ namespace warc2text {
             // parse HTTP header
             pos = content.find("HTTP/1.", last_pos);
             if (pos == last_pos) { // found HTTP header
+                // parse HTTP status code
+                std::size_t space = content.find(" ", last_pos);
                 pos = content.find("\r\n", last_pos);
+                HTTPheader["status"] = content.substr(space + 1, (pos - space) - 1);
+
                 payload_start = read_header(content, pos + 2, HTTPheader);
                 if (payload_start == std::string::npos) {
                     // BOOST_LOG_TRIVIAL(warning) << "Response record without HTTP header";
