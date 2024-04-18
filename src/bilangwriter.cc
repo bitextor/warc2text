@@ -134,9 +134,9 @@ namespace warc2text {
         }
         if (text_file.is_open()) {
             if (format == Format::json)
-                html_file.writeLine(toJSON(chunk, "p"));
+                text_file.writeLine(toJSON(chunk, "p"));
             else
-                html_file.writeLine(util::encodeBase64(chunk));
+                text_file.writeLine(util::encodeBase64(chunk));
         }
     }
 
