@@ -85,7 +85,7 @@ namespace warc2text {
 
     std::string toJSON(const std::string &text, const std::string &field_name,
             json::error_handler_t encoding_error) {
-        json object = {field_name, text};
+        json object = { {field_name, text} };
         std::string s;
         return object.dump(-1, ' ', false, encoding_error);
     }
