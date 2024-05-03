@@ -1,6 +1,7 @@
 #include "util.hh"
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include <algorithm>
 #include <vector>
 #include <boost/filesystem.hpp>
@@ -10,6 +11,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/zlib.hpp>
 #include <boost/locale.hpp>
 #include <boost/log/trivial.hpp>
 #include <uchardet/uchardet.h>
@@ -129,6 +132,24 @@ namespace util {
         f.close();
     }
 
+    // Check if file has gzip magic number
+    // solution from https://stackoverflow.com/questions/37822645/c-read-and-compare-magic-number-from-file
+    bool isCompressedFile(const std::string &filename) {
+        std::ifstream input(filename, std::ios::binary);
+        if (!input.is_open()) {
+            BOOST_LOG_TRIVIAL(error) << "Could not open file '" << filename << "'";
+            return false;
+        }
+        input.seekg(0, std::ios::beg);
+        unsigned char magic[2] = {0};
+        input.read((char*)magic, sizeof(magic));
+        const unsigned char magicref[2] = {0x1F, 0x8B};
+
+        if(memcmp(magic, magicref, sizeof(magic)) == 0)
+            return true;
+        return false;
+    }
+
     void readUrlFiltersRegex(const std::string &filename, boost::regex &urlFilter) {
         std::ifstream f(filename);
         if (!f)
@@ -155,6 +176,29 @@ namespace util {
         BOOST_LOG_TRIVIAL(debug) << "URL filter: " << combined.str();
 
         urlFilter.assign(combined.str(), boost::regex::optimize | boost::regex::nosubs);
+    }
+
+    void readDomainFilters(const std::string &filename, std::unordered_set<std::string> &domainFilter) {
+        // Check if file is compressed
+        // Seems that boost zlib does not complain if the file is not compressed
+        // is it really necessary to manually check the magic number? idk
+        if (!isCompressedFile(filename)) {
+            BOOST_LOG_TRIVIAL(error) << "Domain list file not gzip compressed '" << filename << "'";
+            abort();
+        }
+
+        std::ifstream f(filename, std::ios_base::in | std::ios_base::binary);
+        boost::iostreams::filtering_stream<boost::iostreams::input> in;
+        in.push(boost::iostreams::zlib_decompressor());
+        in.push(f);
+
+        std::string line;
+        for (size_t line_i=1; std::getline(in, line); ++line_i) {
+            if (boost::algorithm::all(line, boost::algorithm::is_space()) || boost::algorithm::starts_with(line, "#"))
+                continue;
+            domainFilter.emplace(std::string(line));
+        }
+        f.close();
     }
 
     bool createDirectories(const std::string& path){
