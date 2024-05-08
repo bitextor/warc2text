@@ -15,7 +15,7 @@ git submodule update --init --recursive
 ## Install dependencies
 On Debian/Ubuntu/Mint:
 ```
-apt-get install uchardet libuchardet-dev libzip-dev
+apt-get install build-essential cmake libuchardet-dev libzip-dev libboost-thread-dev libboost-regex-dev libboost-filesystem-dev libboost-log-dev libboost-iostreams-dev libboost-locale-dev libboost-program-options-dev
 ```
 On Mac:
 ```
