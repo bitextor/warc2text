@@ -43,6 +43,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("url-filters", po::value(&out.url_filters_filename), "Plain text file containing url filters")
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
         ("robotspass", po::value(&out.robots_warc_filename), "Write robots.txt records to WARC")
+        ("robots-process", po::bool_switch(&out.robots_process), "Process robots.txt as normal documents")
         ("paragraph-identification", po::bool_switch(&out.paragraph_identification)->default_value(false), "Add paragraph index in each b64encoded document as tab separated column")
         ("skip-text-extraction", po::bool_switch(&out.skip_text_extraction)->default_value(false))
         ("verbose,v", po::bool_switch(&out.verbose)->default_value(false), "Verbosity level")
@@ -81,6 +82,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "                                  Format: \"regexp\"\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
                 " --robotspass <output_warc>       Write Robots.txt records to <output_warc>\n"
+                " --robots-process                 Process Robots.txt as any other document, instead of throwing them out\n"
                 " --encode-urls                    Encode URLs obtained from WARC records\n"
                 " --paragraph-identification       Add paragraph index for each sentence extracted from the html\n"
                 " --skip-text-extraction           Skip text extraction and output only html\n"
@@ -122,6 +124,10 @@ int main(int argc, char *argv[]) {
     boost::algorithm::split(files_list, options.files, [](char c) {return c == ',';});
     options.output_files.insert(files_list.begin(), files_list.end());
 
+    if (options.robots_process && !options.robots_warc_filename.empty()) {
+        BOOST_LOG_TRIVIAL(error) << "'--robotspass' and '--robots-process' are mutually exclusive.";
+        abort();
+    }
     if (options.skip_text_extraction) {
         if (options.files.find("text") != std::string::npos) {
             BOOST_LOG_TRIVIAL(error) << "Cannot use 'text' as output file with '--skip-text-extraction'. Please use '-f url,html' or any other combination that does not include it.";

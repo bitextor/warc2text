@@ -42,6 +42,7 @@ namespace warc2text {
         
         bool multilang{};
         bool encodeURLs{};
+        bool robots_process{};
     };
 
     class WARCPreprocessor {

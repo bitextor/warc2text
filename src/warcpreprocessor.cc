@@ -130,7 +130,7 @@ namespace warc2text {
                 continue;
 
             // Pick out all robots.txt related records.
-            if (::isRobotsTxt(record)) {
+            if (!options.robots_process && ::isRobotsTxt(record)) {
                 robots_warc_writer.writeRecord(content); // no-op if robots_warc_writer is not opened.
                 continue;
             }
