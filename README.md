@@ -36,6 +36,7 @@ make install
 ## Alternative installation with EasyBuild
 On a node with EasyBuild installed you can install warc2text as a module:
 ```
+eb --robot easyconfigs/uchardet-0.0.7-foss-2021a.eb 
 eb --robot easyconfigs/nlpl-warc2text-1.2.0-foss-2021a.eb
 ```
 
