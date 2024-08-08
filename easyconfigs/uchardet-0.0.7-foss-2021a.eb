@@ -1,0 +1,26 @@
+easyblock = "CMakeMake"
+
+name = 'uchardet'
+version = '0.0.7'
+
+homepage = 'https://www.freedesktop.org/wiki/Software/uchardet/'
+description = """uchardet is an encoding detector library, which takes a sequence of bytes in an unknown character encoding without any additional information,
+and attempts to determine the encoding of the text.
+Returned encoding names are iconv-compatible."""
+
+toolchain = {'name': 'foss', 'version': '2021a'}
+
+source_urls = ['https://www.freedesktop.org/software/uchardet/releases/']
+sources = [SOURCE_TAR_XZ]
+checksums = ['3fc79408ae1d84b406922fa9319ce005631c95ca0f34b205fad867e8b30e45b1']
+
+builddependencies = [
+    ('CMake', '3.20.1'),
+    ('Boost', '1.76.0')
+]
+
+dependencies = [
+    ('libzip', '1.7.3'),
+]
+
+moduleclass = 'lib'

@@ -33,6 +33,13 @@ make -j
 make install
 ```
 
+## Alternative installation with EasyBuild
+On a node with EasyBuild installed you can install warc2text as a module:
+```
+eb --robot easyconfigs/uchardet-0.0.7-foss-2021a.eb 
+eb --robot easyconfigs/nlpl-warc2text-1.2.0-foss-2021a.eb
+```
+
 ## Usage
 
 **note:** for warcs with many languages you might hit the open file limit quite quickly. It is therefore advised to increase it, e.g. `ulimit -n 8192`.
