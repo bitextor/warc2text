@@ -41,6 +41,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("tag-filters", po::value(&out.tag_filters_filename), "Plain text file containing tag filters")
         ("invert-tag-filters", po::bool_switch(&out.tag_filters_invert)->default_value(false), "Invert tag filter application")
         ("url-filters", po::value(&out.url_filters_filename), "Plain text file containing url filters")
+        ("domain-filters", po::value(&out.domain_filters_filename), "Gzip compressed text file containing domain filters")
         ("pdfpass", po::value(&out.pdf_warc_filename), "Write PDF records to WARC")
         ("robotspass", po::value(&out.robots_warc_filename), "Write robots.txt records to WARC")
         ("robots-process", po::bool_switch(&out.robots_process), "Process robots.txt as normal documents")
@@ -80,6 +81,8 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --invert-tag-filters             Only output records that got filtered\n"
                 " --url-filters <filters_file>     File containing url filters\n"
                 "                                  Format: \"regexp\"\n"
+                " --domain-filters <filters_file>  File containing domain filters\n"
+                "                                  Format: each line containing a domain name\n"
                 " --pdfpass <output_warc>          Write PDF records to <output_warc>\n"
                 " --robotspass <output_warc>       Write Robots.txt records to <output_warc>\n"
                 " --robots-process                 Process Robots.txt as any other document, instead of throwing them out\n"

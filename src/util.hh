@@ -20,6 +20,8 @@ namespace util {
     void trimLines(std::string& text);
     void trimLinesCopy(const std::string& original, std::string& result);
 
+    bool isCompressedFile(const std::string &filename);
+
     // detect charset using uchardet
     bool detectCharset(const std::string& text, std::string& charset, const std::string& original_charset = "");
     // convert to utf8
@@ -63,6 +65,8 @@ namespace util {
         virtual const char* what() const throw() { return "URL filter file could not be opened"; }
     };
     void readUrlFiltersRegex(const std::string &filename, boost::regex &urlFilter);
+
+    void readDomainFilters(const std::string &filename, std::unordered_set<std::string> &domainFilter);
 
     bool createDirectories(const std::string& path);
 
