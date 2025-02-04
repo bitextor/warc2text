@@ -72,6 +72,7 @@ namespace warc2text {
              {"u", record.getURL()},
              {"c", record.getHTTPcontentType()},
              {"ts", record.getWARCdate()},
+             {"de", record.getCharset()},
         };
 
         // Insert extracted plain text if requested
