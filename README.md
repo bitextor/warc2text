@@ -109,6 +109,7 @@ Instead of the classic Bitextor directory structure and files, the `--jsonl` opt
   u:  string, # url
   c:  string, # content type as reported by the HTTP response header (or warc record header if that isn't present)
   ts: string, # crawl date/time as reported by the crawler
+  de: string, # detected encoding before being converted to utf-8
   p:  string, # plain text
 }
 ```
