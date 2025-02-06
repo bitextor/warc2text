@@ -158,7 +158,7 @@ namespace warc2text {
         return result;
     }
 
-    void BilangWriter::write(const Record& record, bool paragraph_identification) {
+    void BilangWriter::write(const Record& record, [[maybe_unused]] bool skipped_extraction, bool paragraph_identification) {
         for (const auto& it : record.getTextByLangs()) {
             std::string chunk = it.second;
 
@@ -170,8 +170,14 @@ namespace warc2text {
         }
     }
 
-    void JSONLinesWriter::write(const Record& record, [[maybe_unused]] bool paragraph_identification) {
+    void JSONLinesWriter::write(const Record& record, bool skipped_extraction, [[maybe_unused]] bool paragraph_identification) {
         // JSON lines format (https://jsonlines.org)
+        if(skipped_extraction) {
+            auto obj = toJSON(record, "", true);
+            obj["h"] = record.getPayload();
+            out_ << obj.dump(-1, ' ', false, encoding_error) << "\n";
+            return;
+        }
         for (auto &&it : record.getTextByLangs()) {
             std::string chunk = it.second;
             std::string lang = it.first;

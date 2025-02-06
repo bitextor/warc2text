@@ -25,7 +25,7 @@ namespace warc2text {
      */
     class RecordWriter {
     public:
-        virtual void write(const Record& record, bool paragraph_identification = false) = 0;
+        virtual void write(const Record& record, bool skipped_extraction, bool paragraph_identification = false) = 0;
         virtual ~RecordWriter() = default;
     };
 
@@ -91,7 +91,7 @@ namespace warc2text {
                 //
             };
 
-            virtual void write(const Record& record, bool paragraph_identification = false);
+            virtual void write(const Record& record, bool skipped_extraction, bool paragraph_identification = false);
     };
 
     class JSONLinesWriter : public RecordWriter {
@@ -101,7 +101,7 @@ namespace warc2text {
         public:
             explicit JSONLinesWriter(std::ostream &out, json_error e) : out_(out), encoding_error(e) {};
 
-            virtual void write(const Record& record, bool paragraph_identification = false);
+            virtual void write(const Record& record, bool skipped_extraction, bool paragraph_identification = false);
     };
 }
 
