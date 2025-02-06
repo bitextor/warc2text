@@ -230,7 +230,7 @@ namespace warc2text {
             langRecords += n_langs;
 
             try {
-                writer.write(record, options.paragraph_identification);
+                writer.write(record, options.skip_text_extraction, options.paragraph_identification);
             } catch (const json::type_error &e) {
                 if (e.id == 316) {
                     BOOST_LOG_TRIVIAL(trace) << "Record " << record.getURL() << ": utf8 conversion error";
