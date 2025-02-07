@@ -120,6 +120,24 @@ namespace warc2text {
     }
 
     void LangWriter::write(Record const &record, std::string const &chunk) {
+        // Serialize html and text content
+        // to trigger any possible exception (e.g. utf8 encoding error)
+        // before starting to write so any possible offsets are avoided
+        std::string html_content, text_content;
+        if (html_file.is_open()) {
+            if (format == Format::json)
+                html_content = toJSON(record.getPayload(), "h", encoding_error);
+            else
+                html_content = util::encodeBase64(record.getPayload());
+        }
+        if (text_file.is_open()) {
+            if (format == Format::json)
+                text_content = toJSON(chunk, "p", encoding_error);
+            else
+                text_content = util::encodeBase64(chunk);
+        }
+
+        // write the contents of each output file
         if (metadata_file.is_open())
             metadata_file.writeLine(toJSON(record, chunk, true).dump(-1, ' ', false, encoding_error));
         if (url_file.is_open())
@@ -130,18 +148,10 @@ namespace warc2text {
             file_file.writeLine(record.getFilename() + ":" + std::to_string(record.getOffset()) + ":" + std::to_string(record.getSize()));
         if (date_file.is_open())
             date_file.writeLine(record.getWARCdate());
-        if (html_file.is_open()) {
-            if (format == Format::json)
-                html_file.writeLine(toJSON(record.getPayload(), "h", encoding_error));
-            else
-                html_file.writeLine(util::encodeBase64(record.getPayload()));
-        }
-        if (text_file.is_open()) {
-            if (format == Format::json)
-                text_file.writeLine(toJSON(chunk, "p", encoding_error));
-            else
-                text_file.writeLine(util::encodeBase64(chunk));
-        }
+        if (html_file.is_open())
+            html_file.writeLine(html_content);
+        if (text_file.is_open())
+            text_file.writeLine(text_content);
     }
 
     std::string get_paragraph_id(const std::string& text) {
