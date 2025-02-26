@@ -11,6 +11,7 @@
 #include <nlohmann/json.hpp>
 #include "src/lang.hh"
 #include "src/warcpreprocessor.hh"
+#include "src/warcreader.hh"
 
 using namespace warc2text;
 using json_error = nlohmann::ordered_json::error_handler_t;
@@ -204,17 +205,27 @@ int main(int argc, char *argv[]) {
     }
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    bool warc_file_error = false;
     try {
         WARCPreprocessor warcpproc(*writer, *detector, options);
         for (const std::string& file : options.warcs){
-            warcpproc.process(file);
+            try {
+                warcpproc.process(file);
+            } catch (const WARCFileException &e) {
+                warc_file_error = true;
+                continue;
+            }
         }
         warcpproc.printStatistics();
+
     } catch (const std::exception &e) {
         BOOST_LOG_TRIVIAL(error) << e.what();
         abort();
     }
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    if (warc_file_error)
+        BOOST_LOG_TRIVIAL(error) << "There were WARC files that failed to open";
 
     unsigned int hours = std::chrono::duration_cast<std::chrono::hours>(end - start).count();
     unsigned int minutes = std::chrono::duration_cast<std::chrono::minutes>(end - start).count() - hours*60;
