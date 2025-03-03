@@ -38,13 +38,14 @@ namespace warc2text {
             std::ofstream file;
             bio::filtering_streambuf<bio::output> compressor;
             Compression compression;
+            std::unique_ptr<std::ostream> compressor_stream;
             int level;
 
         public:
             CompressWriter();
             CompressWriter(Compression c, int l);
             ~CompressWriter();
-            void open(const std::string& filename);
+            void open(const std::string& filename, unsigned buf_size = 32*1024);
             void close();
             void writeLine(const std::string& text);
             bool is_open();
@@ -69,7 +70,7 @@ namespace warc2text {
         public:
             LangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files,
                        Compression c = Compression::gzip, int l = 3, Format f = Format::b64,
-                       json_error e = json_error::replace);
+                       json_error e = json_error::replace, unsigned buf_size = 32*1024);
             void write(const Record& record, const std::string &chunk);
     };
 
@@ -82,11 +83,12 @@ namespace warc2text {
             int level;
             Format format;
             json_error encoding_error;
+            unsigned buf_size;
         public:
             BilangWriter(const std::string& folder, const std::unordered_set<std::string>& output_files = {},
                          Compression c = Compression::gzip, int l = 3, Format f = Format::b64,
-                         json_error e = json_error::replace)
-            : folder(folder) , output_files(output_files) , compression(c) , level(l), format(f), encoding_error(e)
+                         json_error e = json_error::replace, unsigned b = 32*1024)
+            : folder(folder) , output_files(output_files) , compression(c) , level(l), format(f), encoding_error(e), buf_size(b)
             {
                 //
             };

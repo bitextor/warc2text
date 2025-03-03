@@ -20,14 +20,16 @@ namespace warc2text {
 
     CompressWriter::CompressWriter()
     : file(),
-      compressor() {
+      compressor(),
+      compressor_stream() {
           compression = Compression::gzip;
           level = 3;
     }
 
     CompressWriter::CompressWriter(Compression c, int l)
     : file(),
-      compressor() {
+      compressor(),
+      compressor_stream() {
           compression = c;
           level = l;
     }
@@ -38,7 +40,7 @@ namespace warc2text {
         }
     }
 
-    void CompressWriter::open(const std::string &filename) {
+    void CompressWriter::open(const std::string &filename, unsigned buf_size) {
         file = std::ofstream(filename, std::ios_base::out | std::ios_base::binary);
         switch(compression) {
             case Compression::gzip:
@@ -48,15 +50,12 @@ namespace warc2text {
                 compressor.push(bio::zstd_compressor(bio::zstd_params(level)));
                 break;
         }
-        compressor.push(file);
+        compressor.push(file, buf_size);
+        compressor_stream = std::unique_ptr<std::ostream>(new std::ostream(&compressor));
     }
 
     void CompressWriter::writeLine(const std::string &text) {
-        // creating an ostream on each document write seems inefficient
-        // but ostream objects cannot be copyassigned and at the moment of construction
-        // we don't have the underlying compressor, so cannot declare in constructor
-        // and then assign to a new instance when in CompressWriter::open
-        std::ostream(&compressor) << text << "\n";
+        *compressor_stream << text << "\n";
     }
 
     bool CompressWriter::is_open() {
@@ -92,7 +91,7 @@ namespace warc2text {
     }
 
     LangWriter::LangWriter(const std::string& path, const std::unordered_set<std::string>& output_files,
-                           Compression c, int l, Format f, json::error_handler_t e)
+                           Compression c, int l, Format f, json::error_handler_t e, unsigned buf_size)
     : metadata_file(c,l), url_file(c,l), mime_file(c,l), text_file(c,l), html_file(c,l), file_file(c,l), date_file(c,l), format(f), encoding_error(e)
     {
         util::createDirectories(path);
@@ -104,19 +103,19 @@ namespace warc2text {
         }
 
         if (output_files.count("metadata"))
-            metadata_file.open(path + "/metadata" + suffix);
+            metadata_file.open(path + "/metadata" + suffix, buf_size);
         if (output_files.count("url"))
-            url_file.open(path + "/url" + suffix);
+            url_file.open(path + "/url" + suffix, buf_size);
         if (output_files.count("text"))
-            text_file.open(path + "/text" + suffix);
+            text_file.open(path + "/text" + suffix, buf_size);
         if (output_files.count("mime"))
-            mime_file.open(path + "/mime" + suffix);
+            mime_file.open(path + "/mime" + suffix, buf_size);
         if (output_files.count("html"))
-            html_file.open(path + "/html" + suffix);
+            html_file.open(path + "/html" + suffix, buf_size);
         if (output_files.count("file"))
-            file_file.open(path + "/file" + suffix);
+            file_file.open(path + "/file" + suffix, buf_size);
         if (output_files.count("date"))
-            date_file.open(path + "/date" + suffix);
+            date_file.open(path + "/date" + suffix, buf_size);
     }
 
     void LangWriter::write(Record const &record, std::string const &chunk) {
@@ -176,7 +175,7 @@ namespace warc2text {
             if (paragraph_identification)
                 chunk = get_paragraph_id(chunk);
 
-            auto writer_it = writers.try_emplace(it.first, folder + "/" + it.first, output_files, compression, level, format, encoding_error);
+            auto writer_it = writers.try_emplace(it.first, folder + "/" + it.first, output_files, compression, level, format, encoding_error, buf_size);
             writer_it.first->second.write(record, chunk);
         }
     }

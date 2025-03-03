@@ -28,6 +28,7 @@ struct Options : WARCPreprocessorOptions {
     std::string compress;
     int compress_level;
     std::string encoding_errors;
+    unsigned buffer_size;
 };
 
 void parseArgs(int argc, char *argv[], Options& out) {
@@ -57,6 +58,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("compress", po::value(&out.compress)->default_value("gzip"), "Compression type for the output files")
         ("compress-level", po::value<int>(&out.compress_level)->default_value(3), "Compression level for the output files")
         ("encoding-errors", po::value(&out.encoding_errors)->default_value("replace"), "How encoding errors should be handled")
+        ("buffer-size", po::value(&out.buffer_size)->default_value(32*1024), "Buffer size for write operations in KB (default 32)")
         ;
 
     po::positional_options_description pd;
@@ -99,6 +101,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 " --encoding-errors <handle>       How encoding errors should be handled\n"
                 "                                  Possible values: ignore, replace (default), discard\n"
                 "                                  discard will discard every document that contains errors\n"
+                " --buffer-size <size>             Buffer size for write operations in KB (default 32)\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
@@ -171,7 +174,7 @@ int main(int argc, char *argv[]) {
         Format format = Format::b64;
         if (options.jsonl)
             format = Format::json;
-        writer = std::make_unique<BilangWriter>(options.output, options.output_files, compression, options.compress_level, format, encoding_errors);
+        writer = std::make_unique<BilangWriter>(options.output, options.output_files, compression, options.compress_level, format, encoding_errors, options.buffer_size*1024);
     } else {
         BOOST_LOG_TRIVIAL(error) << "No output files specified";
         abort();
