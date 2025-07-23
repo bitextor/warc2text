@@ -40,6 +40,13 @@ eb --robot easyconfigs/uchardet-0.0.7-foss-2021a.eb
 eb --robot easyconfigs/nlpl-warc2text-1.2.0-foss-2021a.eb
 ```
 
+On the LUMI supercomputer, use the EasyBuild files with suffix `-LUMI`:
+```
+eb --robot easyconfigs/libzip-1.7.3-LUMI.eb
+eb --robot easyconfigs/uchardet-0.0.7-LUMI.eb
+eb --robot easyconfigs/nlpl-warc2text-1.3.0-LUMI.eb
+```
+
 ## Usage
 
 **note:** for warcs with many languages you might hit the open file limit quite quickly. It is therefore advised to increase it, e.g. `ulimit -n 8192`.
