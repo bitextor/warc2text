@@ -1,0 +1,29 @@
+easyblock = "CMakeMake"
+
+import os as local_os
+local_LUMI_autoversion = local_os.environ['LUMI_STACK_CPE_VERSION']
+
+name = 'uchardet'
+version = '0.0.7'
+
+homepage = 'https://www.freedesktop.org/wiki/Software/uchardet/'
+description = """uchardet is an encoding detector library, which takes a sequence of bytes in an unknown character encoding without any additional information,
+and attempts to determine the encoding of the text.
+Returned encoding names are iconv-compatible."""
+
+toolchain = SYSTEM
+
+source_urls = ['https://www.freedesktop.org/software/uchardet/releases/']
+sources = [SOURCE_TAR_XZ]
+checksums = ['3fc79408ae1d84b406922fa9319ce005631c95ca0f34b205fad867e8b30e45b1']
+
+builddependencies = [
+    ('buildtools', local_LUMI_autoversion),
+    ('Boost', '1.83.0-cpeGNU-24.03')
+]
+
+dependencies = [
+    ('libzip', '1.7.3'),
+]
+
+moduleclass = 'lib'

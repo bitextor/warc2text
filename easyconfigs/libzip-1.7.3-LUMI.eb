@@ -1,0 +1,34 @@
+easyblock = 'CMakeMake'
+
+import os as local_os
+local_LUMI_autoversion = local_os.environ['LUMI_STACK_CPE_VERSION']
+
+name = 'libzip'
+version = '1.7.3'
+
+homepage = 'https://libzip.org/'
+description = "libzip is a C library for reading, creating, and modifying zip archives."
+
+toolchain = SYSTEM
+
+source_urls = ['https://github.com/nih-at/libzip/archive/']
+sources = ['v%(version)s.tar.gz']
+checksums = ['c0a086901dfc8bda0fb8695f2d3c8050ed140b7899536b9348bcc72b47b2f307']
+
+builddependencies = [
+    ('buildtools', local_LUMI_autoversion),
+]
+
+dependencies = [('zlib', '1.3.1-cpeGNU-24.03')]
+
+sanity_check_paths = {
+    'files': [
+        'bin/zipcmp',
+        'bin/zipmerge',
+        'bin/ziptool',
+        'lib64/libzip.%s' % SHLIB_EXT,
+    ],
+    'dirs': ['include', 'lib/pkgconfig'],
+}
+
+moduleclass = 'lib'
