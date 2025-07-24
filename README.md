@@ -40,11 +40,9 @@ eb --robot easyconfigs/uchardet-0.0.7-foss-2021a.eb
 eb --robot easyconfigs/nlpl-warc2text-1.2.0-foss-2021a.eb
 ```
 
-On the LUMI supercomputer, use the EasyBuild files with suffix `-LUMI`:
+On the LUMI supercomputer, use the EasyBuild files for LUMI instead:
 ```
-eb --robot easyconfigs/libzip-1.7.3-LUMI.eb
-eb --robot easyconfigs/uchardet-0.0.7-LUMI.eb
-eb --robot easyconfigs/nlpl-warc2text-1.3.0-LUMI.eb
+eb --robot --robot-paths easyconfigs/lumi/ nlpl-warc2text-1.3.0.eb
 ```
 
 ## Usage
