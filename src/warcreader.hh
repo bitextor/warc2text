@@ -27,6 +27,7 @@ namespace warc2text {
             static const std::size_t BUFFER_SIZE = 4096;
             std::array<uint8_t, BUFFER_SIZE> buf;
             std::array<uint8_t, BUFFER_SIZE> scratch;
+            std::size_t bytes_read;
 
             void openFile(const std::string& filename);
             void closeFile();
