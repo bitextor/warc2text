@@ -10,6 +10,7 @@ namespace warc2text {
         s.opaque = nullptr;
         s.avail_in = 0;
         s.next_in = buf.data();
+        bytes_read = 0;
 
         if (inflateInit2(&s, 32) != Z_OK) {
           BOOST_LOG_TRIVIAL(error) << "Failed to init zlib";
@@ -71,6 +72,7 @@ namespace warc2text {
 
     void WARCReader::openFile(const std::string& filename){
         warc_filename = filename;
+        bytes_read = 0;
         if (filename.empty() || filename == "-")
             file.reset(std::freopen(nullptr, "rb", stdin)); // make sure stdin is open in binary mode
         else
@@ -83,6 +85,9 @@ namespace warc2text {
 
     std::size_t WARCReader::readChunk(){
         std::size_t len = std::fread(buf.data(), sizeof(uint8_t), BUFFER_SIZE, file.get());
+        if (len > 0) {
+            bytes_read += len;
+        }
         if (std::ferror(file.get()) && !std::feof(file.get())) {
             BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": error during reading";
             return 0;
@@ -91,7 +96,7 @@ namespace warc2text {
     }
 
     std::size_t WARCReader::tell() const {
-        return std::ftell(const_cast<std::FILE*>(file.get())) - s.avail_in;
+        return bytes_read - s.avail_in;
     }
 
 } // warc2text
