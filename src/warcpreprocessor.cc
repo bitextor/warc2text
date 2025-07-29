@@ -109,7 +109,12 @@ namespace warc2text {
     }
 
     void WARCPreprocessor::process(const std::string& filename) {
-        BOOST_LOG_TRIVIAL(info) << "Processing " << filename;
+        std::string record_filename;
+        if(filename.empty())
+            record_filename = "stdin";
+        else
+            record_filename = filename;
+        BOOST_LOG_TRIVIAL(info) << "Processing " << record_filename;
         WARCReader reader(filename);
 
         std::string content;
@@ -127,7 +132,7 @@ namespace warc2text {
             if (content.empty())
                 continue;
 
-            Record record(content, filename, size, offset);
+            Record record(content, record_filename, size, offset);
             if (record.getPayload().empty())
                 continue;
 

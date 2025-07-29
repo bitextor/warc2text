@@ -211,6 +211,8 @@ int main(int argc, char *argv[]) {
     bool warc_file_error = false;
     try {
         WARCPreprocessor warcpproc(*writer, *detector, options);
+        if(options.warcs.empty())
+            options.warcs.push_back(""); // read from an empty filename, which will default to stdin
         for (const std::string& file : options.warcs){
             try {
                 warcpproc.process(file);
