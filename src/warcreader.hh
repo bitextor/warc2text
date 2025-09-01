@@ -10,7 +10,7 @@
 
 namespace warc2text {
     class WARCFileException : public std::exception {
-          virtual const char* what() const throw() { return "WARC file could not be opened"; }
+          virtual const char* what() const throw() { return "Error reading WARCFile"; }
     };
 
     class WARCReader {

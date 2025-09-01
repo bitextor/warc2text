@@ -23,6 +23,7 @@ struct Options : WARCPreprocessorOptions {
     bool verbose{};
     bool silent{};
     bool jsonl{};
+    bool strict_exit{};
     std::string classifier;
     std::string fasttext_model;
     std::string compress;
@@ -59,6 +60,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("compress-level", po::value<int>(&out.compress_level)->default_value(3), "Compression level for the output files")
         ("encoding-errors", po::value(&out.encoding_errors)->default_value("replace"), "How encoding errors should be handled")
         ("buffer-size", po::value(&out.buffer_size)->default_value(32*1024), "Buffer size for write operations in KB (default 32)")
+        ("strict-exit", po::bool_switch(&out.strict_exit)->default_value(false), "Be strict with exit codes.")
         ;
 
     po::positional_options_description pd;
@@ -102,6 +104,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "                                  Possible values: ignore, replace (default), discard\n"
                 "                                  discard will discard every document that contains errors\n"
                 " --buffer-size <size>             Buffer size for write operations in KB (default 32)\n"
+                " --strict-exit                    Strict exit codes. Return non-zero if a WARC read error occurred\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
@@ -229,13 +232,15 @@ int main(int argc, char *argv[]) {
     }
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-    if (warc_file_error)
-        BOOST_LOG_TRIVIAL(error) << "There were WARC files that failed to open";
-
     unsigned int hours = std::chrono::duration_cast<std::chrono::hours>(end - start).count();
     unsigned int minutes = std::chrono::duration_cast<std::chrono::minutes>(end - start).count() - hours*60;
     unsigned int seconds = std::chrono::duration_cast<std::chrono::seconds>(end - start).count() - hours*60*60 - minutes*60;
     BOOST_LOG_TRIVIAL(info) << "elapsed: " << hours << "h" << minutes << "m" << seconds << "s";
+
+    if (warc_file_error)
+        BOOST_LOG_TRIVIAL(error) << "There were WARC files that failed to open";
+    if (warc_file_error && options.strict_exit)
+        return 2;
 
     return 0;
 }

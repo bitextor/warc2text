@@ -50,7 +50,7 @@ namespace warc2text {
                 if (inflate_ret != Z_OK && inflate_ret != Z_STREAM_END) {
                     BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": error during decompressing";
                     out.clear();
-                    return 0;
+                    throw WARCFileException();
                 }
                 if (not skip_record) out.append(scratch.data(), scratch.data() + (scratch.size() - s.avail_out));
                 if (out.size() > max_size) {
@@ -90,7 +90,7 @@ namespace warc2text {
         }
         if (std::ferror(file.get()) && !std::feof(file.get())) {
             BOOST_LOG_TRIVIAL(error) << "WARC " << warc_filename << ": error during reading";
-            return 0;
+            throw WARCFileException();
         }
         return len;
     }
