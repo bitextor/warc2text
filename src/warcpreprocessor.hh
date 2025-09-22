@@ -43,6 +43,8 @@ namespace warc2text {
         bool multilang{};
         bool encodeURLs{};
         bool robots_process{};
+
+        size_t max_record_size;
     };
 
     class WARCPreprocessor {

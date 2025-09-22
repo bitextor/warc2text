@@ -61,6 +61,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
         ("encoding-errors", po::value(&out.encoding_errors)->default_value("replace"), "How encoding errors should be handled")
         ("buffer-size", po::value(&out.buffer_size)->default_value(32*1024), "Buffer size for write operations in KB (default 32)")
         ("strict-exit", po::bool_switch(&out.strict_exit)->default_value(false), "Be strict with exit codes.")
+        ("max-record-size", po::value(&out.max_record_size)->default_value(20), "Maximum size in MB for a record to be skipped")
         ;
 
     po::positional_options_description pd;
@@ -105,6 +106,7 @@ void parseArgs(int argc, char *argv[], Options& out) {
                 "                                  discard will discard every document that contains errors\n"
                 " --buffer-size <size>             Buffer size for write operations in KB (default 32)\n"
                 " --strict-exit                    Strict exit codes. Return non-zero if a WARC read error occurred\n"
+                " --max-record-size <size>         Maximum size in MB for a record to be skipped\n"
                 " -s                               Only output errors\n"
                 " -v                               Verbose output (print trace)\n\n";
         exit(1);
@@ -117,6 +119,7 @@ int main(int argc, char *argv[]) {
     // parse arguments
     Options options;
     parseArgs(argc,argv, options);
+    options.max_record_size = 1024*1024*options.max_record_size; // max record size is in MB
 
     // configure logging
     boost::log::add_console_log(std::cerr, boost::log::keywords::format = "[%TimeStamp%] [\%Severity%] %Message%");
