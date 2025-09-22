@@ -11,8 +11,11 @@
 #include <boost/locale.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+#include "decompress.hh"
+
 namespace warc2text {
     const std::unordered_set<std::string> Record::textContentTypes = {"text/plain", "text/html", "application/xml", "text/vnd.wap.wml", "application/atom+xml", "application/opensearchdescription+xml", "application/rss+xml", "application/xhtml+xml"};
+
 
     std::size_t read_header(const std::string& content, std::size_t last_pos, std::unordered_map<std::string,std::string>& header) {
         std::string line;
@@ -106,8 +109,23 @@ namespace warc2text {
         }
 
         payload = std::string(content, payload_start, std::string::npos);
-
         util::trim(payload); //remove \r\n\r\n at the end
+
+        try {
+            if (HTTPheader.count("transfer-encoding") > 0) {
+                if (HTTPheader["transfer-encoding"] == "chunked")
+                    dechunk(payload);
+                else
+                    throw std::invalid_argument("Unsupported HTTP Transfer-Encoding:" + HTTPheader["transfer-encoding"]);
+            }
+            if (HTTPheader.count("content-encoding") > 0) {
+                std::string& encoding = HTTPheader["content-encoding"];
+                util::toLower(encoding);
+                decompress(payload, encoding);
+           }
+        } catch (std::invalid_argument &e) {
+           BOOST_LOG_TRIVIAL(warning) << "Cannot dechunk or decompress HTTP payload, returning raw payload: " << e.what();
+        }
 
     }
 
