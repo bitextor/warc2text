@@ -122,7 +122,7 @@ namespace warc2text {
 
         while (true) {
             std::size_t offset = reader.tell();
-            std::size_t size = reader.getRecord(content);
+            std::size_t size = reader.getRecord(content, options.max_record_size);
             
             // No more records (EOF or failure to inflate)
             if (size == 0)
