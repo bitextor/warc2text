@@ -17,7 +17,7 @@ sources = [{
     'url': 'https://github.com/bitextor',
     'repo_name': 'warc2text',
     'recursive': True,
-    'commit': '1.5.0',
+    'tag': 'v1.5.0',
     },
 }]
 
