@@ -69,6 +69,7 @@ namespace warc2text {
              {"s", record.getSize()},
              {"rs", record.getPayload().size()},
              {"u", record.getURL()},
+             {"rid", record.getRecordID()},
              {"c", record.getHTTPcontentType()},
              {"ts", record.getWARCdate()},
              {"de", record.getCharset()},

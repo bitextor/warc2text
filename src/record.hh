@@ -24,6 +24,7 @@ namespace warc2text {
         const std::string& getPayload() const;
         const std::string& getPlainText() const;
         const std::string& getURL() const;
+        const std::string& getRecordID() const;
         const std::string& getRecordType() const;
         const std::string& getWARCcontentType() const;
         const std::string& getWARCdate() const;
@@ -75,6 +76,7 @@ namespace warc2text {
         std::string cleanHTTPcontentType;
         std::string charset;
         std::string url;
+        std::string recordID;
         bool bdf_zip{};
 
         static const std::unordered_map<std::string, std::regex> zip_types;

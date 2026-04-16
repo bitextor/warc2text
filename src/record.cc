@@ -75,6 +75,10 @@ namespace warc2text {
                 url = url.substr(1, url.size()-2);
         }
 
+        if (header.count("warc-record-id") == 1) {
+            recordID = header["warc-record-id"];
+        }
+
         if (header.count("content-type") == 1) {
             WARCcontentType = header["content-type"];
             util::toLower(WARCcontentType);
@@ -330,6 +334,10 @@ namespace warc2text {
 
     const std::string& Record::getURL() const {
         return url;
+    }
+
+    const std::string& Record::getRecordID() const {
+        return recordID;
     }
 
     const std::string& Record::getRecordType() const {
